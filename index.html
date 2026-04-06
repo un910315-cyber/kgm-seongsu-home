@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KGM 성수서비스센터 — KG모빌리티 공식 서비스</title>
+<meta name="description" content="KGM 성수서비스센터 · KG모빌리티 공식 서비스센터 · 정비예약 · 견적 · 보험수리">
+<link rel="icon" href="https://www.kg-mobility.com/images/kgm-icon_32X32.png">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --aura: #2F2C4D;
+  --gold: #C4A96C;
+  --black: #0a0a0a;
+  --gray900: #1A1A1A;
+  --gray700: #4D4D4D;
+  --gray400: #999;
+  --gray100: #E5E5E5;
+  --gray50: #F2F2F2;
+  --white: #FFFFFF;
+  --red: #B82921;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 10px; }
+body { font-family: 'Noto Sans KR', sans-serif; color: var(--gray900); background: var(--white); overflow-x: hidden; }
+
+/* NAV */
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; transition: all .5s; }
+.nav.scrolled { background: rgba(255,255,255,.97); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(0,0,0,.06); }
+.nav-inner { max-width: 1440px; margin: 0 auto; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; height: 72px; }
+.nav-logo { height: 22px; transition: opacity .3s; }
+.nav-logo:hover { opacity: .7; }
+.nav-links { display: flex; gap: 48px; }
+.nav-link { font-size: 1.4rem; font-weight: 500; color: var(--white); text-decoration: none; letter-spacing: .5px; transition: all .3s; position: relative; }
+.nav.scrolled .nav-link { color: var(--gray900); }
+.nav-link::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: var(--gold); transition: width .3s; }
+.nav-link:hover::after { width: 100%; }
+.nav-cta { padding: 10px 24px; border: 1px solid rgba(255,255,255,.4); border-radius: 4px; font-size: 1.3rem; font-weight: 500; color: var(--white); text-decoration: none; transition: all .3s; letter-spacing: .5px; }
+.nav.scrolled .nav-cta { border-color: var(--aura); color: var(--aura); }
+.nav-cta:hover { background: linear-gradient(135deg, var(--gold), #8b5cf6); border-color: var(--gold); color: var(--white); border-radius: 8px; box-shadow: 0 4px 15px rgba(139,92,246,.3); }
+
+/* HERO */
+.hero { position: relative; height: 100vh; min-height: 700px; display: flex; align-items: center; overflow: hidden; background: var(--black); }
+.hero-video { position: absolute; inset: -60px; z-index: 1; pointer-events: none; }
+.hero-video iframe { width: 100%; height: 100%; object-fit: cover; transform: scale(1.2); }
+.hero-overlay { position: absolute; inset: 0; z-index: 2; background: linear-gradient(135deg, rgba(0,0,0,.5) 0%, rgba(0,0,0,.3) 50%, rgba(0,0,0,.4) 100%); pointer-events: none; }
+.hero-glow1 { position: absolute; top: -20%; right: -10%; width: 800px; height: 800px; background: radial-gradient(circle, rgba(196,169,108,.06) 0%, transparent 60%); z-index: 3; }
+.hero-glow2 { position: absolute; bottom: -30%; left: -15%; width: 700px; height: 700px; background: radial-gradient(circle, rgba(47,44,77,.2) 0%, transparent 60%); z-index: 3; }
+.hero-content { position: relative; z-index: 5; max-width: 1440px; margin: 0 auto; padding: 0 40px; width: 100%; }
+.hero-overline { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+.hero-overline-line { height: 1px; width: 48px; background: linear-gradient(to right, transparent, var(--gold)); }
+.hero-overline-text { font-size: 1.2rem; font-weight: 500; letter-spacing: 6px; color: var(--gold); text-transform: uppercase; }
+.hero-title { font-size: 6.4rem; font-weight: 900; color: var(--white); line-height: 1; letter-spacing: -1px; margin-bottom: 8px; }
+.hero-title-sub { font-size: 2.6rem; font-weight: 300; letter-spacing: 8px; color: rgba(255,255,255,.5); margin-bottom: 12px; }
+.hero-title-accent { color: var(--gold); }
+.hero-desc { font-size: 1.6rem; font-weight: 300; color: rgba(255,255,255,.5); line-height: 1.8; max-width: 480px; margin-bottom: 40px; }
+.hero-btns { display: flex; gap: 16px; }
+.hero-btn { padding: 16px 36px; font-size: 1.4rem; font-weight: 600; text-decoration: none; border-radius: 4px; transition: all .3s; letter-spacing: .5px; display: inline-flex; align-items: center; gap: 8px; }
+.hero-btn:hover { border-radius: 8px; }
+.hero-btn-primary { background: var(--gold); color: var(--white); border: 1px solid var(--gold); }
+.hero-btn-primary:hover { background: #b8972e; box-shadow: 0 8px 30px rgba(196,169,108,.3); }
+.hero-btn-outline { background: transparent; color: var(--white); border: 1px solid rgba(255,255,255,.3); }
+.hero-btn-outline:hover { border-color: var(--gold); color: var(--gold); background: rgba(196,169,108,.05); }
+.hero-stats { position: absolute; bottom: 60px; left: 0; right: 0; z-index: 5; }
+.hero-stats-inner { max-width: 1440px; margin: 0 auto; padding: 0 40px; display: flex; gap: 64px; border-top: 1px solid rgba(255,255,255,.1); padding-top: 32px; }
+.hero-stat-val { font-size: 4.2rem; font-weight: 700; color: var(--white); font-variant-numeric: tabular-nums; }
+.hero-stat-val .gold { color: var(--gold); }
+.hero-stat-label { font-size: 1.2rem; color: rgba(255,255,255,.4); letter-spacing: 1px; margin-top: 4px; }
+
+/* SECTION COMMON */
+.section { padding: 120px 0; }
+.section-dark { background: var(--gray900); color: var(--white); }
+.section-light { background: var(--gray50); }
+.section-inner { max-width: 1440px; margin: 0 auto; padding: 0 40px; }
+.section-overline { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.section-overline-line { height: 2px; width: 32px; background: var(--gold); }
+.section-overline-text { font-size: 1.2rem; font-weight: 600; letter-spacing: 4px; color: var(--gold); text-transform: uppercase; }
+.section-title { font-size: 4.2rem; font-weight: 700; line-height: 1.2; margin-bottom: 16px; letter-spacing: -1px; }
+.section-desc { font-size: 1.6rem; color: var(--gray400); line-height: 1.7; max-width: 560px; }
+
+/* DISCOVER MODELS */
+.discover-track { display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 16px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+.discover-track::-webkit-scrollbar { height: 4px; }
+.discover-track::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 2px; }
+.discover-track::-webkit-scrollbar-track { background: var(--gray100); border-radius: 2px; }
+.discover-slide { min-width: 300px; scroll-snap-align: start; border-radius: 16px; overflow: hidden; border: 1px solid var(--gray100); background: var(--white); transition: all .4s; flex-shrink: 0; }
+.discover-slide:hover { border-color: rgba(139,92,246,.4); transform: translateY(-6px); box-shadow: 0 20px 50px rgba(139,92,246,.1); }
+.discover-img { height: 200px; background: linear-gradient(135deg, #f8f6f4, #eae6e0); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.discover-img img { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform .4s; }
+.discover-slide:hover .discover-img img { transform: scale(1.05); }
+.discover-info { padding: 16px 20px; display: flex; align-items: center; gap: 10px; }
+.discover-tag { font-size: 1.1rem; font-weight: 700; letter-spacing: 1px; padding: 3px 8px; border-radius: 4px; background: var(--gray50); color: var(--gray700); }
+.discover-name { font-size: 1.6rem; font-weight: 700; color: var(--gray900); }
+.discover-price { font-size: 1.2rem; color: var(--gray400); margin-left: auto; }
+@media (max-width: 768px) {
+  .discover-slide { min-width: 240px; }
+  .discover-img { height: 160px; }
+}
+
+/* SERVICES */
+.services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 60px; }
+.service-card { background: var(--white); border: 1px solid var(--gray100); border-radius: 16px; padding: 40px 32px; transition: all .4s; position: relative; overflow: hidden; }
+.service-card:hover { border-color: var(--gold); transform: translateY(-4px); box-shadow: 0 20px 50px rgba(47,44,77,.12); }
+.service-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gold); transform: scaleX(0); transition: transform .4s; transform-origin: left; }
+.service-card:hover::before { transform: scaleX(1); }
+.service-icon { width: 56px; height: 56px; background: linear-gradient(135deg, #5b3aad, var(--aura)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 24px; }
+.service-name { font-size: 2rem; font-weight: 700; margin-bottom: 12px; color: var(--gray900); }
+.service-desc { font-size: 1.4rem; color: var(--gray400); line-height: 1.7; margin-bottom: 24px; }
+.service-link { font-size: 1.3rem; font-weight: 600; color: var(--aura); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: gap .3s; }
+.service-link:hover { gap: 12px; color: var(--gold); }
+
+/* ABOUT */
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; margin-top: 60px; }
+.about-img { width: 100%; border-radius: 20px; background: linear-gradient(135deg, #2F2C4D, #1a1833); aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+.about-img-text { font-size: 8rem; font-weight: 900; color: rgba(196,169,108,.08); letter-spacing: 8px; }
+.about-img-badge { position: absolute; bottom: 24px; left: 24px; padding: 12px 20px; background: rgba(0,0,0,.6); backdrop-filter: blur(10px); border-radius: 10px; border: 1px solid rgba(196,169,108,.2); }
+.about-img-badge-title { font-size: 1.4rem; font-weight: 700; color: var(--gold); }
+.about-img-badge-sub { font-size: 1.1rem; color: rgba(255,255,255,.6); margin-top: 2px; }
+.about-info { display: flex; flex-direction: column; gap: 32px; }
+.about-item { padding-left: 20px; border-left: 2px solid var(--gray100); }
+.about-item-title { font-size: 1.4rem; font-weight: 700; color: var(--gray900); margin-bottom: 6px; }
+.about-item-desc { font-size: 1.3rem; color: var(--gray400); line-height: 1.6; }
+
+/* MODELS */
+.models-scroll { display: flex; gap: 24px; margin-top: 60px; overflow-x: auto; padding-bottom: 20px; scroll-snap-type: x mandatory; }
+.models-scroll::-webkit-scrollbar { height: 4px; }
+.models-scroll::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 2px; }
+.model-card { min-width: 320px; scroll-snap-align: start; background: var(--white); border: 1px solid rgba(255,255,255,.1); border-radius: 16px; overflow: hidden; transition: all .4s; }
+.section-dark .model-card { background: rgba(255,255,255,.04); }
+.model-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,.2); border-color: rgba(196,169,108,.3); }
+.model-img { height: 200px; background: linear-gradient(135deg, #2a2745, #1a1833); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.model-img img { width: 90%; height: auto; object-fit: contain; }
+.model-info { padding: 24px; }
+.model-type { font-size: 1.1rem; color: var(--gold); font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+.model-name { font-size: 2rem; font-weight: 700; color: var(--white); margin-bottom: 8px; }
+.model-desc2 { font-size: 1.3rem; color: rgba(255,255,255,.5); }
+
+/* CTA BANNER */
+.cta-banner { background: linear-gradient(135deg, #2F2C4D 0%, #1a1028 30%, #3d2a6e 60%, #2F2C4D 100%); padding: 80px 0; text-align: center; position: relative; overflow: hidden; }
+.cta-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(139,92,246,.15), transparent 60%); }
+.cta-title { font-size: 3.2rem; font-weight: 700; color: var(--white); margin-bottom: 12px; position: relative; z-index: 2; }
+.cta-desc2 { font-size: 1.5rem; color: rgba(255,255,255,.5); margin-bottom: 32px; position: relative; z-index: 2; }
+.cta-btn { display: inline-flex; padding: 16px 40px; background: var(--gold); color: var(--white); font-size: 1.5rem; font-weight: 700; text-decoration: none; border-radius: 4px; transition: all .3s; position: relative; z-index: 2; letter-spacing: 1px; }
+.cta-btn:hover { border-radius: 8px; background: #b8972e; box-shadow: 0 8px 30px rgba(196,169,108,.4); }
+
+/* FOOTER */
+.footer { background: var(--black); padding: 60px 0 40px; color: rgba(255,255,255,.4); }
+.footer-inner { max-width: 1440px; margin: 0 auto; padding: 0 40px; }
+.footer-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; padding-bottom: 32px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.footer-logo { height: 18px; opacity: .5; }
+.footer-links { display: flex; gap: 32px; }
+.footer-link { font-size: 1.3rem; color: rgba(255,255,255,.4); text-decoration: none; transition: color .3s; }
+.footer-link:hover { color: var(--gold); }
+.footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+.footer-info { font-size: 1.2rem; line-height: 1.8; }
+.footer-copy { font-size: 1.1rem; color: rgba(255,255,255,.25); }
+
+/* SCROLL ANIMATION */
+.reveal { opacity: 0; transform: translateY(40px); transition: all .8s cubic-bezier(.16,1,.3,1); }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay1 { transition-delay: .1s; }
+.reveal-delay2 { transition-delay: .2s; }
+.reveal-delay3 { transition-delay: .3s; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  html { font-size: 9px; }
+  .nav-inner { padding: 0 20px; height: 60px; }
+  .nav-links { display: none; }
+  .hero { min-height: 100vh; }
+  .hero-video { inset: 0; }
+  .hero-video iframe { width: 100vw; height: 56.25vw; min-height: 100vh; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+  .hero-content { padding: 0 20px; }
+  .hero-title { font-size: 4rem; }
+  .hero-title-sub { font-size: 1.8rem; letter-spacing: 6px; }
+  .hero-desc { font-size: 1.4rem; }
+  .section { padding: 80px 0; }
+  .section-inner { padding: 0 20px; }
+  .section-title { font-size: 2.8rem; }
+  .services-grid { grid-template-columns: 1fr; }
+  .about-grid { grid-template-columns: 1fr; gap: 40px; }
+  .models-scroll { gap: 16px; }
+  .model-card { min-width: 260px; }
+  .footer-top { flex-direction: column; gap: 24px; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav" id="mainNav">
+  <div class="nav-inner">
+    <a href="#"><img src="https://www.kg-mobility.com/images/cm/icons/icon-logo-light.svg" alt="KGM" class="nav-logo" id="navLogo"></a>
+    <div class="nav-links">
+      <a href="#discover" class="nav-link">차량 모델</a>
+      <a href="#services" class="nav-link">서비스 안내</a>
+      <a href="#about" class="nav-link">센터 소개</a>
+      <a href="tel:02-465-5582" class="nav-link">전화 상담</a>
+    </div>
+    <a href="tel:02-465-5582" class="nav-cta">정비 예약</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <!-- 유튜브 배경 영상 -->
+  <div class="hero-video">
+    <iframe id="heroYT" src="https://www.youtube.com/embed/TMCXOXYQEUo?autoplay=1&mute=1&loop=1&playlist=TMCXOXYQEUo&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+  </div>
+  <!-- 영상 위 어두운 오버레이 -->
+  <div class="hero-overlay"></div>
+  <div class="hero-glow1"></div>
+  <div class="hero-glow2"></div>
+  <div class="hero-content">
+    <div class="hero-overline">
+      <div class="hero-overline-line"></div>
+      <span class="hero-overline-text">KGM Authorized Service</span>
+      <div class="hero-overline-line" style="background:linear-gradient(to left,transparent,var(--gold));"></div>
+    </div>
+    <h1 class="hero-title">KGM</h1>
+    <div class="hero-title-sub">성수서비스센터</div>
+    <p class="hero-desc">
+      KG모빌리티 공식 서비스센터<br>
+      최고의 기술력과 정품 부품으로<br>
+      고객님의 차량을 완벽하게 관리합니다
+    </p>
+  </div>
+  <!-- 정비예약 하단 중앙 -->
+  <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);z-index:5;text-align:center;">
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="tel:02-465-5582" style="display:flex;align-items:center;gap:10px;padding:16px 36px;background:rgba(255,255,255,.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(196,169,108,.3);border-radius:50px;color:#fff;font-size:1.5rem;font-weight:600;text-decoration:none;transition:all .4s;letter-spacing:1px;"
+        onmouseover="this.style.background='rgba(196,169,108,.2)';this.style.borderColor='rgba(196,169,108,.7)';this.style.boxShadow='0 8px 30px rgba(196,169,108,.25)';this.style.transform='translateY(-2px)'"
+        onmouseout="this.style.background='rgba(255,255,255,.08)';this.style.borderColor='rgba(196,169,108,.3)';this.style.boxShadow='none';this.style.transform=''">
+        <span style="width:36px;height:36px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;">📞</span>
+        정비 예약
+      </a>
+      <a href="https://pf.kakao.com/_AaZUn/chat" target="_blank" style="display:flex;align-items:center;gap:10px;padding:16px 36px;background:rgba(254,229,0,.1);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(254,229,0,.3);border-radius:50px;color:#fff;font-size:1.5rem;font-weight:600;text-decoration:none;transition:all .4s;letter-spacing:1px;"
+        onmouseover="this.style.background='rgba(254,229,0,.2)';this.style.borderColor='rgba(254,229,0,.7)';this.style.boxShadow='0 8px 30px rgba(254,229,0,.2)';this.style.transform='translateY(-2px)'"
+        onmouseout="this.style.background='rgba(254,229,0,.1)';this.style.borderColor='rgba(254,229,0,.3)';this.style.boxShadow='none';this.style.transform=''">
+        <span style="width:36px;height:36px;background:#FEE500;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;">💬</span>
+        카톡 상담
+      </a>
+    </div>
+    <div style="font-size:1.1rem;color:rgba(255,255,255,.35);margin-top:12px;letter-spacing:1px;">02-465-5582 · 평일 08:30~18:00</div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<!-- ABOUT -->
+<section class="section" id="about" style="padding-top:80px;padding-bottom:80px;">
+  <div class="section-inner">
+    <div class="about-grid">
+      <div class="about-img reveal" style="background:none;">
+        <img src="building.jpg" alt="KGM 성수서비스센터" style="width:100%;height:100%;object-fit:cover;object-position:center 90%;border-radius:20px;">
+        <div class="about-img-badge">
+          <div class="about-img-badge-title">KGM 성수서비스센터</div>
+          <div class="about-img-badge-sub">KG모빌리티 공식 서비스센터</div>
+        </div>
+      </div>
+      <div>
+        <div class="section-overline reveal"><div class="section-overline-line"></div><span class="section-overline-text">About Us</span></div>
+        <h2 class="section-title reveal">신뢰할 수 있는<br>공식 서비스센터</h2>
+        <p class="section-desc reveal" style="margin-bottom:40px;">
+          KGM 성수서비스센터는 KG모빌리티 공식 서비스센터로서,
+          정품 부품과 전문 기술력으로 고객님의 차량을 관리합니다.
+        </p>
+        <div class="about-info">
+          <div class="about-item reveal">
+            <div class="about-item-title">📍 위치</div>
+            <div class="about-item-desc">
+              <a href="https://map.naver.com/p/entry/place/31253512" target="_blank" style="color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(47,44,77,.06);border:1px solid rgba(47,44,77,.12);border-radius:8px;transition:all .3s;cursor:pointer;"
+                onmouseover="this.style.borderColor='#C4A96C';this.style.background='rgba(196,169,108,.06)';this.style.boxShadow='0 4px 12px rgba(196,169,108,.1)'"
+                onmouseout="this.style.borderColor='rgba(47,44,77,.12)';this.style.background='rgba(47,44,77,.06)';this.style.boxShadow='none'">
+                <span>서울 성동구 아차산로11가길 37</span>
+                <span style="font-size:1.1rem;color:#22c55e;font-weight:700;padding:2px 8px;background:rgba(34,197,94,.1);border-radius:4px;white-space:nowrap;">📍 지도보기</span>
+              </a>
+              <button onclick="navigator.clipboard.writeText('서울 성동구 아차산로11가길 37 KGM성수서비스센터').then(function(){var b=event.target.closest('button');b.textContent='✅ 복사완료!';setTimeout(function(){b.textContent='📋 주소복사';},2000);})" style="font-size:1.1rem;color:var(--aura);font-weight:700;padding:4px 10px;background:rgba(47,44,77,.06);border:1px solid rgba(47,44,77,.12);border-radius:6px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .3s;white-space:nowrap;margin-left:6px;"
+                onmouseover="this.style.borderColor='var(--gold)';this.style.background='rgba(196,169,108,.06)'"
+                onmouseout="this.style.borderColor='rgba(47,44,77,.12)';this.style.background='rgba(47,44,77,.06)'">📋 주소복사</button>
+            </div>
+          </div>
+          <div class="about-item reveal">
+            <div class="about-item-title">🕐 운영 시간</div>
+            <div class="about-item-desc">평일 08:30 ~ 18:00 / 토·일·공휴일 휴무</div>
+          </div>
+          <div class="about-item reveal">
+            <div class="about-item-title">📞 연락처</div>
+            <div class="about-item-desc">02-465-5582 (정비 예약 및 상담)</div>
+          </div>
+          <div class="about-item reveal">
+            <div class="about-item-title">🏆 인증</div>
+            <div class="about-item-desc">KG모빌리티 공식 서비스센터 · 보험수리 협력 공업사</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-light" id="services">
+  <div class="section-inner">
+    <div class="section-overline reveal"><div class="section-overline-line"></div><span class="section-overline-text">Our Services</span></div>
+    <h2 class="section-title reveal">전문 서비스</h2>
+    <p class="section-desc reveal">KGM 공식 서비스센터의 전문 기술진이<br>최상의 정비 서비스를 제공합니다</p>
+
+    <!-- 상단: 점검·정비 -->
+    <div style="margin-top:48px;margin-bottom:12px;display:flex;align-items:center;gap:10px;" class="reveal">
+      <div style="height:2px;width:24px;background:var(--gold);"></div>
+      <span style="font-size:1.2rem;font-weight:700;letter-spacing:3px;color:var(--gold);text-transform:uppercase;">점검 · 정비</span>
+    </div>
+    <div class="services-grid" style="margin-top:12px;">
+      <div class="service-card reveal reveal-delay1">
+        <div class="service-icon">🔧</div>
+        <div class="service-name">일반 정비</div>
+        <div class="service-desc">정기 점검, 엔진오일 교환, 브레이크, 서스펜션 등 차량의 기본 정비를 수행합니다</div>
+        <a href="tel:02-465-5582" class="service-link">전화 예약 →</a>
+      </div>
+      <div class="service-card reveal reveal-delay2">
+        <div class="service-icon">📊</div>
+        <div class="service-name">차량 진단</div>
+        <div class="service-desc">최신 진단 장비를 활용한 정밀 차량 진단 및 전자제어 시스템 점검 서비스</div>
+        <a href="tel:02-465-5582" class="service-link">전화 예약 →</a>
+      </div>
+      <div class="service-card reveal reveal-delay3" style="cursor:pointer;" onclick="document.getElementById('maintenanceGuide').style.display='flex'">
+        <div class="service-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a);">📋</div>
+        <div class="service-name">소모품 교환 가이드</div>
+        <div class="service-desc">엔진오일, 미션오일, 브레이크 패드 등 주요 소모품의 적정 교환 시기를 안내합니다</div>
+        <span class="service-link">가이드 보기 →</span>
+      </div>
+    </div>
+
+    <!-- 구분선 -->
+    <div style="margin:40px 0;border-top:1px solid rgba(47,44,77,.1);"></div>
+
+    <!-- 하단: 사고·외장 -->
+    <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px;" class="reveal">
+      <div style="height:2px;width:24px;background:var(--aura);"></div>
+      <span style="font-size:1.2rem;font-weight:700;letter-spacing:3px;color:var(--aura);text-transform:uppercase;">사고 · 외장</span>
+    </div>
+    <div class="services-grid" style="margin-top:12px;">
+      <div class="service-card reveal reveal-delay1">
+        <div class="service-icon" style="background:linear-gradient(135deg,#dc2626,#991b1b);">🛡️</div>
+        <div class="service-name">사고접수 문의</div>
+        <div class="service-desc">보험 사고 접수부터 수리 완료까지 원스톱으로 처리해 드립니다. 보험사 협의도 대행합니다</div>
+        <a href="tel:02-465-5582" class="service-link">사고 접수 →</a>
+      </div>
+      <div class="service-card reveal reveal-delay2">
+        <div class="service-icon" style="background:linear-gradient(135deg,#6d28d9,#4c1d95);">⚙️</div>
+        <div class="service-name">판금·도장</div>
+        <div class="service-desc">숙련된 판금·도장 전문가의 기술로 차량 외관을 원래 상태로 완벽하게 복원합니다</div>
+        <a href="tel:02-465-5582" class="service-link">문의하기 →</a>
+      </div>
+      <div class="service-card reveal reveal-delay3">
+        <div class="service-icon" style="background:linear-gradient(135deg,#2563eb,#1e40af);">🚗</div>
+        <div class="service-name">딜리버리</div>
+        <div class="service-desc">바쁜 고객님을 위해 차량 픽업 및 딜리버리 서비스를 제공합니다</div>
+        <a href="tel:02-465-5582" class="service-link">문의하기 →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 소모품 교환 가이드 팝업 -->
+<div id="maintenanceGuide" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)this.style.display='none'">
+  <div style="max-width:600px;width:100%;max-height:90vh;overflow-y:auto;background:var(--white);border-radius:16px;overflow:hidden;">
+    <div style="padding:20px 24px;background:var(--aura);display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:1.6rem;font-weight:700;color:var(--white);">소모품 교환 가이드</div>
+        <div style="font-size:1.1rem;color:rgba(255,255,255,.5);margin-top:2px;">적정 교환 주기 안내</div>
+      </div>
+      <button onclick="document.getElementById('maintenanceGuide').style.display='none'" style="width:32px;height:32px;background:rgba(255,255,255,.1);border:none;border-radius:8px;color:#fff;font-size:18px;cursor:pointer;">✕</button>
+    </div>
+    <div style="padding:20px 24px;">
+      <table style="width:100%;border-collapse:collapse;font-size:1.3rem;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--aura);">
+            <th style="padding:10px 8px;text-align:left;font-weight:700;color:var(--aura);">소모품</th>
+            <th style="padding:10px 8px;text-align:center;font-weight:700;color:var(--aura);">교환 주기</th>
+            <th style="padding:10px 8px;text-align:left;font-weight:700;color:var(--aura);">비고</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:10px 8px;font-weight:600;">🛢️ 엔진오일</td><td style="padding:10px 8px;text-align:center;color:var(--aura);font-weight:700;">5,000~10,000km</td><td style="padding:10px 8px;color:#666;">가솔린 10,000 / 디젤 5,000~8,000</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:10px 8px;font-weight:600;">⚙️ 미션오일 (AT)</td><td style="padding:10px 8px;text-align:center;color:var(--aura);font-weight:700;">40,000~60,000km</td><td style="padding:10px 8px;color:#666;">자동변속기 기준</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:10px 8px;font-weight:600;">🔴 브레이크 오일</td><td style="padding:10px 8px;text-align:center;color:var(--aura);font-weight:700;">40,000km / 2년</td><td style="padding:10px 8px;color:#666;">수분 흡수로 성능 저하</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:10px 8px;font-weight:600;">🔵 브레이크 패드</td><td style="padding:10px 8px;text-align:center;color:var(--aura);font-weight:700;">30,000~40,000km</td><td style="padding:10px 8px;color:#666;">운전 습관에 따라 차이</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:10px 8px;font-weight:600;">💨 에어컨 필터</td><td style="padding:10px 8px;text-align:center;color:var(--aura);font-weight:700;">10,000~15,000km</td><td style="padding:10px 8px;color:#666;">미세먼지 시즌엔 일찍 교환</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:10px 8px;font-weight:600;">🌀 에어클리너</td><td style="padding:10px 8px;text-align:center;color:var(--aura);font-weight:700;">15,000~20,000km</td><td style="padding:10px 8px;color:#666;">엔진 흡기 필터</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:10px 8px;font-weight:600;">❄️ 냉각수 (부동액)</td><td style="padding:10px 8px;text-align:center;color:var(--aura);font-weight:700;">40,000km / 2년</td><td style="padding:10px 8px;color:#666;">혼합 사용 금지</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:10px 8px;font-weight:600;">🔋 배터리</td><td style="padding:10px 8px;text-align:center;color:var(--aura);font-weight:700;">3~5년</td><td style="padding:10px 8px;color:#666;">전압 체크 권장</td></tr>
+          <tr style="border-bottom:1px solid #eee;"><td style="padding:10px 8px;font-weight:600;">🔗 타이밍벨트/체인</td><td style="padding:10px 8px;text-align:center;color:var(--aura);font-weight:700;">80,000~100,000km</td><td style="padding:10px 8px;color:#666;">벨트식 기준, 체인은 점검</td></tr>
+          <tr><td style="padding:10px 8px;font-weight:600;">🛞 타이어</td><td style="padding:10px 8px;text-align:center;color:var(--aura);font-weight:700;">40,000~50,000km</td><td style="padding:10px 8px;color:#666;">트레드 1.6mm 이하 시 교환</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:16px;padding:12px;background:rgba(47,44,77,.05);border-radius:8px;font-size:1.2rem;color:#666;line-height:1.7;">
+        💡 위 교환 주기는 일반적인 기준이며, 차량 사용 환경에 따라 달라질 수 있습니다.<br>
+        정확한 점검은 <a href="tel:02-465-5582" style="color:var(--aura);font-weight:700;">02-465-5582</a> 로 문의해 주세요.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DISCOVER MODELS -->
+<section class="section" id="discover" style="padding-bottom:80px;">
+  <div class="section-inner">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:20px;margin-bottom:48px;">
+      <div>
+        <div class="section-overline reveal"><div class="section-overline-line"></div><span class="section-overline-text">New Insight</span></div>
+        <h2 class="section-title reveal" style="margin-bottom:8px;">DISCOVER<br><span style="background:linear-gradient(135deg,var(--gold),#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">KGM MODELS</span></h2>
+        <p class="section-desc reveal">KGM이 제안하는 대표 모델을 소개합니다</p>
+      </div>
+      <a href="https://www.kg-mobility.com/pr/model" target="_blank" class="reveal" style="font-size:1.3rem;color:var(--gold);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:6px;transition:gap .3s;">모델 자세히 보기 →</a>
+    </div>
+    <div class="discover-track" id="discoverTrack">
+      <div class="discover-slide">
+        <div class="discover-img"><img src="https://www.kg-mobility.com/attached/contents/display/image/200000100010016/20241216060147436_InU6jC.png" alt="액티언"></div>
+        <div class="discover-info"><span class="discover-tag">SUV</span><span class="discover-name">액티언</span><span class="discover-price">4,200만원~</span></div>
+      </div>
+      <div class="discover-slide">
+        <div class="discover-img"><img src="https://www.kg-mobility.com/attached/contents/display/image/200000100010001/20241212062925448_pq0xqJ.png" alt="토레스"></div>
+        <div class="discover-info"><span class="discover-tag" style="background:var(--gold);color:#000;">BEST</span><span class="discover-name">토레스</span><span class="discover-price">2,627만원~</span></div>
+      </div>
+      <div class="discover-slide">
+        <div class="discover-img"><img src="https://www.kg-mobility.com/attached/contents/display/image/200000100010009/20250401090338029_pilzCE.png" alt="토레스 EVX"></div>
+        <div class="discover-info"><span class="discover-tag" style="background:#22c55e;color:#000;">EV</span><span class="discover-name">토레스 EVX</span><span class="discover-price">4,550만원~</span></div>
+      </div>
+      <div class="discover-slide">
+        <div class="discover-img"><img src="https://www.kg-mobility.com/attached/contents/display/image/200000100010007/20241219095511165_PswkoW.png" alt="티볼리"></div>
+        <div class="discover-info"><span class="discover-tag" style="background:#ef4444;color:#fff;">SALE</span><span class="discover-name">티볼리</span><span class="discover-price">1,898만원~</span></div>
+      </div>
+      <div class="discover-slide">
+        <div class="discover-img"><img src="https://www.kg-mobility.com/attached/contents/display/image/200000100010012/20241216061058544_LJSzRf.png" alt="렉스턴 뉴 아레나"></div>
+        <div class="discover-info"><span class="discover-tag">SUV</span><span class="discover-name">렉스턴 뉴 아레나</span><span class="discover-price">4,010만원~</span></div>
+      </div>
+      <div class="discover-slide">
+        <div class="discover-img"><img src="https://www.kg-mobility.com/images/pr/vehicle/torres-hybrid_grand_white.png" alt="토레스 하이브리드"></div>
+        <div class="discover-info"><span class="discover-tag" style="background:var(--aura);color:var(--gold);">NEW</span><span class="discover-name">토레스 하이브리드</span><span class="discover-price">신규 출시</span></div>
+      </div>
+      <div class="discover-slide">
+        <div class="discover-img"><img src="https://www.kg-mobility.com/images/od/musso_2026.png" alt="무쏘"></div>
+        <div class="discover-info"><span class="discover-tag">PICKUP</span><span class="discover-name">무쏘</span><span class="discover-price">신규 출시</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- MODELS -->
+<!-- CTA -->
+<section class="cta-banner">
+  <div class="cta-glow"></div>
+  <div class="section-overline reveal" style="justify-content:center;margin-bottom:16px;"><div class="section-overline-line"></div><span class="section-overline-text" style="color:rgba(255,255,255,.5);">Customer First</span><div class="section-overline-line" style="background:linear-gradient(to left,transparent,rgba(196,169,108,.5));"></div></div>
+  <h2 class="cta-title reveal">고객님의 만족이<br>저희의 가장 큰 보람입니다</h2>
+  <p class="cta-desc2 reveal" style="max-width:500px;margin:0 auto 32px;line-height:1.8;">KGM 성수서비스센터는 정직한 정비와 투명한 견적으로<br>고객님께 신뢰받는 서비스를 약속드립니다</p>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative;z-index:2;">
+    <a href="tel:02-465-5582" class="cta-btn reveal">📞 02-465-5582</a>
+    <a href="https://map.naver.com/p/entry/place/31253512" target="_blank" class="cta-btn reveal" style="background:transparent;border:1px solid rgba(196,169,108,.4);">📍 오시는 길</a>
+    <a href="https://pf.kakao.com/_AaZUn/chat" target="_blank" class="cta-btn reveal" style="background:#FEE500;color:#3C1E1E;border:none;">💬 카카오톡 상담</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<!-- 카카오톡 플로팅 버튼 -->
+<a href="https://pf.kakao.com/_AaZUn/chat" target="_blank" id="kakaoFloat" style="position:fixed;bottom:24px;right:24px;z-index:90;width:56px;height:56px;background:#FEE500;border-radius:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.25);transition:all .3s;text-decoration:none;"
+  onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 30px rgba(0,0,0,.3)'"
+  onmouseout="this.style.transform='';this.style.boxShadow='0 4px 20px rgba(0,0,0,.25)'">
+  <svg width="28" height="28" viewBox="0 0 256 256"><path fill="#3C1E1E" d="M128 36C70.6 36 24 72.8 24 118c0 29.3 19.5 55 48.8 69.5l-10 36.8c-.8 2.9 2.5 5.3 5 3.6l43.4-29c5.5.7 11.2 1.1 16.8 1.1 57.4 0 104-36.8 104-82S185.4 36 128 36z"/></svg>
+</a>
+<div id="kakaoTooltip" style="position:fixed;bottom:88px;right:24px;z-index:90;background:#FEE500;color:#3C1E1E;padding:8px 14px;border-radius:8px;font-size:1.2rem;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,.15);white-space:nowrap;animation:fadeUp .5s ease-out .5s both;">
+  카카오톡 상담하기
+  <div style="position:absolute;bottom:-6px;right:20px;width:12px;height:12px;background:#FEE500;transform:rotate(45deg);"></div>
+</div>
+<script>setTimeout(function(){var t=document.getElementById('kakaoTooltip');if(t)t.style.display='none';},5000);</script>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <img src="https://www.kg-mobility.com/images/cm/icons/icon-logo-light.svg" alt="KGM" class="footer-logo">
+      <div class="footer-links">
+        <a href="#discover" class="footer-link">차량 모델</a>
+        <a href="#services" class="footer-link">서비스 안내</a>
+        <a href="#about" class="footer-link">센터 소개</a>
+        <a href="tel:02-465-5582" class="footer-link">전화 상담</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-info">
+        KGM 성수서비스센터 · UN Motors<br>
+        서울 성동구 아차산로11가길 37 · 대표전화 02-465-5582
+      </div>
+      <div class="footer-copy">© 2024 KGM Seongsu Service Center. All rights reserved.</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Scroll nav
+var nav=document.getElementById('mainNav');
+var logo=document.getElementById('navLogo');
+window.addEventListener('scroll',function(){
+  if(window.scrollY>80){
+    nav.classList.add('scrolled');
+    logo.src='https://www.kg-mobility.com/images/cm/icons/icon-logo.svg';
+  } else {
+    nav.classList.remove('scrolled');
+    logo.src='https://www.kg-mobility.com/images/cm/icons/icon-logo-light.svg';
+  }
+});
+
+// Scroll reveal
+var reveals=document.querySelectorAll('.reveal');
+var observer=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target);}
+  });
+},{threshold:0.1,rootMargin:'0px 0px -40px 0px'});
+reveals.forEach(function(el){observer.observe(el);});
+
+// Auto-scroll discover models
+var dTrack=document.getElementById('discoverTrack');
+if(dTrack){
+  var dAuto=setInterval(function(){
+    if(dTrack.scrollLeft+dTrack.clientWidth>=dTrack.scrollWidth-10){
+      dTrack.scrollTo({left:0,behavior:'smooth'});
+    } else {
+      dTrack.scrollBy({left:320,behavior:'smooth'});
+    }
+  },3000);
+  dTrack.addEventListener('mouseenter',function(){clearInterval(dAuto);});
+  dTrack.addEventListener('mouseleave',function(){
+    dAuto=setInterval(function(){
+      if(dTrack.scrollLeft+dTrack.clientWidth>=dTrack.scrollWidth-10) dTrack.scrollTo({left:0,behavior:'smooth'});
+      else dTrack.scrollBy({left:320,behavior:'smooth'});
+    },3000);
+  });
+}
+
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(function(a){
+  a.addEventListener('click',function(e){
+    e.preventDefault();
+    var t=document.querySelector(this.getAttribute('href'));
+    if(t) t.scrollIntoView({behavior:'smooth'});
+  });
+});
+</script>
+</body>
+</html>
