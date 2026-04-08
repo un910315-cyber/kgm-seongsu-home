@@ -1254,13 +1254,15 @@
     return el ? el.id.replace('page-','') : 'dashboard';
   }
   function refreshAll() {
-    // 모든 탭을 항상 렌더링 (탭 전환 시 데이터가 이미 준비됨)
     renderDashboard();
-    renderList();
-    renderComplete();
-    renderOut();
-    initYearSelect();
-    renderStats();
+    try { renderList(); } catch(e) { console.error('renderList error:', e); }
+    try { renderComplete(); } catch(e) {
+      // 에러 발생 시 화면에 직접 표시
+      var el = document.getElementById('complete-empty');
+      if(el) { el.style.display='block'; el.innerHTML='<div class="empty-icon">⚠️</div><div>renderComplete 에러: '+e.message+'</div>'; }
+    }
+    try { renderOut(); } catch(e) { console.error('renderOut error:', e); }
+    try { initYearSelect(); renderStats(); } catch(e) { console.error('renderStats error:', e); }
   }
 
   // ---- HELPERS ----
