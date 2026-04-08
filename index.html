@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta property="og:title" content="KGM 성수서비스센터">
+<meta property="og:description" content="KGM 성수서비스센터 · 판금 · 도장 · 보험수리 · 수입차 사고수리">
+<meta property="og:image" content="https://kgm-seongsu.co.kr/building.jpg">
+<meta property="og:url" content="https://kgm-seongsu.co.kr/">
+<meta property="og:type" content="website">
 <title>KGM 성수서비스센터 — KG모빌리티 공식 서비스</title>
 <meta name="description" content="KGM 성수서비스센터 · KG모빌리티 공식 서비스센터 · 정비예약 · 견적 · 보험수리">
 <link rel="icon" href="https://www.kg-mobility.com/images/kgm-icon_32X32.png">
@@ -489,7 +494,7 @@ body { font-family: 'Noto Sans KR', sans-serif; color: var(--gray900); backgroun
         KGM 성수서비스센터 · UN Motors<br>
         서울 성동구 아차산로11가길 37 · 대표전화 02-465-5582
       </div>
-      <div class="footer-copy">© 2024 KGM Seongsu Service Center. All rights reserved.</div>
+      <div class="footer-copy">© 2026 KGM Seongsu Service Center. All rights reserved.</div>
     </div>
   </div>
 </footer>
@@ -540,7 +545,9 @@ if(dTrack){
 document.querySelectorAll('a[href^="#"]').forEach(function(a){
   a.addEventListener('click',function(e){
     e.preventDefault();
-    var t=document.querySelector(this.getAttribute('href'));
+    var href=this.getAttribute('href');
+    if(!href || href==='#'){window.scrollTo({top:0,behavior:'smooth'});return;}
+    var t=document.querySelector(href);
     if(t) t.scrollIntoView({behavior:'smooth'});
   });
 });

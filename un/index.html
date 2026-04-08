@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
 <title>KGM Seongsu — 입출고 관리</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -857,7 +858,7 @@
 </div>
 
 <!-- LOGIN SCREEN -->
-<div id="loginScreen" style="display:none;position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+<div id="loginScreen" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;overflow:hidden;">
   <!-- 배경 -->
   <div style="position:absolute;inset:0;background:#1a1a2e;"></div>
   <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(47,44,77,.9) 0%,rgba(10,10,20,.95) 50%,rgba(47,44,77,.6) 100%);"></div>
@@ -1018,9 +1019,9 @@
         badge.id = 'user-badge';
         badge.className='date-badge';
         badge.style.cssText='cursor:pointer;display:flex;align-items:center;gap:6px;';
-        badge.innerHTML='<img src="'+(user.photoURL||'')+'" style="width:20px;height:20px;border-radius:50%;border:1px solid rgba(139,92,246,.3)">'
-          +'<span style="font-family:Inter,sans-serif;font-size:11px;">'+window._userName.split(' ')[0]+'</span>'
-          +'<span style="font-size:9px;color:var(--accent);font-weight:700;text-transform:uppercase;">'+role+'</span>';
+        badge.innerHTML='<img src="'+esc(user.photoURL||'')+'" style="width:20px;height:20px;border-radius:50%;border:1px solid rgba(139,92,246,.3)">'
+          +'<span style="font-family:Inter,sans-serif;font-size:11px;">'+esc(window._userName.split(' ')[0])+'</span>'
+          +'<span style="font-size:9px;color:var(--accent);font-weight:700;text-transform:uppercase;">'+esc(role)+'</span>';
         badge.onclick=function(){if(confirm('로그아웃 하시겠습니까?'))authSignOut();};
         headerRight.appendChild(badge);
       }
@@ -1050,11 +1051,11 @@
       document.getElementById('arCount').textContent=reqs.length+'명 대기중';
       list.innerHTML = reqs.map(r=>
         '<div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;">'
-        +(r.photo?'<img src="'+r.photo+'" style="width:28px;height:28px;border-radius:50%;">':'')
+        +(r.photo?'<img src="'+esc(r.photo)+'" style="width:28px;height:28px;border-radius:50%;">':'')
         +'<div style="flex:1;min-width:0;">'
-        +'<div style="font-size:12px;font-weight:600;color:var(--text);">'+((r.name||r.email))+'</div>'
-        +'<div style="font-size:10px;color:var(--text-dim);">'+r.email+'</div>'
-        +'<div style="font-size:9px;color:var(--text-dim);">'+r.requestedAt+'</div>'
+        +'<div style="font-size:12px;font-weight:600;color:var(--text);">'+esc(r.name||r.email)+'</div>'
+        +'<div style="font-size:10px;color:var(--text-dim);">'+esc(r.email)+'</div>'
+        +'<div style="font-size:9px;color:var(--text-dim);">'+esc(r.requestedAt)+'</div>'
         +'</div>'
         +'<select id="role-'+r.id.replace(/[@.]/g,'_')+'" style="padding:4px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;">'
         +'<option value="staff">KGM직원</option><option value="viewer">열람</option><option value="admin">관리자</option></select>'
@@ -1126,9 +1127,9 @@
         var si=email.replace(/[@.]/g,'_');
         var isSelf=(email===window._userEmail);
         rows+='<tr>'
-          +'<td>'+(photo?'<img src="'+photo+'" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);" onerror="this.style.display=\'none\'">':'—')+'</td>'
-          +'<td style="font-size:12px;font-family:monospace;">'+email+'</td>'
-          +'<td style="font-size:12px;">'+name+'</td>'
+          +'<td>'+(photo?'<img src="'+esc(photo)+'" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);" onerror="this.style.display=\'none\'">':'—')+'</td>'
+          +'<td style="font-size:12px;font-family:monospace;">'+esc(email)+'</td>'
+          +'<td style="font-size:12px;">'+esc(name)+'</td>'
           +'<td><span style="color:'+(_RC[role]||'#aaa')+';font-weight:700;font-size:12px;">'+(_RL[role]||role)+'</span></td>'
           +'<td style="font-size:11px;color:var(--text-dim);">'+(_RD[role]||'-')+'</td>'
           +'<td style="font-size:11px;color:var(--text-dim);">'+(u.approvedAt||u.createdAt||'-').toString().slice(0,10)+'</td>'
@@ -1157,9 +1158,9 @@
         pend.forEach(function(r){
           var si=r.email.replace(/[@.]/g,'_');
           pr+='<tr>'
-            +'<td>'+(r.photo?'<img src="'+r.photo+'" style="width:28px;height:28px;border-radius:50%;" onerror="this.style.display=\'none\'">':'—')+'</td>'
-            +'<td style="font-size:12px;font-family:monospace;">'+r.email+'</td>'
-            +'<td style="font-size:12px;">'+(r.name||'-')+'</td>'
+            +'<td>'+(r.photo?'<img src="'+esc(r.photo)+'" style="width:28px;height:28px;border-radius:50%;" onerror="this.style.display=\'none\'">':'—')+'</td>'
+            +'<td style="font-size:12px;font-family:monospace;">'+esc(r.email)+'</td>'
+            +'<td style="font-size:12px;">'+esc(r.name||'-')+'</td>'
             +'<td style="font-size:11px;color:var(--text-dim);">'+(r.requestedAt||'').slice(0,10)+'</td>'
             +'<td><select id="umpr-'+si+'" style="padding:4px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;">'
             +'<option value="staff">KGM직원</option><option value="viewer">열람</option><option value="admin">관리자</option></select></td>'
@@ -1606,6 +1607,7 @@
       </tr>`).join('');
   }
 
+  window.renderComplete = renderComplete;
   // ---- MODAL ----
   window.openModal = function() { _openModal(null); };
   window._openModal = function(id) {
@@ -1881,6 +1883,7 @@
     }
   }
   window.renderStats = renderStats;
+  window.initYearSelect = initYearSelect;
 
   // 연도 셀렉트 초기화
   var _yearInitDone = false;
