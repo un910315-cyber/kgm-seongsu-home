@@ -416,7 +416,7 @@
 <div class="nav-tabs">
   <div class="nav-tab active" onclick="switchPage('dashboard')">📊 대시보드</div>
   <div class="nav-tab" onclick="switchPage('list')">🚗 입출고 목록</div>
-  <div class="nav-tab" onclick="alert('탭클릭됨');switchPage('complete')">✅ 수리완료 대기</div>
+  <div class="nav-tab" onclick="switchPage('complete')">✅ 수리완료 대기</div>
   <div class="nav-tab" onclick="switchPage('out')">🏁 출고완료</div>
   <div class="nav-tab" onclick="switchPage('stats')">📈 월별 통계</div>
   <div class="nav-tab" onclick="switchPage('migyeol')">📂 보험 미결</div>
@@ -1254,16 +1254,13 @@
     return el ? el.id.replace('page-','') : 'dashboard';
   }
   function refreshAll() {
-    const pg = _activePage();
-    // 대시보드는 항상 갱신 (통계 카드)
+    // 모든 탭을 항상 렌더링 (탭 전환 시 데이터가 이미 준비됨)
     renderDashboard();
-    // 현재 보고있는 탭만 렌더링 (성능 최적화)
-    if(pg==='list') renderList();
-    if(pg==='complete') renderComplete();
-    if(pg==='out') renderOut();
-    if(pg==='stats'){ initYearSelect(); renderStats(); }
-    // 탭이 아닌 경우에도 initYearSelect는 필요
-    if(pg!=='stats') initYearSelect();
+    renderList();
+    renderComplete();
+    renderOut();
+    initYearSelect();
+    renderStats();
   }
 
   // ---- HELPERS ----
@@ -1491,7 +1488,6 @@
   function renderComplete() {
     const allList = getList();
     const data = allList.filter(r=>r.status==='수리완료').sort((a,b)=>new Date(b.inDate)-new Date(a.inDate));
-    alert('renderComplete 호출됨! 전체:'+allList.length+'대, 수리완료:'+data.length+'대, 상태목록:'+[...new Set(allList.map(r=>r.status))].join(','));
     const tbody = document.getElementById('complete-tbody');
     const empty = document.getElementById('complete-empty');
     if (!data.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
