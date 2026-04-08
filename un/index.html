@@ -2028,11 +2028,9 @@
       showNotif('견적서 로딩 실패: ' + e.message, true);
     }
   };
-</script>
 
-<script>
-  // PAGE SWITCH
-  function switchPage(name) {
+  // PAGE SWITCH (모듈 내부에서 직접 접근)
+  window.switchPage = function(name) {
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
     document.getElementById('page-'+name).classList.add('active');
@@ -2041,13 +2039,15 @@
       const pg=t.getAttribute('onclick')?.match(/switchPage\('(.+?)'\)/)?.[1];
       if(pg===name) t.classList.add('active');
     });
-    if (name==='list') window.renderList();
-    if (name==='complete') window.renderComplete();
-    if (name==='out') window.renderOut();
-    if (name==='stats') { window.initYearSelect(); window.renderStats(); }
+    if (name==='list') renderList();
+    if (name==='complete') renderComplete();
+    if (name==='out') renderOut();
+    if (name==='stats') { initYearSelect(); renderStats(); }
     if (name==='usermgmt' && window.loadUserMgmt) { loadUserMgmt(); }
-  }
+  };
+</script>
 
+<script>
   // DATE
   function updateDate() {
     const now = new Date();
