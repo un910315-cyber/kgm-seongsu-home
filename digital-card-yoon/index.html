@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta property="og:title" content="윤유현 총괄이사 | KGM 성수서비스센터">
+<meta property="og:description" content="KGM 성수서비스센터 · 판금 · 도장 · 보험수리 · 수입차 사고수리">
+<meta property="og:image" content="https://kgm-seongsu.co.kr/digital-card-yoon/og-preview.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://kgm-seongsu.co.kr/digital-card-yoon/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="윤유현 총괄이사 | KGM 성수서비스센터">
+<meta name="twitter:description" content="KGM 성수서비스센터 · 판금 · 도장 · 보험수리 · 수입차 사고수리">
+<meta name="twitter:image" content="https://kgm-seongsu.co.kr/digital-card-yoon/og-preview.png">
+<title>윤유현 이사 | KGM 성수서비스센터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --pp:#9040E0;--pp2:#B060FF;--ppdark:#4A1890;
+  --sl:#C8C8E8;--slhi:#F0EEFF;
+  --bg:#0C0C16;--bg2:#111120;--bg3:#16162A;
+  --bp:rgba(176,96,255,0.35);--bs:rgba(200,200,232,0.15);
+  --txt:#F0EEFF;--muted:#A898C8;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--txt);font-family:'Noto Sans KR',sans-serif;display:flex;justify-content:center;min-height:100vh;}
+.wrap{width:100%;max-width:430px;display:flex;flex-direction:column;overflow:hidden;}
+
+/* ── HERO ── */
+.hero{
+  position:relative;overflow:hidden;
+  min-height:280px;
+  display:flex;flex-direction:column;
+  background:var(--bg2);
+}
+
+.grid-bg{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(124,48,200,0.07) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(124,48,200,0.07) 1px,transparent 1px);
+  background-size:36px 36px;
+}
+
+/* Diagonal slashes */
+.slashes{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.sl{position:absolute;top:-80px;height:180%;transform:skewX(-16deg);}
+.sl1{right:52px;width:72px;background:linear-gradient(180deg,var(--pp2) 0%,var(--ppdark) 100%);opacity:0.88;}
+.sl2{right:18px;width:16px;background:linear-gradient(180deg,#D0D0E8,#8080A8);opacity:0.55;}
+.sl3{right:140px;width:28px;background:linear-gradient(180deg,var(--pp) 0%,transparent 100%);opacity:0.3;}
+.sl4{right:178px;width:8px;background:linear-gradient(180deg,#C0C0D8,transparent);opacity:0.18;}
+
+/* Automotive icon pattern */
+.auto-icons{position:absolute;inset:0;pointer-events:none;opacity:0.06;}
+
+/* Top: badge + name */
+.hero-top{
+  position:relative;z-index:3;
+  padding:36px 28px 0;
+  display:flex;align-items:center;gap:14px;
+}
+.badge-block{
+  width:64px;height:64px;flex-shrink:0;
+  background:linear-gradient(145deg,#22104A,#160840);
+  border:1.5px solid var(--pp2);
+  border-radius:14px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;
+  box-shadow:0 0 0 1px rgba(160,80,232,0.2),inset 0 1px 0 rgba(255,255,255,0.07);
+}
+.badge-kgm{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:22px;letter-spacing:0.08em;line-height:1;
+  background:linear-gradient(180deg,#F0F0FF 0%,#9090C0 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.badge-sc{font-size:5.5px;letter-spacing:0.2em;color:var(--pp2);font-family:'Rajdhani',sans-serif;font-weight:600;}
+.badge-dot{
+  position:absolute;top:-4px;right:-4px;
+  width:10px;height:10px;border-radius:50%;
+  background:var(--pp2);border:2px solid var(--bg2);
+}
+.hero-title-block{}
+.hero-auth{
+  font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:600;
+  letter-spacing:0.2em;color:var(--pp2);text-transform:uppercase;margin-bottom:4px;
+}
+.hero-shopname{
+  font-family:'Noto Sans KR',sans-serif;font-size:24px;font-weight:700;color:#F0EEFF;
+  letter-spacing:0.02em;line-height:1.3;
+}
+.hero-shopname span{color:#FFFFFF;}
+
+/* Name block bottom */
+.hero-bottom{
+  position:relative;z-index:3;
+  margin-top:auto;
+  padding:0 28px 36px;
+}
+.hero-name{
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:58px;font-weight:900;letter-spacing:0.04em;line-height:1.05;
+  background:linear-gradient(180deg,#FFFFFF 0%,#D0C8F8 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:8px;
+}
+.hero-role{
+  display:flex;align-items:center;gap:10px;
+  font-family:'Noto Sans KR',sans-serif;font-size:16px;font-weight:500;
+  letter-spacing:0.08em;color:#FFFFFF;
+}
+.hero-role::before{
+  content:'';width:28px;height:1.5px;
+  background:linear-gradient(90deg,var(--pp2),transparent);
+  flex-shrink:0;
+}
+.hero-code{
+  font-family:'Rajdhani',sans-serif;font-size:10px;
+  color:rgba(160,80,232,0.7);letter-spacing:0.16em;margin-top:4px;
+}
+
+/* ── SERVICE TAGS ── */
+.service-strip{
+  padding:16px 20px;
+  background:var(--bg3);
+  border-top:1px solid var(--bp);
+  border-bottom:1px solid var(--bp);
+  display:flex;gap:12px;
+  align-items:center;
+  justify-content:center;
+}
+.cat-btn{
+  flex:1;text-align:center;
+  font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:700;
+  color:#FFFFFF;letter-spacing:0.06em;
+  text-decoration:none;
+  padding:12px 0;
+  border-radius:10px;
+  background:rgba(160,80,255,0.35);
+  border:2px solid rgba(255,255,255,0.85);
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity 0.15s, transform 0.1s;
+}
+.cat-btn:active{
+  opacity:0.85;
+  transform:scale(0.97);
+}
+.cat-sep{
+  font-size:20px;color:rgba(255,255,255,0.4);
+  font-weight:300;flex-shrink:0;
+}
+
+/* ── PURPLE BAR ── */
+.pbar{height:3px;background:linear-gradient(90deg,var(--ppdark),var(--pp2) 50%,var(--ppdark));}
+
+/* ── QUICK ACTIONS ── */
+.qa-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:rgba(160,80,232,0.18);
+  border-bottom:1px solid var(--bp);
+}
+.qa-btn{
+  display:flex;flex-direction:column;align-items:center;gap:9px;
+  padding:20px 8px;background:var(--bg2);
+  text-decoration:none;color:var(--txt);
+  transition:background 0.15s;cursor:pointer;border:none;
+  font-family:'Noto Sans KR',sans-serif;
+  position:relative;overflow:hidden;
+}
+.qa-btn::after{
+  content:'';position:absolute;bottom:0;left:20%;right:20%;
+  height:2px;border-radius:2px;
+  opacity:0;transition:opacity 0.2s;
+}
+.qa-btn:nth-child(1)::after{background:var(--pp2);}
+.qa-btn:nth-child(2)::after{background:#5080D0;}
+.qa-btn:nth-child(3)::after{background:#40A870;}
+.qa-btn:active{background:var(--bg3);}
+.qa-btn:active::after{opacity:1;}
+.qa-icon{
+  width:46px;height:46px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+}
+.qa-icon.ph{background:linear-gradient(145deg,#3A1060,#6A20B0);border:1px solid rgba(160,80,232,0.45);}
+.qa-icon.wb{background:linear-gradient(145deg,#102040,#204880);border:1px solid rgba(60,120,220,0.35);}
+.qa-icon.mp{background:linear-gradient(145deg,#0A2818,#1A5030);border:1px solid rgba(50,180,100,0.35);}
+.qa-label{font-size:13px;color:var(--muted);letter-spacing:0.04em;}
+
+/* ── SECTION ── */
+.section{
+  padding:24px 24px;
+  border-bottom:1px solid rgba(176,96,255,0.3);
+  background:#1A1628;
+  opacity:0;transform:translateY(18px);
+  transition:opacity 0.5s ease,transform 0.5s ease;
+  position:relative;
+}
+.section.visible{opacity:1;transform:translateY(0);}
+.section::before{
+  content:'';position:absolute;left:0;top:12px;bottom:12px;
+  width:2px;border-radius:2px;
+  background:linear-gradient(180deg,var(--pp2),rgba(160,80,232,0));
+}
+.sec-label{
+  display:flex;align-items:center;gap:8px;
+  font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:0.22em;color:var(--pp2);text-transform:uppercase;
+  margin-bottom:14px;
+}
+.sec-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--bp),transparent);}
+
+.irow{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:10px 0;border-bottom:1px solid rgba(176,96,255,0.15);
+}
+.irow:last-child{border-bottom:none;}
+.iico{
+  width:36px;height:36px;flex-shrink:0;border-radius:9px;
+  background:rgba(176,96,255,0.2);border:1px solid rgba(176,96,255,0.35);
+  display:flex;align-items:center;justify-content:center;
+}
+.ityp{font-size:10px;font-family:'Rajdhani',sans-serif;letter-spacing:0.14em;color:#9888CC;text-transform:uppercase;font-weight:600;margin-bottom:3px;}
+.ival{font-size:16px;color:#F5F0FF;font-weight:500;line-height:1.5;}
+
+/* ── CTA ── */
+.cta-area{
+  padding:24px 24px 20px;
+  display:flex;flex-direction:column;gap:10px;
+  background:var(--bg2);
+}
+.cbtn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:15px 20px;border-radius:10px;
+  text-decoration:none;font-size:14px;font-weight:500;
+  font-family:'Noto Sans KR',sans-serif;letter-spacing:0.03em;
+  transition:opacity 0.15s,transform 0.1s;
+  cursor:pointer;border:none;width:100%;
+  position:relative;overflow:hidden;
+}
+.cbtn:active{opacity:0.8;transform:scale(0.98);}
+.cbtn-shine::before{
+  content:'';position:absolute;
+  top:0;left:-100%;width:50%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);
+  transition:left 0.5s;
+}
+.cbtn:hover.cbtn-shine::before{left:160%;}
+.cp{background:linear-gradient(135deg,#4A1490,var(--pp));color:#fff;border:1px solid rgba(160,80,232,0.5);box-shadow:0 4px 24px rgba(124,48,200,0.25),inset 0 1px 0 rgba(255,255,255,0.1);}
+.cs{background:linear-gradient(135deg,#1E1E34,#2A2A44);color:var(--slhi);border:1px solid var(--bs);}
+.cko{background:linear-gradient(135deg,#2A2010,#3A3010);color:#F0C020;border:1px solid rgba(220,180,20,0.3);}
+.cdark{background:transparent;color:var(--muted);border:1px solid rgba(160,80,232,0.18);}
+
+/* Kakao coming soon */
+.coming-soon{
+  position:absolute;top:50%;right:16px;transform:translateY(-50%);
+  font-size:9px;font-family:'Rajdhani',sans-serif;font-weight:700;
+  letter-spacing:0.1em;color:#F0C020;
+  background:rgba(240,192,32,0.12);
+  border:1px solid rgba(240,192,32,0.3);
+  padding:2px 7px;border-radius:4px;
+}
+
+/* ── CTA ── */
+.cta-area{
+  padding:24px 24px 20px;
+  display:flex;flex-direction:column;gap:12px;
+  background:var(--bg2);
+}
+.cbtn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:16px 20px;border-radius:12px;
+  text-decoration:none;font-size:15px;font-weight:600;
+  font-family:'Noto Sans KR',sans-serif;letter-spacing:0.03em;
+  transition:opacity 0.15s,transform 0.1s;
+  cursor:pointer;border:none;width:100%;
+  position:relative;overflow:hidden;
+}
+.cbtn:active{opacity:0.8;transform:scale(0.98);}
+.cbtn-shine::before{
+  content:'';position:absolute;
+  top:0;left:-100%;width:50%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);
+  transition:left 0.5s;
+}
+.cbtn:hover.cbtn-shine::before{left:160%;}
+.cp{
+  background:linear-gradient(135deg,#4A1490,var(--pp));
+  color:#fff;
+  border:1px solid rgba(176,96,255,0.5);
+  box-shadow:0 4px 24px rgba(144,64,224,0.35),inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.cs{
+  background:linear-gradient(135deg,#1A1A30,#262640);
+  color:var(--slhi);
+  border:1px solid rgba(200,200,232,0.18);
+}
+.cmap{
+  background:linear-gradient(135deg,#0A2818,#1A4828);
+  color:#60D890;
+  border:1px solid rgba(80,200,120,0.3);
+}
+
+/* ── FOOTER ── */
+.footer{
+  padding:20px 24px 32px;
+  background:var(--bg);
+  border-top:1px solid rgba(176,96,255,0.2);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.footer-txt{
+  font-family:'Rajdhani',sans-serif;font-size:10px;
+  color:rgba(176,96,255,0.6);letter-spacing:0.18em;text-transform:uppercase;
+}
+.footer-mark{
+  width:28px;height:28px;border-radius:6px;
+  background:rgba(176,96,255,0.12);border:1px solid rgba(176,96,255,0.25);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:0.06em;
+  color:rgba(176,96,255,0.7);
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="grid-bg"></div>
+  <div class="slashes">
+    <div class="sl sl1"></div>
+    <div class="sl sl2"></div>
+    <div class="sl sl3"></div>
+    <div class="sl sl4"></div>
+  </div>
+
+  <!-- Automotive background icons -->
+  <svg class="auto-icons" viewBox="0 0 430 380" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;" preserveAspectRatio="xMidYMid slice">
+    <!-- Large gear TL -->
+    <g stroke="#A050E8" stroke-width="1.5" fill="none" transform="translate(-10,-10)">
+      <circle cx="40" cy="40" r="26"/><circle cx="40" cy="40" r="14"/>
+      <rect x="37" y="4" width="6" height="14" rx="3"/><rect x="37" y="62" width="6" height="14" rx="3"/>
+      <rect x="4" y="37" width="14" height="6" rx="3"/><rect x="62" y="37" width="14" height="6" rx="3"/>
+      <rect x="12" y="12" width="10" height="10" rx="2" transform="rotate(45 17 17)"/>
+      <rect x="60" y="12" width="10" height="10" rx="2" transform="rotate(45 65 17)"/>
+    </g>
+    <!-- Piston TL -->
+    <g stroke="#A050E8" stroke-width="1.2" fill="none" transform="translate(8,95)">
+      <rect x="10" y="30" width="24" height="38" rx="3"/>
+      <rect x="14" y="18" width="16" height="16" rx="2"/>
+      <line x1="22" y1="2" x2="22" y2="18"/>
+      <rect x="8" y="24" width="28" height="6" rx="1"/>
+    </g>
+    <!-- Wrench mid-left -->
+    <g stroke="#A050E8" stroke-width="1.4" fill="none" transform="translate(4,195)">
+      <path d="M10 10 Q4 4 4 10 Q4 20 14 22 L48 56 Q52 62 58 62 Q64 62 64 56 Q64 50 58 50 L24 16 Q20 6 10 10Z"/>
+      <circle cx="58" cy="56" r="8"/>
+    </g>
+    <!-- Engine TR -->
+    <g stroke="#A050E8" stroke-width="1.2" fill="none" transform="translate(350,14)">
+      <rect x="4" y="22" width="36" height="44" rx="4"/>
+      <rect x="10" y="10" width="24" height="16" rx="3"/>
+      <line x1="22" y1="2" x2="22" y2="10"/>
+      <line x1="12" y1="2" x2="12" y2="8"/>
+      <line x1="32" y1="2" x2="32" y2="8"/>
+      <rect x="14" y="30" width="16" height="24" rx="2"/>
+      <line x1="4" y1="44" x2="40" y2="44"/>
+    </g>
+    <!-- Small gear MR -->
+    <g stroke="#A050E8" stroke-width="1.2" fill="none" transform="translate(374,110)">
+      <circle cx="20" cy="20" r="14"/><circle cx="20" cy="20" r="7"/>
+      <rect x="18" y="2" width="4" height="8" rx="2"/><rect x="18" y="30" width="4" height="8" rx="2"/>
+      <rect x="2" y="18" width="8" height="4" rx="2"/><rect x="30" y="18" width="8" height="4" rx="2"/>
+    </g>
+    <!-- Wrench BR -->
+    <g stroke="#A050E8" stroke-width="1.2" fill="none" transform="translate(358,200)">
+      <path d="M8 8 Q3 3 3 8 Q3 16 11 17 L38 44 Q41 48 46 48 Q51 48 51 44 Q51 40 46 40 L19 13 Q16 5 8 8Z"/>
+      <circle cx="46" cy="44" r="6"/>
+    </g>
+    <!-- Diagnostic BM -->
+    <g stroke="#A050E8" stroke-width="1.1" fill="none" transform="translate(170,295)">
+      <rect x="0" y="0" width="52" height="38" rx="5"/>
+      <path d="M6 19 L15 8 L23 28 L31 4 L39 22 L46 14"/>
+    </g>
+  </svg>
+
+  <!-- Top block: name -->
+  <div class="hero-top">
+    <div class="hero-title-block">
+      <div class="hero-shopname">KGM<span> 성수</span>서비스센터</div>
+    </div>
+  </div>
+
+  <!-- Bottom block: name + title -->
+  <div class="hero-bottom">
+    <div class="hero-name">윤유현</div>
+    <div class="hero-role">부장 &nbsp;·&nbsp; Manager</div>
+    <div class="hero-code">KGM SEONGSU SERVICE CENTER</div>
+  </div>
+</div>
+
+<!-- ── CATEGORY BUTTONS ── -->
+<div class="service-strip">
+  <a class="cat-btn" href="https://www.kgm-seongsu.co.kr" target="_blank" rel="noopener">KGM 서비스</a>
+  <div class="cat-sep">/</div>
+  <a class="cat-btn" href="https://blog.naver.com/un3466" target="_blank" rel="noopener">수입차 서비스</a>
+</div>
+
+<!-- ── PURPLE BAR ── -->
+<div class="pbar"></div>
+
+<!-- ── CONTACT ── -->
+<div class="section" id="s1">
+  <div class="sec-label">Contact</div>
+  <div class="irow">
+    <div class="iico">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A050E8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/>
+      </svg>
+    </div>
+    <div><div class="ityp">Mobile</div><div class="ival">010-3388-3466</div></div>
+  </div>
+  <div class="irow">
+    <div class="iico">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A050E8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="2" y1="12" x2="22" y2="12"/>
+        <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+      </svg>
+    </div>
+    <div><div class="ityp">Website</div><div class="ival">www.kgm-seongsu.co.kr</div></div>
+  </div>
+  <div class="irow">
+    <div class="iico">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A050E8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+        <polyline points="22,6 12,13 2,6"/>
+      </svg>
+    </div>
+    <div><div class="ityp">Email</div><div class="ival">un3466@naver.com</div></div>
+  </div>
+</div>
+
+<!-- ── ADDRESS ── -->
+<div class="section" id="s2">
+  <div class="sec-label">Location</div>
+  <div class="irow">
+    <div class="iico">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A050E8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+    </div>
+    <div>
+      <div class="ityp">Address</div>
+      <div class="ival">서울시 성동구 아차산로 11가길 37<br>KGM 성수서비스센터</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CTA BUTTONS ── -->
+<div class="cta-area">
+  <a class="cbtn cp cbtn-shine" href="tel:01033505925">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 012 1.18 2 2 0 014 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14v2.92z"/></svg>
+    지금 전화하기
+  </a>
+  <a class="cbtn cs cbtn-shine" href="https://www.kgm-seongsu.co.kr" target="_blank" rel="noopener">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+    홈페이지 방문
+  </a>
+  <a class="cbtn cmap cbtn-shine" href="https://map.naver.com/v5/search/KGM성수서비스센터" target="_blank" rel="noopener">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    네이버 지도로 보기
+  </a>
+</div>
+
+<!-- ── FOOTER ── -->
+<div class="footer">
+  <div class="footer-txt">KGM Seongsu · BS73 · 2025</div>
+  <div class="footer-mark">KGM</div>
+</div>
+
+</div>
+<script>
+const io=new IntersectionObserver(entries=>{
+  entries.forEach((e,i)=>{
+    if(e.isIntersecting) setTimeout(()=>e.target.classList.add('visible'),i*80);
+  });
+},{threshold:0.1});
+document.querySelectorAll('.section').forEach(s=>io.observe(s));
+</script>
+</body>
+</html>
