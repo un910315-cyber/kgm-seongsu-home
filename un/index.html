@@ -1489,7 +1489,6 @@
   // ---- COMPLETE ----
   function renderComplete() {
     const allList = getList();
-    console.log('renderComplete called, total:'+allList.length+', 수리완료:'+allList.filter(function(r){return r.status==='수리완료';}).length);
     const data = allList.filter(r=>r.status==='수리완료').sort((a,b)=>new Date(b.inDate)-new Date(a.inDate));
     const tbody = document.getElementById('complete-tbody');
     const empty = document.getElementById('complete-empty');
