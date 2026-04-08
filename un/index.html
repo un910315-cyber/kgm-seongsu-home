@@ -1254,7 +1254,7 @@
     return el ? el.id.replace('page-','') : 'dashboard';
   }
   function refreshAll() {
-    renderDashboard();
+    try { renderDashboard(); } catch(e) { console.error('renderDashboard error:', e); }
     try { renderList(); } catch(e) { console.error('renderList error:', e); }
     try { renderComplete(); } catch(e) {
       // 에러 발생 시 화면에 직접 표시
