@@ -413,7 +413,6 @@
   </div>
 </div>
 
-<div id="debug-info" style="background:#ff0;color:#000;padding:8px;font-size:12px;font-family:monospace;word-break:break-all;">디버그 로딩중...</div>
 <div class="nav-tabs">
   <div class="nav-tab active" onclick="switchPage('dashboard')">📊 대시보드</div>
   <div class="nav-tab" onclick="switchPage('list')">🚗 입출고 목록</div>
@@ -1239,11 +1238,6 @@
   onValue(recordsRef, (snapshot) => {
     records = snapshot.val() || {};
     document.getElementById('loadingScreen').style.display = 'none';
-    // 디버그: 상태 목록을 페이지 상단에 표시
-    var allItems = Object.entries(records).map(function(e){ return {id:e[0], status:e[1].status, carNum:e[1].carNum, name:e[1].name}; });
-    var statusList = allItems.map(function(r){ return (r.carNum||'?')+'='+JSON.stringify(r.status); });
-    var debugDiv = document.getElementById('debug-info');
-    if(debugDiv) debugDiv.innerHTML = '<strong>전체 '+allItems.length+'대 | 상태: </strong>'+statusList.join(', ');
     refreshAll();
   }, (error) => {
     document.getElementById('loadingScreen').style.display = 'none';
@@ -1495,6 +1489,7 @@
   // ---- COMPLETE ----
   function renderComplete() {
     const allList = getList();
+    console.log('renderComplete called, total:'+allList.length+', 수리완료:'+allList.filter(function(r){return r.status==='수리완료';}).length);
     const data = allList.filter(r=>r.status==='수리완료').sort((a,b)=>new Date(b.inDate)-new Date(a.inDate));
     const tbody = document.getElementById('complete-tbody');
     const empty = document.getElementById('complete-empty');
