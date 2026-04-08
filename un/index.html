@@ -1489,7 +1489,9 @@
 
   // ---- COMPLETE ----
   function renderComplete() {
-    const data = getList().filter(r=>r.status==='수리완료').sort((a,b)=>new Date(b.inDate)-new Date(a.inDate));
+    const allList = getList();
+    const data = allList.filter(r=>r.status==='수리완료').sort((a,b)=>new Date(b.inDate)-new Date(a.inDate));
+    alert('renderComplete 호출됨! 전체:'+allList.length+'대, 수리완료:'+data.length+'대, 상태목록:'+[...new Set(allList.map(r=>r.status))].join(','));
     const tbody = document.getElementById('complete-tbody');
     const empty = document.getElementById('complete-empty');
     if (!data.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
