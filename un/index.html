@@ -1239,6 +1239,21 @@
     records = snapshot.val() || {};
     document.getElementById('loadingScreen').style.display = 'none';
     refreshAll();
+    // 직접 수리완료 데이터 렌더링
+    try {
+      var cList = Object.entries(records).map(function(e){ return {id:e[0], ...e[1]}; }).filter(function(r){ return r.status==='수리완료'; });
+      var cTb = document.getElementById('complete-tbody');
+      var cEm = document.getElementById('complete-empty');
+      if(cTb) {
+        if(!cList.length) { cTb.innerHTML=''; if(cEm) cEm.style.display='block'; }
+        else {
+          if(cEm) cEm.style.display='none';
+          cTb.innerHTML = cList.map(function(r){
+            return '<tr><td><span class="car-num">'+(r.carNum||'')+'</span></td><td>'+(r.name||'')+'</td><td>'+(r.phone||'-')+'</td><td>-</td><td>-</td><td>-</td><td>'+(r.repair||'-')+'</td><td>'+(r.cost?Number(r.cost).toLocaleString()+'원':'-')+'</td><td>'+(r.inDate||'-')+'</td><td>'+(r.worker||'-')+'</td><td><button class="btn btn-success btn-sm" onclick="window._markOut(\''+r.id+'\',\''+r.carNum+'\',\''+r.name+'\')">출고</button></td></tr>';
+          }).join('');
+        }
+      }
+    } catch(e2) { console.error('direct complete render error:', e2); }
   }, (error) => {
     document.getElementById('loadingScreen').style.display = 'none';
     showNotif('❌ Firebase 연결 실패. databaseURL을 확인해주세요.', true);
