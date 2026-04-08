@@ -2041,10 +2041,10 @@
       const pg=t.getAttribute('onclick')?.match(/switchPage\('(.+?)'\)/)?.[1];
       if(pg===name) t.classList.add('active');
     });
-    if (name==='list') renderList();
-    if (name==='complete') renderComplete();
-    if (name==='out') renderOut();
-    if (name==='stats') { initYearSelect(); renderStats(); }
+    if (name==='list') window.renderList();
+    if (name==='complete') window.renderComplete();
+    if (name==='out') window.renderOut();
+    if (name==='stats') { window.initYearSelect(); window.renderStats(); }
     if (name==='usermgmt' && window.loadUserMgmt) { loadUserMgmt(); }
   }
 
