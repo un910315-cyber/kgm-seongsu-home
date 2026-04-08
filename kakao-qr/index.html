@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>KGM 성수서비스센터 카카오톡 QR</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0C0C16;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Segoe UI','Noto Sans KR',sans-serif;}
+.qr-card{background:#111120;border:1px solid rgba(176,96,255,0.3);border-radius:24px;padding:40px;text-align:center;box-shadow:0 0 40px rgba(124,48,200,0.15);}
+.qr-title{font-size:18px;font-weight:700;color:#f0eeff;margin-bottom:6px;}
+.qr-sub{font-size:12px;color:#a898c8;margin-bottom:24px;}
+.qr-img{border-radius:12px;background:#fff;padding:16px;display:inline-block;}
+.qr-img img{display:block;}
+.qr-kakao{display:inline-flex;align-items:center;gap:6px;margin-top:16px;background:rgba(254,229,0,0.12);color:#F0C020;padding:6px 16px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid rgba(254,229,0,0.2);}
+.qr-url{font-size:11px;color:#8888aa;margin-top:12px;font-family:monospace;}
+.download-btn{display:inline-block;margin-top:20px;background:linear-gradient(135deg,#4A1490,#7C30C8);color:#fff;border:none;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;transition:opacity 0.2s;}
+.download-btn:hover{opacity:0.85;}
+</style>
+</head>
+<body>
+
+<div class="qr-card">
+  <div class="qr-title">KGM 성수서비스센터</div>
+  <div class="qr-sub">카카오톡 채널 QR코드</div>
+  <div class="qr-img">
+    <img id="qrImg" width="240" height="240" alt="QR Code">
+  </div>
+  <div class="qr-url">http://pf.kakao.com/_AaZUn</div>
+  <br>
+  <button class="download-btn" id="downloadBtn" onclick="downloadQR()">📥 PNG 다운로드</button>
+</div>
+
+<script>
+var url = 'http://pf.kakao.com/_AaZUn';
+var size = 240;
+var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size='+size+'x'+size+'&data='+encodeURIComponent(url)+'&margin=0&format=png&qzone=2';
+var img = document.getElementById('qrImg');
+img.crossOrigin = 'anonymous';
+img.src = qrUrl;
+
+function downloadQR() {
+  // QR 이미지를 직접 다운로드
+  var a = document.createElement('a');
+  a.href = qrUrl + '&download=1';
+  a.download = 'KGM_kakao_qr.png';
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+</script>
+
+</body>
+</html>
