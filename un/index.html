@@ -1468,7 +1468,7 @@
     empty.style.display='none';
     tbody.innerHTML = data.map(r => `
       <tr>
-        <td><span class="car-num">${esc(r.carNum)}</span></td>
+        <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">🔍 ${esc(r.carNum)}</span></td>
         <td>${esc(r.name)}</td>
         <td>${esc(r.phone)||'-'}</td>
         <td>${insBadge(r.insDaemul,'대물')}</td>
@@ -1496,7 +1496,7 @@
     empty.style.display='none';
     tbody.innerHTML = data.map(r => `
       <tr>
-        <td><span class="car-num">${esc(r.carNum)}</span></td>
+        <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">🔍 ${esc(r.carNum)}</span></td>
         <td>${esc(r.name)}</td>
         <td>${esc(r.phone)||'-'}</td>
         <td>${locationBadge(r.location, r.status)}</td>
