@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /un/
+
+Sitemap: https://kgm-seongsu.co.kr/sitemap.xml
