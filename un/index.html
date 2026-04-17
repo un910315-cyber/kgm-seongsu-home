@@ -2057,12 +2057,14 @@
       return sum;
     }, 0);
   }
-  // 시간을 "X일 Y시간" 형태로 변환
+  // 시간을 "X일 반차" 또는 "X일 Y시간" 형태로 변환
   function formatDayHour(hours) {
     var d = Math.floor(hours / 8);
     var h = hours % 8;
+    if (d > 0 && h === 4) return d + '\uc77c \ubc18\ucc28';
     if (d > 0 && h > 0) return d + '\uc77c ' + h + '\uc2dc\uac04';
     if (d > 0) return d + '\uc77c';
+    if (h === 4) return '\ubc18\ucc28';
     if (h > 0) return h + '\uc2dc\uac04';
     return '0\uc77c';
   }
