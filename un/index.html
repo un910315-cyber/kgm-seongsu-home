@@ -2076,7 +2076,10 @@
     if (now.getDate() < hire.getDate()) diffMonths--;
     if (diffMonths < 0) return 0;
     if (diffMonths < 12) return diffMonths; // 1년 미만: 매월 1개
-    return 15; // 1년 이상: 15일
+    // 1년 이상: 15일 기본 + 3년차부터 매 2년마다 +1일 (최대 25일)
+    var years = Math.floor(diffMonths / 12);
+    var extra = years >= 3 ? Math.floor((years - 1) / 2) : 0;
+    return Math.min(15 + extra, 25);
   }
   function formatHireInfo(hireDate) {
     if (!hireDate) return '-';
