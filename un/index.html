@@ -2049,10 +2049,13 @@
   onValue(leaveUseRef, (snap) => { leaveUsage = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } });
 
   function getLeaveUsed(empId) {
-    return Object.values(leaveUsage).filter(u => u.empId === empId).reduce((sum, u) => u.type === '\uc5f0\ucc28' ? sum + 1 : sum + 0.5, 0);
+    return Object.values(leaveUsage).filter(u => u.empId === empId && u.type !== '\uc870\ud1f4' && u.type !== '\uc678\ucd9c').reduce((sum, u) => u.type === '\uc5f0\ucc28' ? sum + 1 : sum + 0.5, 0);
   }
   function getHalfDayCount(empId) {
-    return Object.values(leaveUsage).filter(u => u.empId === empId && u.type !== '\uc5f0\ucc28').length;
+    return Object.values(leaveUsage).filter(u => u.empId === empId && (u.type === '\uc624\uc804\ubc18\ucc28' || u.type === '\uc624\ud6c4\ubc18\ucc28')).length;
+  }
+  function getEtcCount(empId) {
+    return Object.values(leaveUsage).filter(u => u.empId === empId && (u.type === '\uc870\ud1f4' || u.type === '\uc678\ucd9c')).length;
   }
 
   function renderLeave() {
@@ -2067,8 +2070,9 @@
         var used = getLeaveUsed(emp.id);
         var remain = (emp.totalLeave||15) - used;
         var halfCount = getHalfDayCount(emp.id);
+        var etcCount = getEtcCount(emp.id);
         var remainColor = remain <= 3 ? 'var(--red)' : 'var(--green)';
-        return '<tr><td><strong>'+esc(emp.name)+'</strong></td><td>'+(emp.totalLeave||15)+'\uc77c</td><td style="color:var(--accent);font-weight:600;">'+used+'\uc77c</td><td style="color:'+remainColor+';font-weight:700;">'+remain+'\uc77c</td><td>'+halfCount+'\ud68c</td><td><div style="display:flex;gap:5px;"><button class="btn btn-ghost btn-sm" onclick="window._editLeaveEmp(\''+esc(emp.id)+'\')">수정</button><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteLeaveEmp(\''+esc(emp.id)+'\',\''+esc(emp.name)+'\')">삭제</button></div></td></tr>';
+        return '<tr><td><strong>'+esc(emp.name)+'</strong></td><td>'+(emp.totalLeave||15)+'\uc77c</td><td style="color:var(--accent);font-weight:600;">'+used+'\uc77c</td><td style="color:'+remainColor+';font-weight:700;">'+remain+'\uc77c</td><td>'+halfCount+'\ud68c</td><td>'+etcCount+'\ud68c</td><td><div style="display:flex;gap:5px;"><button class="btn btn-ghost btn-sm" onclick="window._editLeaveEmp(\''+esc(emp.id)+'\')">수정</button><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteLeaveEmp(\''+esc(emp.id)+'\',\''+esc(emp.name)+'\')">삭제</button></div></td></tr>';
       }).join('');
     }
     var filterSel = document.getElementById('leaveFilterEmp');
@@ -2089,7 +2093,11 @@
       useEmpty.style.display='none';
       useTbody.innerHTML = useList.map(function(u) {
         var empName = leaveEmployees[u.empId] ? leaveEmployees[u.empId].name : '(삭제됨)';
-        var typeBadge = u.type==='\uc5f0\ucc28' ? '<span style="background:rgba(75,156,255,0.15);color:var(--blue);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">\uc5f0\ucc28</span>' : '<span style="background:rgba(251,146,60,0.15);color:#fb923c;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">'+esc(u.type)+'</span>';
+        var typeBadge;
+        if (u.type==='\uc5f0\ucc28') typeBadge='<span style="background:rgba(75,156,255,0.15);color:var(--blue);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">\uc5f0\ucc28</span>';
+        else if (u.type==='\uc870\ud1f4') typeBadge='<span style="background:rgba(232,68,42,0.15);color:var(--red);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">\uc870\ud1f4</span>';
+        else if (u.type==='\uc678\ucd9c') typeBadge='<span style="background:rgba(139,92,246,0.15);color:var(--accent);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">\uc678\ucd9c</span>';
+        else typeBadge='<span style="background:rgba(251,146,60,0.15);color:#fb923c;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">'+esc(u.type)+'</span>';
         return '<tr><td>'+esc(empName)+'</td><td>'+typeBadge+'</td><td>'+esc(u.date||'-')+'</td><td>'+esc(u.reason||'-')+'</td><td style="font-size:11px;color:var(--text-dim);">'+esc((u.createdAt||'').split('T')[0])+'</td><td><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteLeaveUse(\''+esc(u.id)+'\')">\uc0ad\uc81c</button></td></tr>';
       }).join('');
     }
@@ -2150,10 +2158,12 @@
     if (!empId) { showNotif('\uc9c1\uc6d0\uc744 \uc120\ud0dd\ud574\uc8fc\uc138\uc694', true); return; }
     if (!date) { showNotif('\uc0ac\uc6a9\uc77c\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694', true); return; }
     var emp = leaveEmployees[empId];
-    var used = getLeaveUsed(empId);
-    var addDays = (type === '\uc5f0\ucc28') ? 1 : 0.5;
-    if (emp && (used + addDays) > (emp.totalLeave || 15)) {
-      showNotif(emp.name + '\uc758 \uc794\uc5ec \uc5f0\ucc28\uac00 \ubd80\uc871\ud569\ub2c8\ub2e4! (\uc794\uc5ec: ' + ((emp.totalLeave||15)-used) + '\uc77c)', true); return;
+    if (type !== '\uc870\ud1f4' && type !== '\uc678\ucd9c') {
+      var used = getLeaveUsed(empId);
+      var addDays = (type === '\uc5f0\ucc28') ? 1 : 0.5;
+      if (emp && (used + addDays) > (emp.totalLeave || 15)) {
+        showNotif(emp.name + '\uc758 \uc794\uc5ec \uc5f0\ucc28\uac00 \ubd80\uc871\ud569\ub2c8\ub2e4! (\uc794\uc5ec: ' + ((emp.totalLeave||15)-used) + '\uc77c)', true); return;
+      }
     }
     var btn = document.getElementById('leaveUseSaveBtn');
     btn.disabled = true; btn.textContent = '\ub4f1\ub85d \uc911...';
@@ -2697,7 +2707,7 @@ function fmtDateVal(val) {
     <!-- 직원별 연차 현황 -->
     <div class="table-wrap">
       <table>
-        <thead><tr><th>직원명</th><th>총 연차</th><th>사용</th><th>잔여</th><th>반차 사용</th><th>관리</th></tr></thead>
+        <thead><tr><th>직원명</th><th>총 연차</th><th>사용</th><th>잔여</th><th>반차</th><th>조퇴/외출</th><th>관리</th></tr></thead>
         <tbody id="leave-emp-tbody"></tbody>
       </table>
     </div>
@@ -2773,6 +2783,8 @@ function fmtDateVal(val) {
             <option value="연차">연차 (1일)</option>
             <option value="오전반차">오전반차 (0.5일)</option>
             <option value="오후반차">오후반차 (0.5일)</option>
+            <option value="조퇴">조퇴</option>
+            <option value="외출">외출 (시간단위)</option>
           </select>
         </div>
         <div class="form-group">
