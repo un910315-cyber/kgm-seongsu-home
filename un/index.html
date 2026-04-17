@@ -2048,8 +2048,23 @@
   onValue(leaveEmpRef, (snap) => { leaveEmployees = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } });
   onValue(leaveUseRef, (snap) => { leaveUsage = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } });
 
-  function getLeaveUsed(empId) {
-    return Object.values(leaveUsage).filter(u => u.empId === empId && u.type !== '\uc870\ud1f4' && u.type !== '\uc678\ucd9c').reduce((sum, u) => u.type === '\uc5f0\ucc28' ? sum + 1 : sum + 0.5, 0);
+  // 총 사용 시간 (시간 단위로 통합 계산, 1일=8시간)
+  function getLeaveUsedHours(empId) {
+    return Object.values(leaveUsage).filter(u => u.empId === empId).reduce((sum, u) => {
+      if (u.type === '\uc5f0\ucc28') return sum + 8;
+      if (u.type === '\uc624\uc804\ubc18\ucc28' || u.type === '\uc624\ud6c4\ubc18\ucc28') return sum + 4;
+      if (u.type === '\uc870\ud1f4' || u.type === '\uc678\ucd9c') return sum + (parseInt(u.hours) || 0);
+      return sum;
+    }, 0);
+  }
+  // 시간을 "X일 Y시간" 형태로 변환
+  function formatDayHour(hours) {
+    var d = Math.floor(hours / 8);
+    var h = hours % 8;
+    if (d > 0 && h > 0) return d + '\uc77c ' + h + '\uc2dc\uac04';
+    if (d > 0) return d + '\uc77c';
+    if (h > 0) return h + '\uc2dc\uac04';
+    return '0\uc77c';
   }
   function getHalfDayCount(empId) {
     return Object.values(leaveUsage).filter(u => u.empId === empId && (u.type === '\uc624\uc804\ubc18\ucc28' || u.type === '\uc624\ud6c4\ubc18\ucc28')).length;
@@ -2067,12 +2082,13 @@
     else {
       empEmpty.style.display='none';
       empTbody.innerHTML = empList.map(function(emp) {
-        var used = getLeaveUsed(emp.id);
-        var remain = (emp.totalLeave||15) - used;
+        var totalHours = (emp.totalLeave||15) * 8;
+        var usedHours = getLeaveUsedHours(emp.id);
+        var remainHours = totalHours - usedHours;
         var halfCount = getHalfDayCount(emp.id);
         var etcCount = getEtcCount(emp.id);
-        var remainColor = remain <= 3 ? 'var(--red)' : 'var(--green)';
-        return '<tr><td><strong>'+esc(emp.name)+'</strong></td><td>'+(emp.totalLeave||15)+'\uc77c</td><td style="color:var(--accent);font-weight:600;">'+used+'\uc77c</td><td style="color:'+remainColor+';font-weight:700;">'+remain+'\uc77c</td><td>'+halfCount+'\ud68c</td><td>'+etcCount+'\ud68c</td><td><div style="display:flex;gap:5px;"><button class="btn btn-ghost btn-sm" onclick="window._editLeaveEmp(\''+esc(emp.id)+'\')">수정</button><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteLeaveEmp(\''+esc(emp.id)+'\',\''+esc(emp.name)+'\')">삭제</button></div></td></tr>';
+        var remainColor = remainHours <= 24 ? 'var(--red)' : 'var(--green)';
+        return '<tr><td><strong>'+esc(emp.name)+'</strong></td><td>'+(emp.totalLeave||15)+'\uc77c</td><td style="color:var(--accent);font-weight:600;">'+formatDayHour(usedHours)+'</td><td style="color:'+remainColor+';font-weight:700;">'+formatDayHour(Math.max(0,remainHours))+'</td><td>'+halfCount+'\ud68c</td><td>'+etcCount+'\ud68c</td><td><div style="display:flex;gap:5px;"><button class="btn btn-ghost btn-sm" onclick="window._editLeaveEmp(\''+esc(emp.id)+'\')">수정</button><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteLeaveEmp(\''+esc(emp.id)+'\',\''+esc(emp.name)+'\')">삭제</button></div></td></tr>';
       }).join('');
     }
     var filterSel = document.getElementById('leaveFilterEmp');
@@ -2095,8 +2111,8 @@
         var empName = leaveEmployees[u.empId] ? leaveEmployees[u.empId].name : '(삭제됨)';
         var typeBadge;
         if (u.type==='\uc5f0\ucc28') typeBadge='<span style="background:rgba(75,156,255,0.15);color:var(--blue);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">\uc5f0\ucc28</span>';
-        else if (u.type==='\uc870\ud1f4') typeBadge='<span style="background:rgba(232,68,42,0.15);color:var(--red);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">\uc870\ud1f4</span>';
-        else if (u.type==='\uc678\ucd9c') typeBadge='<span style="background:rgba(139,92,246,0.15);color:var(--accent);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">\uc678\ucd9c</span>';
+        else if (u.type==='\uc870\ud1f4') typeBadge='<span style="background:rgba(232,68,42,0.15);color:var(--red);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">\uc870\ud1f4 '+(u.hours||'')+'h</span>';
+        else if (u.type==='\uc678\ucd9c') typeBadge='<span style="background:rgba(139,92,246,0.15);color:var(--accent);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">\uc678\ucd9c '+(u.hours||'')+'h</span>';
         else typeBadge='<span style="background:rgba(251,146,60,0.15);color:#fb923c;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">'+esc(u.type)+'</span>';
         return '<tr><td>'+esc(empName)+'</td><td>'+typeBadge+'</td><td>'+esc(u.date||'-')+'</td><td>'+esc(u.reason||'-')+'</td><td style="font-size:11px;color:var(--text-dim);">'+esc((u.createdAt||'').split('T')[0])+'</td><td><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteLeaveUse(\''+esc(u.id)+'\')">\uc0ad\uc81c</button></td></tr>';
       }).join('');
@@ -2148,6 +2164,8 @@
     document.getElementById('lu-type').value = '\uc5f0\ucc28';
     document.getElementById('lu-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('lu-reason').value = '';
+    document.getElementById('lu-hours').value = '1';
+    document.getElementById('lu-hours-group').style.display = 'none';
     document.getElementById('leaveUseModal').classList.add('open');
   };
   window._saveLeaveUse = async function() {
@@ -2155,20 +2173,22 @@
     var type = document.getElementById('lu-type').value;
     var date = document.getElementById('lu-date').value;
     var reason = document.getElementById('lu-reason').value.trim();
+    var hours = (type === '\uc870\ud1f4' || type === '\uc678\ucd9c') ? parseInt(document.getElementById('lu-hours').value) || 1 : 0;
     if (!empId) { showNotif('\uc9c1\uc6d0\uc744 \uc120\ud0dd\ud574\uc8fc\uc138\uc694', true); return; }
     if (!date) { showNotif('\uc0ac\uc6a9\uc77c\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694', true); return; }
     var emp = leaveEmployees[empId];
-    if (type !== '\uc870\ud1f4' && type !== '\uc678\ucd9c') {
-      var used = getLeaveUsed(empId);
-      var addDays = (type === '\uc5f0\ucc28') ? 1 : 0.5;
-      if (emp && (used + addDays) > (emp.totalLeave || 15)) {
-        showNotif(emp.name + '\uc758 \uc794\uc5ec \uc5f0\ucc28\uac00 \ubd80\uc871\ud569\ub2c8\ub2e4! (\uc794\uc5ec: ' + ((emp.totalLeave||15)-used) + '\uc77c)', true); return;
-      }
+    var usedHours = getLeaveUsedHours(empId);
+    var totalHours = (emp ? emp.totalLeave || 15 : 15) * 8;
+    var addHours = (type === '\uc5f0\ucc28') ? 8 : (type === '\uc624\uc804\ubc18\ucc28' || type === '\uc624\ud6c4\ubc18\ucc28') ? 4 : hours;
+    if ((usedHours + addHours) > totalHours) {
+      showNotif(emp.name + '\uc758 \uc794\uc5ec \uc5f0\ucc28\uac00 \ubd80\uc871\ud569\ub2c8\ub2e4! (\uc794\uc5ec: ' + formatDayHour(Math.max(0, totalHours - usedHours)) + ')', true); return;
     }
     var btn = document.getElementById('leaveUseSaveBtn');
     btn.disabled = true; btn.textContent = '\ub4f1\ub85d \uc911...';
     try {
-      await push(leaveUseRef, { empId: empId, type: type, date: date, reason: reason, createdAt: new Date().toISOString() });
+      var saveData = { empId: empId, type: type, date: date, reason: reason, createdAt: new Date().toISOString() };
+      if (hours > 0) saveData.hours = hours;
+      await push(leaveUseRef, saveData);
       showNotif(type + '\uc774 \ub4f1\ub85d\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
       document.getElementById('leaveUseModal').classList.remove('open');
     } catch(e) { showNotif('\ub4f1\ub85d \uc2e4\ud328: ' + e.message, true); }
@@ -2779,12 +2799,25 @@ function fmtDateVal(val) {
         </div>
         <div class="form-group">
           <label class="form-label">유형 *</label>
-          <select class="form-select" id="lu-type">
+          <select class="form-select" id="lu-type" onchange="document.getElementById('lu-hours-group').style.display=(this.value==='조퇴'||this.value==='외출')?'flex':'none';">
             <option value="연차">연차 (1일)</option>
             <option value="오전반차">오전반차 (0.5일)</option>
             <option value="오후반차">오후반차 (0.5일)</option>
-            <option value="조퇴">조퇴</option>
-            <option value="외출">외출 (시간단위)</option>
+            <option value="조퇴">조퇴 (시간 선택)</option>
+            <option value="외출">외출 (시간 선택)</option>
+          </select>
+        </div>
+        <div class="form-group" id="lu-hours-group" style="display:none;">
+          <label class="form-label">시간 *</label>
+          <select class="form-select" id="lu-hours">
+            <option value="1">1시간</option>
+            <option value="2">2시간</option>
+            <option value="3">3시간</option>
+            <option value="4">4시간</option>
+            <option value="5">5시간</option>
+            <option value="6">6시간</option>
+            <option value="7">7시간</option>
+            <option value="8">8시간</option>
           </select>
         </div>
         <div class="form-group">
