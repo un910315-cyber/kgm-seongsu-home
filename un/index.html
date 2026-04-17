@@ -421,6 +421,7 @@
   <div class="nav-tab" onclick="switchPage('stats')">📈 월별 통계</div>
   <div class="nav-tab" onclick="switchPage('migyeol')">📂 보험 미결</div>
   <div class="nav-tab" onclick="switchPage('leave')" id="tab-leave" style="display:none">📅 연차관리</div>
+  <div class="nav-tab" onclick="switchPage('board')" id="tab-board" style="display:none">📝 게시판</div>
   <div class="nav-tab" onclick="switchPage('estimate')">🔧 견적 도우미</div>
   <div class="nav-tab" onclick="switchPage('usermgmt')" id="tab-usermgmt" style="display:none">👤 사용자 관리</div>
 </div>
@@ -942,7 +943,7 @@
 
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
-    admin: ['dashboard','list','complete','out','stats','migyeol','leave','estimate','usermgmt'],
+    admin: ['dashboard','list','complete','out','stats','migyeol','leave','board','estimate','usermgmt'],
     staff: ['dashboard','list','complete','out'],
     viewer: ['dashboard']
   };
@@ -1099,6 +1100,8 @@
       if(umTab) umTab.style.display='';
       var lvTab=document.getElementById('tab-leave');
       if(lvTab) lvTab.style.display='';
+      var bdTab=document.getElementById('tab-board');
+      if(bdTab) bdTab.style.display='';
     }
   }, 2000);
 
@@ -2153,6 +2156,59 @@
   }
   window._renderLeave = renderLeave;
 
+  // ---- BOARD (게시판) ----
+  const boardRef = ref(db, 'board');
+  let boardPosts = {};
+
+  onValue(boardRef, (snap) => { boardPosts = snap.val() || {}; try { renderBoard(); } catch(e) { console.error(e); } });
+
+  function renderBoard() {
+    var list = Object.entries(boardPosts).map(function(e) { return {id:e[0], text:e[1].text, author:e[1].author, authorEmail:e[1].authorEmail, createdAt:e[1].createdAt}; });
+    list.sort(function(a,b) { return new Date(b.createdAt) - new Date(a.createdAt); });
+    var container = document.getElementById('board-list');
+    var empty = document.getElementById('board-empty');
+    if (!container) return;
+    if (!list.length) { container.innerHTML=''; empty.style.display='block'; return; }
+    empty.style.display='none';
+    container.innerHTML = list.map(function(p) {
+      var date = p.createdAt ? new Date(p.createdAt) : new Date();
+      var dateStr = date.getFullYear()+'.'+String(date.getMonth()+1).padStart(2,'0')+'.'+String(date.getDate()).padStart(2,'0')+' '+String(date.getHours()).padStart(2,'0')+':'+String(date.getMinutes()).padStart(2,'0');
+      var isMe = window._userEmail === p.authorEmail;
+      return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
+        +'<div style="display:flex;align-items:center;gap:8px;">'
+        +'<span style="background:rgba(139,92,246,0.15);color:var(--accent);padding:2px 10px;border-radius:6px;font-size:11px;font-weight:700;">'+esc(p.author||'')+'</span>'
+        +'<span style="font-size:11px;color:var(--text-dim);">'+dateStr+'</span>'
+        +'</div>'
+        +(isMe ? '<button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);font-size:10px;" onclick="window._deleteBoard(\''+esc(p.id)+'\')">삭제</button>' : '')
+        +'</div>'
+        +'<div style="font-size:13px;color:var(--text);white-space:pre-wrap;line-height:1.7;">'+esc(p.text)+'</div>'
+        +'</div>';
+    }).join('');
+  }
+  window._renderBoard = renderBoard;
+
+  window._postBoard = async function() {
+    var text = document.getElementById('board-input').value.trim();
+    if (!text) { showNotif('\uba54\ubaa8\ub97c \uc785\ub825\ud574\uc8fc\uc138\uc694', true); return; }
+    try {
+      await push(boardRef, {
+        text: text,
+        author: window._userName || '',
+        authorEmail: window._userEmail || '',
+        createdAt: new Date().toISOString()
+      });
+      document.getElementById('board-input').value = '';
+      showNotif('\uba54\ubaa8\uac00 \ub4f1\ub85d\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
+    } catch(e) { showNotif('\ub4f1\ub85d \uc2e4\ud328: ' + e.message, true); }
+  };
+
+  window._deleteBoard = async function(id) {
+    if (!confirm('\uc774 \uba54\ubaa8\ub97c \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?')) return;
+    try { await remove(ref(db, 'board/' + id)); showNotif('\uc0ad\uc81c\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
+    catch(e) { showNotif('\uc0ad\uc81c \uc2e4\ud328: ' + e.message, true); }
+  };
+
   window._openLeaveEmpModal = function() {
     editingLeaveEmpId = null;
     document.getElementById('leaveEmpModalTitle').textContent = '\uc9c1\uc6d0 \ucd94\uac00';
@@ -2256,6 +2312,7 @@
       if (name==='stats') { if(window._initYearSelect) window._initYearSelect(); if(window._renderStats) window._renderStats(); }
       if (name==='usermgmt' && window.loadUserMgmt) window.loadUserMgmt();
       if (name==='leave' && window._renderLeave) window._renderLeave();
+      if (name==='board' && window._renderBoard) window._renderBoard();
     } catch(e) {
       alert('switchPage 에러: ' + e.message);
     }
@@ -2876,6 +2933,24 @@ function fmtDateVal(val) {
         <button class="btn btn-primary" id="leaveUseSaveBtn" onclick="window._saveLeaveUse()">등록</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- 게시판 (관리자 전용) -->
+<div id="page-board" class="page">
+  <div class="main">
+    <div class="section-header">
+      <div class="section-title">📝 게시판</div>
+      <button class="btn btn-ghost btn-sm" onclick="if(window._renderBoard)window._renderBoard();">🔄 새로고침</button>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <textarea id="board-input" class="form-textarea" placeholder="메모를 입력하세요..." style="width:100%;min-height:80px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-size:13px;font-family:'Noto Sans KR',sans-serif;resize:vertical;"></textarea>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+        <button class="btn btn-primary btn-sm" onclick="window._postBoard()">작성</button>
+      </div>
+    </div>
+    <div id="board-list"></div>
+    <div id="board-empty" class="empty" style="display:none;"><div class="empty-icon">📝</div><div>작성된 메모가 없습니다</div></div>
   </div>
 </div>
 
