@@ -2066,6 +2066,31 @@
     if (h > 0) return h + '\uc2dc\uac04';
     return '0\uc77c';
   }
+  // 입사일 기반 연차 자동 계산
+  function calcTotalLeave(hireDate) {
+    if (!hireDate) return 15;
+    var hire = new Date(hireDate);
+    var now = new Date();
+    var diffMs = now - hire;
+    var diffMonths = (now.getFullYear() - hire.getFullYear()) * 12 + (now.getMonth() - hire.getMonth());
+    if (now.getDate() < hire.getDate()) diffMonths--;
+    if (diffMonths < 0) return 0;
+    if (diffMonths < 12) return diffMonths; // 1년 미만: 매월 1개
+    return 15; // 1년 이상: 15일
+  }
+  function formatHireInfo(hireDate) {
+    if (!hireDate) return '-';
+    var hire = new Date(hireDate);
+    var now = new Date();
+    var diffMonths = (now.getFullYear() - hire.getFullYear()) * 12 + (now.getMonth() - hire.getMonth());
+    if (now.getDate() < hire.getDate()) diffMonths--;
+    var years = Math.floor(diffMonths / 12);
+    var months = diffMonths % 12;
+    if (years > 0 && months > 0) return years + '\ub144 ' + months + '\uac1c\uc6d4';
+    if (years > 0) return years + '\ub144';
+    if (months > 0) return months + '\uac1c\uc6d4';
+    return '\uc2e0\uaddc';
+  }
   function getHalfDayCount(empId) {
     return Object.values(leaveUsage).filter(u => u.empId === empId && (u.type === '\uc624\uc804\ubc18\ucc28' || u.type === '\uc624\ud6c4\ubc18\ucc28')).length;
   }
@@ -2074,7 +2099,7 @@
   }
 
   function renderLeave() {
-    var empList = Object.entries(leaveEmployees).map(function(e) { return {id:e[0], name:e[1].name, totalLeave:e[1].totalLeave}; });
+    var empList = Object.entries(leaveEmployees).map(function(e) { return {id:e[0], name:e[1].name, totalLeave:e[1].totalLeave, hireDate:e[1].hireDate}; });
     var empTbody = document.getElementById('leave-emp-tbody');
     var empEmpty = document.getElementById('leave-emp-empty');
     if (!empTbody) return;
@@ -2082,13 +2107,16 @@
     else {
       empEmpty.style.display='none';
       empTbody.innerHTML = empList.map(function(emp) {
-        var totalHours = (emp.totalLeave||15) * 8;
+        var autoTotal = emp.hireDate ? calcTotalLeave(emp.hireDate) : (emp.totalLeave||15);
+        var totalHours = autoTotal * 8;
         var usedHours = getLeaveUsedHours(emp.id);
         var remainHours = totalHours - usedHours;
         var halfCount = getHalfDayCount(emp.id);
         var etcCount = getEtcCount(emp.id);
         var remainColor = remainHours <= 24 ? 'var(--red)' : 'var(--green)';
-        return '<tr><td><strong>'+esc(emp.name)+'</strong></td><td>'+(emp.totalLeave||15)+'\uc77c</td><td style="color:var(--accent);font-weight:600;">'+formatDayHour(usedHours)+'</td><td style="color:'+remainColor+';font-weight:700;">'+formatDayHour(Math.max(0,remainHours))+'</td><td>'+halfCount+'\ud68c</td><td>'+etcCount+'\ud68c</td><td><div style="display:flex;gap:5px;"><button class="btn btn-ghost btn-sm" onclick="window._editLeaveEmp(\''+esc(emp.id)+'\')">수정</button><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteLeaveEmp(\''+esc(emp.id)+'\',\''+esc(emp.name)+'\')">삭제</button></div></td></tr>';
+        var hireDateStr = emp.hireDate ? emp.hireDate : '-';
+        var tenureStr = emp.hireDate ? formatHireInfo(emp.hireDate) : '-';
+        return '<tr><td><strong>'+esc(emp.name)+'</strong></td><td style="font-size:12px;">'+esc(hireDateStr)+'</td><td style="font-size:12px;">'+tenureStr+'</td><td>'+autoTotal+'\uc77c</td><td style="color:var(--accent);font-weight:600;">'+formatDayHour(usedHours)+'</td><td style="color:'+remainColor+';font-weight:700;">'+formatDayHour(Math.max(0,remainHours))+'</td><td>'+halfCount+'\ud68c</td><td>'+etcCount+'\ud68c</td><td><div style="display:flex;gap:5px;"><button class="btn btn-ghost btn-sm" onclick="window._editLeaveEmp(\''+esc(emp.id)+'\')">수정</button><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteLeaveEmp(\''+esc(emp.id)+'\',\''+esc(emp.name)+'\')">삭제</button></div></td></tr>';
       }).join('');
     }
     var filterSel = document.getElementById('leaveFilterEmp');
@@ -2124,6 +2152,7 @@
     editingLeaveEmpId = null;
     document.getElementById('leaveEmpModalTitle').textContent = '\uc9c1\uc6d0 \ucd94\uac00';
     document.getElementById('le-name').value = '';
+    document.getElementById('le-hiredate').value = '';
     document.getElementById('le-total').value = '15';
     document.getElementById('leaveEmpModal').classList.add('open');
   };
@@ -2132,18 +2161,19 @@
     editingLeaveEmpId = id;
     document.getElementById('leaveEmpModalTitle').textContent = '\uc9c1\uc6d0 \uc218\uc815';
     document.getElementById('le-name').value = emp.name || '';
-    document.getElementById('le-total').value = emp.totalLeave || 15;
+    document.getElementById('le-hiredate').value = emp.hireDate || '';
+    document.getElementById('le-total').value = emp.hireDate ? calcTotalLeave(emp.hireDate) : (emp.totalLeave || 15);
     document.getElementById('leaveEmpModal').classList.add('open');
   };
   window._saveLeaveEmp = async function() {
     var name = document.getElementById('le-name').value.trim();
-    var total = parseFloat(document.getElementById('le-total').value);
+    var hireDate = document.getElementById('le-hiredate').value;
+    var total = hireDate ? calcTotalLeave(hireDate) : parseFloat(document.getElementById('le-total').value);
     if (!name) { showNotif('\uc9c1\uc6d0\uba85\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694', true); return; }
-    if (isNaN(total) || total < 0) { showNotif('\uc5f0\ucc28 \uc77c\uc218\ub97c \ud655\uc778\ud574\uc8fc\uc138\uc694', true); return; }
     var btn = document.getElementById('leaveEmpSaveBtn');
     btn.disabled = true; btn.textContent = '\uc800\uc7a5 \uc911...';
     try {
-      var data = { name: name, totalLeave: total, updatedAt: new Date().toISOString() };
+      var data = { name: name, totalLeave: total, hireDate: hireDate, updatedAt: new Date().toISOString() };
       if (editingLeaveEmpId) { await update(ref(db, 'leaveEmployees/' + editingLeaveEmpId), data); showNotif(name + ' \uc815\ubcf4\uac00 \uc218\uc815\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
       else { data.createdAt = new Date().toISOString(); await push(leaveEmpRef, data); showNotif(name + ' \uc9c1\uc6d0\uc774 \ucd94\uac00\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
       document.getElementById('leaveEmpModal').classList.remove('open');
@@ -2178,7 +2208,8 @@
     if (!date) { showNotif('\uc0ac\uc6a9\uc77c\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694', true); return; }
     var emp = leaveEmployees[empId];
     var usedHours = getLeaveUsedHours(empId);
-    var totalHours = (emp ? emp.totalLeave || 15 : 15) * 8;
+    var autoTotal = (emp && emp.hireDate) ? calcTotalLeave(emp.hireDate) : (emp ? emp.totalLeave || 15 : 15);
+    var totalHours = autoTotal * 8;
     var addHours = (type === '\uc5f0\ucc28') ? 8 : (type === '\uc624\uc804\ubc18\ucc28' || type === '\uc624\ud6c4\ubc18\ucc28') ? 4 : hours;
     if ((usedHours + addHours) > totalHours) {
       showNotif(emp.name + '\uc758 \uc794\uc5ec \uc5f0\ucc28\uac00 \ubd80\uc871\ud569\ub2c8\ub2e4! (\uc794\uc5ec: ' + formatDayHour(Math.max(0, totalHours - usedHours)) + ')', true); return;
@@ -2727,7 +2758,7 @@ function fmtDateVal(val) {
     <!-- 직원별 연차 현황 -->
     <div class="table-wrap">
       <table>
-        <thead><tr><th>직원명</th><th>총 연차</th><th>사용</th><th>잔여</th><th>반차</th><th>조퇴/외출</th><th>관리</th></tr></thead>
+        <thead><tr><th>직원명</th><th>입사일</th><th>근속</th><th>총 연차</th><th>사용</th><th>잔여</th><th>반차</th><th>조퇴/외출</th><th>관리</th></tr></thead>
         <tbody id="leave-emp-tbody"></tbody>
       </table>
     </div>
@@ -2770,10 +2801,16 @@ function fmtDateVal(val) {
           <input class="form-input" id="le-name" placeholder="이름 입력">
         </div>
         <div class="form-group">
-          <label class="form-label">총 연차 일수 *</label>
-          <input class="form-input" id="le-total" type="number" value="15" min="0" step="0.5">
+          <label class="form-label">입사일 *</label>
+          <input class="form-input" id="le-hiredate" type="date">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">총 연차 (자동 계산)</label>
+          <input class="form-input" id="le-total" type="number" value="15" min="0" step="0.5" style="background:var(--surface);color:var(--text-dim);" readonly>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">입사일 기준 자동 계산 (1년 미만: 월 1개 / 1년 이상: 15일)</div>
         </div>
       </div>
+      <script>document.getElementById('le-hiredate').addEventListener('change',function(){var v=this.value;if(v){document.getElementById('le-total').value=calcTotalLeave?calcTotalLeave(v):15;}});</script>
       <div class="form-actions" style="margin-top:16px;">
         <button class="btn btn-ghost" onclick="document.getElementById('leaveEmpModal').classList.remove('open')">취소</button>
         <button class="btn btn-primary" id="leaveEmpSaveBtn" onclick="window._saveLeaveEmp()">저장</button>
