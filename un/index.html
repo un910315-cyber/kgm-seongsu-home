@@ -2037,6 +2037,138 @@
   window._renderOut = renderOut;
   window._renderStats = renderStats;
   window._initYearSelect = initYearSelect;
+
+  // ---- LEAVE MANAGEMENT ----
+  const leaveEmpRef = ref(db, 'leaveEmployees');
+  const leaveUseRef = ref(db, 'leaveUsage');
+  let leaveEmployees = {};
+  let leaveUsage = {};
+  let editingLeaveEmpId = null;
+
+  onValue(leaveEmpRef, (snap) => { leaveEmployees = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } });
+  onValue(leaveUseRef, (snap) => { leaveUsage = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } });
+
+  function getLeaveUsed(empId) {
+    return Object.values(leaveUsage).filter(u => u.empId === empId).reduce((sum, u) => u.type === '\uc5f0\ucc28' ? sum + 1 : sum + 0.5, 0);
+  }
+  function getHalfDayCount(empId) {
+    return Object.values(leaveUsage).filter(u => u.empId === empId && u.type !== '\uc5f0\ucc28').length;
+  }
+
+  function renderLeave() {
+    var empList = Object.entries(leaveEmployees).map(function(e) { return {id:e[0], name:e[1].name, totalLeave:e[1].totalLeave}; });
+    var empTbody = document.getElementById('leave-emp-tbody');
+    var empEmpty = document.getElementById('leave-emp-empty');
+    if (!empTbody) return;
+    if (!empList.length) { empTbody.innerHTML=''; empEmpty.style.display='block'; }
+    else {
+      empEmpty.style.display='none';
+      empTbody.innerHTML = empList.map(function(emp) {
+        var used = getLeaveUsed(emp.id);
+        var remain = (emp.totalLeave||15) - used;
+        var halfCount = getHalfDayCount(emp.id);
+        var remainColor = remain <= 3 ? 'var(--red)' : 'var(--green)';
+        return '<tr><td><strong>'+esc(emp.name)+'</strong></td><td>'+(emp.totalLeave||15)+'\uc77c</td><td style="color:var(--accent);font-weight:600;">'+used+'\uc77c</td><td style="color:'+remainColor+';font-weight:700;">'+remain+'\uc77c</td><td>'+halfCount+'\ud68c</td><td><div style="display:flex;gap:5px;"><button class="btn btn-ghost btn-sm" onclick="window._editLeaveEmp(\''+esc(emp.id)+'\')">수정</button><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteLeaveEmp(\''+esc(emp.id)+'\',\''+esc(emp.name)+'\')">삭제</button></div></td></tr>';
+      }).join('');
+    }
+    var filterSel = document.getElementById('leaveFilterEmp');
+    var useSel = document.getElementById('lu-emp');
+    if (filterSel) { var pv=filterSel.value; filterSel.innerHTML='<option value="">\uc804\uccb4 \uc9c1\uc6d0</option>'+empList.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join(''); if(pv) filterSel.value=pv; }
+    if (useSel) { var pv2=useSel.value; useSel.innerHTML='<option value="">\uc9c1\uc6d0 \uc120\ud0dd</option>'+empList.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join(''); if(pv2) useSel.value=pv2; }
+    var filterEmp = filterSel ? filterSel.value : '';
+    var filterMonth = (document.getElementById('leaveFilterMonth')||{}).value || '';
+    var useList = Object.entries(leaveUsage).map(function(e){return {id:e[0],empId:e[1].empId,type:e[1].type,date:e[1].date,reason:e[1].reason,createdAt:e[1].createdAt};});
+    if (filterEmp) useList = useList.filter(function(u){return u.empId===filterEmp;});
+    if (filterMonth) useList = useList.filter(function(u){return (u.date||'').startsWith(filterMonth);});
+    useList.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+    var useTbody = document.getElementById('leave-use-tbody');
+    var useEmpty = document.getElementById('leave-use-empty');
+    if (!useTbody) return;
+    if (!useList.length) { useTbody.innerHTML=''; useEmpty.style.display='block'; }
+    else {
+      useEmpty.style.display='none';
+      useTbody.innerHTML = useList.map(function(u) {
+        var empName = leaveEmployees[u.empId] ? leaveEmployees[u.empId].name : '(삭제됨)';
+        var typeBadge = u.type==='\uc5f0\ucc28' ? '<span style="background:rgba(75,156,255,0.15);color:var(--blue);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">\uc5f0\ucc28</span>' : '<span style="background:rgba(251,146,60,0.15);color:#fb923c;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">'+esc(u.type)+'</span>';
+        return '<tr><td>'+esc(empName)+'</td><td>'+typeBadge+'</td><td>'+esc(u.date||'-')+'</td><td>'+esc(u.reason||'-')+'</td><td style="font-size:11px;color:var(--text-dim);">'+esc((u.createdAt||'').split('T')[0])+'</td><td><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteLeaveUse(\''+esc(u.id)+'\')">\uc0ad\uc81c</button></td></tr>';
+      }).join('');
+    }
+  }
+  window._renderLeave = renderLeave;
+
+  window._openLeaveEmpModal = function() {
+    editingLeaveEmpId = null;
+    document.getElementById('leaveEmpModalTitle').textContent = '\uc9c1\uc6d0 \ucd94\uac00';
+    document.getElementById('le-name').value = '';
+    document.getElementById('le-total').value = '15';
+    document.getElementById('leaveEmpModal').classList.add('open');
+  };
+  window._editLeaveEmp = function(id) {
+    var emp = leaveEmployees[id]; if (!emp) return;
+    editingLeaveEmpId = id;
+    document.getElementById('leaveEmpModalTitle').textContent = '\uc9c1\uc6d0 \uc218\uc815';
+    document.getElementById('le-name').value = emp.name || '';
+    document.getElementById('le-total').value = emp.totalLeave || 15;
+    document.getElementById('leaveEmpModal').classList.add('open');
+  };
+  window._saveLeaveEmp = async function() {
+    var name = document.getElementById('le-name').value.trim();
+    var total = parseFloat(document.getElementById('le-total').value);
+    if (!name) { showNotif('\uc9c1\uc6d0\uba85\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694', true); return; }
+    if (isNaN(total) || total < 0) { showNotif('\uc5f0\ucc28 \uc77c\uc218\ub97c \ud655\uc778\ud574\uc8fc\uc138\uc694', true); return; }
+    var btn = document.getElementById('leaveEmpSaveBtn');
+    btn.disabled = true; btn.textContent = '\uc800\uc7a5 \uc911...';
+    try {
+      var data = { name: name, totalLeave: total, updatedAt: new Date().toISOString() };
+      if (editingLeaveEmpId) { await update(ref(db, 'leaveEmployees/' + editingLeaveEmpId), data); showNotif(name + ' \uc815\ubcf4\uac00 \uc218\uc815\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
+      else { data.createdAt = new Date().toISOString(); await push(leaveEmpRef, data); showNotif(name + ' \uc9c1\uc6d0\uc774 \ucd94\uac00\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
+      document.getElementById('leaveEmpModal').classList.remove('open');
+    } catch(e) { showNotif('\uc800\uc7a5 \uc2e4\ud328: ' + e.message, true); }
+    btn.disabled = false; btn.textContent = '\uc800\uc7a5';
+  };
+  window._deleteLeaveEmp = async function(id, name) {
+    if (!confirm(name + ' \uc9c1\uc6d0\uc744 \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?\n\ud574\ub2f9 \uc9c1\uc6d0\uc758 \uc5f0\ucc28 \uc0ac\uc6a9 \ub0b4\uc5ed\ub3c4 \ubaa8\ub450 \uc0ad\uc81c\ub429\ub2c8\ub2e4.')) return;
+    try {
+      await remove(ref(db, 'leaveEmployees/' + id));
+      var toDelete = Object.entries(leaveUsage).filter(function(e){return e[1].empId===id;});
+      for (var d of toDelete) { await remove(ref(db, 'leaveUsage/' + d[0])); }
+      showNotif(name + ' \uc9c1\uc6d0\uc774 \uc0ad\uc81c\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
+    } catch(e) { showNotif('\uc0ad\uc81c \uc2e4\ud328: ' + e.message, true); }
+  };
+  window._openLeaveUseModal = function() {
+    document.getElementById('lu-emp').value = '';
+    document.getElementById('lu-type').value = '\uc5f0\ucc28';
+    document.getElementById('lu-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('lu-reason').value = '';
+    document.getElementById('leaveUseModal').classList.add('open');
+  };
+  window._saveLeaveUse = async function() {
+    var empId = document.getElementById('lu-emp').value;
+    var type = document.getElementById('lu-type').value;
+    var date = document.getElementById('lu-date').value;
+    var reason = document.getElementById('lu-reason').value.trim();
+    if (!empId) { showNotif('\uc9c1\uc6d0\uc744 \uc120\ud0dd\ud574\uc8fc\uc138\uc694', true); return; }
+    if (!date) { showNotif('\uc0ac\uc6a9\uc77c\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694', true); return; }
+    var emp = leaveEmployees[empId];
+    var used = getLeaveUsed(empId);
+    var addDays = (type === '\uc5f0\ucc28') ? 1 : 0.5;
+    if (emp && (used + addDays) > (emp.totalLeave || 15)) {
+      showNotif(emp.name + '\uc758 \uc794\uc5ec \uc5f0\ucc28\uac00 \ubd80\uc871\ud569\ub2c8\ub2e4! (\uc794\uc5ec: ' + ((emp.totalLeave||15)-used) + '\uc77c)', true); return;
+    }
+    var btn = document.getElementById('leaveUseSaveBtn');
+    btn.disabled = true; btn.textContent = '\ub4f1\ub85d \uc911...';
+    try {
+      await push(leaveUseRef, { empId: empId, type: type, date: date, reason: reason, createdAt: new Date().toISOString() });
+      showNotif(type + '\uc774 \ub4f1\ub85d\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
+      document.getElementById('leaveUseModal').classList.remove('open');
+    } catch(e) { showNotif('\ub4f1\ub85d \uc2e4\ud328: ' + e.message, true); }
+    btn.disabled = false; btn.textContent = '\ub4f1\ub85d';
+  };
+  window._deleteLeaveUse = async function(id) {
+    if (!confirm('\uc774 \uc0ac\uc6a9 \ub0b4\uc5ed\uc744 \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?')) return;
+    try { await remove(ref(db, 'leaveUsage/' + id)); showNotif('\uc0ad\uc81c\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
+    catch(e) { showNotif('\uc0ad\uc81c \uc2e4\ud328: ' + e.message, true); }
+  };
 </script>
 
 <script>
