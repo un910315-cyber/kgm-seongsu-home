@@ -353,6 +353,30 @@
     .nav-tab{padding:10px 12px!important;font-size:11px!important}
   }
 
+  /* ───── CALENDAR ───── */
+  .cal-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;}
+  .cal-header-row{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;margin-bottom:1px;}
+  .cal-header-cell{padding:8px 0;text-align:center;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text-dim);}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+  .cal-cell{background:var(--surface2);min-height:90px;padding:6px 5px;cursor:pointer;transition:background 0.15s;display:flex;flex-direction:column;overflow:hidden;}
+  .cal-cell:hover{background:var(--surface);}
+  .cal-cell.empty{background:var(--surface2);cursor:default;opacity:0.4;}
+  .cal-cell.today{background:rgba(139,92,246,0.10);}
+  .cal-date{font-size:13px;font-weight:600;margin-bottom:4px;}
+  .cal-cell.today .cal-date{color:var(--accent);font-weight:800;}
+  .cal-event{font-size:10px;color:var(--accent);background:rgba(139,92,246,0.12);padding:1px 4px;border-radius:3px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cal-leave{font-size:10px;padding:1px 4px;border-radius:3px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cal-more{font-size:10px;color:var(--text-dim);margin-top:auto;}
+  .cal-toggle{display:inline-flex;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px;}
+  .cal-toggle button{background:transparent;border:none;color:var(--text-dim);padding:6px 14px;font-size:12px;font-weight:600;border-radius:5px;cursor:pointer;transition:all 0.15s;font-family:inherit;}
+  .cal-toggle button.active{background:var(--accent);color:#fff;}
+  @media (max-width: 768px) {
+    .cal-cell{min-height:64px;padding:3px 2px;}
+    .cal-date{font-size:11px;}
+    .cal-event,.cal-leave{font-size:9px;padding:0 2px;}
+    .cal-toggle button{padding:5px 10px;font-size:11px;}
+  }
+
 </style>
 </head>
 <body>
@@ -421,7 +445,7 @@
   <div class="nav-tab" onclick="switchPage('stats')">📈 월별 통계</div>
   <div class="nav-tab" onclick="switchPage('migyeol')">📂 보험 미결</div>
   <div class="nav-tab" onclick="switchPage('leave')" id="tab-leave">📅 연차관리</div>
-  <div class="nav-tab" onclick="switchPage('board')" id="tab-board" style="display:none">📝 게시판</div>
+  <div class="nav-tab" onclick="switchPage('board')" id="tab-board">📝 게시판 · 일정</div>
   <div class="nav-tab" onclick="switchPage('estimate')">🔧 견적 도우미</div>
   <div class="nav-tab" onclick="switchPage('usermgmt')" id="tab-usermgmt" style="display:none">👤 사용자 관리</div>
 </div>
@@ -944,8 +968,8 @@
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
     admin: ['dashboard','list','complete','out','stats','migyeol','leave','board','estimate','usermgmt'],
-    staff: ['dashboard','list','complete','out','leave'],
-    viewer: ['dashboard','leave']
+    staff: ['dashboard','list','complete','out','leave','board'],
+    viewer: ['dashboard','leave','board']
   };
 
   // Google 로그인 — 팝업 방식 (모바일 포함)
@@ -2050,8 +2074,8 @@
   let leaveUsage = {};
   let editingLeaveEmpId = null;
 
-  onValue(leaveEmpRef, (snap) => { leaveEmployees = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } });
-  onValue(leaveUseRef, (snap) => { leaveUsage = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } });
+  onValue(leaveEmpRef, (snap) => { leaveEmployees = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} });
+  onValue(leaveUseRef, (snap) => { leaveUsage = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} });
 
   // 총 사용 시간 (시간 단위로 통합 계산, 1일=8시간)
   function getLeaveUsedHours(empId) {
@@ -2239,6 +2263,207 @@
     catch(e) { showNotif('\uc0ad\uc81c \uc2e4\ud328: ' + e.message, true); }
   };
 
+  // ---- COMPANY EVENTS / CALENDAR ----
+  const companyEventsRef = ref(db, 'companyEvents');
+  let companyEvents = {};
+  let calCursor = new Date(); calCursor.setDate(1);
+  let editingEventId = null;
+
+  onValue(companyEventsRef, (snap) => { companyEvents = snap.val() || {}; try { renderCalendar(); } catch(e) { console.error(e); } });
+
+  function leaveTypeColor(t) {
+    if (t==='\uc5f0\ucc28') return 'var(--blue)';
+    if (t==='\uc870\ud1f4') return 'var(--red)';
+    if (t==='\uc678\ucd9c') return 'var(--accent)';
+    return '#fb923c';
+  }
+  function leaveTypeBg(t) {
+    if (t==='\uc5f0\ucc28') return 'rgba(75,156,255,0.15)';
+    if (t==='\uc870\ud1f4') return 'rgba(232,68,42,0.15)';
+    if (t==='\uc678\ucd9c') return 'rgba(139,92,246,0.15)';
+    return 'rgba(251,146,60,0.15)';
+  }
+
+  function renderCalendar() {
+    var year = calCursor.getFullYear();
+    var month = calCursor.getMonth();
+    var titleEl = document.getElementById('cal-title');
+    if (titleEl) titleEl.textContent = year + '\ub144 ' + (month+1) + '\uc6d4';
+
+    var firstDay = new Date(year, month, 1);
+    var lastDay = new Date(year, month+1, 0);
+    var startDow = firstDay.getDay();
+    var daysInMonth = lastDay.getDate();
+    var todayD = new Date();
+    var todayStr = todayD.getFullYear()+'-'+String(todayD.getMonth()+1).padStart(2,'0')+'-'+String(todayD.getDate()).padStart(2,'0');
+
+    var grid = document.getElementById('cal-grid');
+    if (!grid) return;
+
+    var html = '';
+    for (var i=0; i<startDow; i++) html += '<div class="cal-cell empty"></div>';
+    for (var d=1; d<=daysInMonth; d++) {
+      var dateStr = year + '-' + String(month+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+      var isToday = dateStr === todayStr;
+      var dow = (startDow + d - 1) % 7;
+      var dateColor = dow===0 ? 'var(--red)' : (dow===6 ? 'var(--blue)' : 'var(--text)');
+
+      var dayEvents = Object.entries(companyEvents).filter(function(e){ return e[1] && e[1].date === dateStr; });
+      var dayLeaves = Object.entries(leaveUsage).filter(function(e){ return e[1] && e[1].date === dateStr; });
+
+      var ind = '';
+      var shown = 0;
+      for (var k=0; k<dayEvents.length && shown<2; k++,shown++) {
+        ind += '<div class="cal-event" title="'+esc(dayEvents[k][1].title||'')+'">'+esc(dayEvents[k][1].title||'')+'</div>';
+      }
+      for (var k2=0; k2<dayLeaves.length && shown<3; k2++,shown++) {
+        var u = dayLeaves[k2][1];
+        var emp = leaveEmployees[u.empId];
+        var nm = emp ? emp.name : '?';
+        ind += '<div class="cal-leave" style="color:'+leaveTypeColor(u.type)+';background:'+leaveTypeBg(u.type)+'" title="'+esc(nm)+' '+esc(u.type)+'">'+esc(nm)+' '+esc(u.type)+'</div>';
+      }
+      var totalCount = dayEvents.length + dayLeaves.length;
+      if (totalCount > shown) ind += '<div class="cal-more">+'+(totalCount-shown)+' \ub354\ubcf4\uae30</div>';
+
+      html += '<div class="cal-cell '+(isToday?'today':'')+'" onclick="window._openDateDetail(\''+dateStr+'\')"><div class="cal-date" style="'+(isToday?'':'color:'+dateColor)+'">'+d+'</div>'+ind+'</div>';
+    }
+    grid.innerHTML = html;
+
+    var isAdmin = window._userRole === 'admin';
+    document.querySelectorAll('.cal-admin-only').forEach(function(el){ el.style.display = isAdmin ? '' : 'none'; });
+  }
+  window._renderCalendar = renderCalendar;
+
+  window._calPrev = function(){ calCursor.setMonth(calCursor.getMonth()-1); renderCalendar(); };
+  window._calNext = function(){ calCursor.setMonth(calCursor.getMonth()+1); renderCalendar(); };
+  window._calToday = function(){ calCursor = new Date(); calCursor.setDate(1); renderCalendar(); };
+
+  window._setBoardView = function(view) {
+    var calSec = document.getElementById('cal-section');
+    var bdSec = document.getElementById('board-section');
+    ['cal','board','all'].forEach(function(v){
+      var b = document.getElementById('bv-'+v);
+      if (b) b.classList.remove('active');
+    });
+    var key = view==='calendar' ? 'cal' : (view==='board' ? 'board' : 'all');
+    var ab = document.getElementById('bv-'+key);
+    if (ab) ab.classList.add('active');
+    if (calSec) calSec.style.display = (view==='board') ? 'none' : '';
+    if (bdSec) bdSec.style.display = (view==='calendar') ? 'none' : '';
+  };
+
+  window._openEventModal = function(date) {
+    if (window._userRole !== 'admin') return;
+    editingEventId = null;
+    document.getElementById('eventModalTitle').textContent = '\uc77c\uc815 \ucd94\uac00';
+    var defaultDate = (typeof date === 'string' && date) ? date : (new Date().toISOString().split('T')[0]);
+    document.getElementById('ev-date').value = defaultDate;
+    document.getElementById('ev-title').value = '';
+    document.getElementById('ev-desc').value = '';
+    document.getElementById('eventModal').classList.add('open');
+  };
+  window._editEvent = function(id) {
+    if (window._userRole !== 'admin') return;
+    var e = companyEvents[id]; if (!e) return;
+    editingEventId = id;
+    document.getElementById('eventModalTitle').textContent = '\uc77c\uc815 \uc218\uc815';
+    document.getElementById('ev-date').value = e.date || '';
+    document.getElementById('ev-title').value = e.title || '';
+    document.getElementById('ev-desc').value = e.description || '';
+    document.getElementById('eventModal').classList.add('open');
+  };
+  window._saveEvent = async function() {
+    var title = document.getElementById('ev-title').value.trim();
+    var date = document.getElementById('ev-date').value;
+    var desc = document.getElementById('ev-desc').value.trim();
+    if (!title) { showNotif('\uc81c\ubaa9\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694', true); return; }
+    if (!date) { showNotif('\ub0a0\uc9dc\ub97c \uc120\ud0dd\ud574\uc8fc\uc138\uc694', true); return; }
+    var btn = document.getElementById('eventSaveBtn');
+    btn.disabled = true; btn.textContent = '\uc800\uc7a5 \uc911...';
+    try {
+      var data = { title: title, date: date, description: desc, updatedAt: new Date().toISOString() };
+      if (editingEventId) {
+        await update(ref(db, 'companyEvents/' + editingEventId), data);
+        showNotif('\uc77c\uc815\uc774 \uc218\uc815\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
+      } else {
+        data.createdAt = new Date().toISOString();
+        data.createdBy = window._userEmail || '';
+        await push(companyEventsRef, data);
+        showNotif('\uc77c\uc815\uc774 \ub4f1\ub85d\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
+      }
+      document.getElementById('eventModal').classList.remove('open');
+    } catch(e) { showNotif('\uc800\uc7a5 \uc2e4\ud328: ' + e.message, true); }
+    btn.disabled = false; btn.textContent = '\uc800\uc7a5';
+  };
+  window._deleteEvent = async function(id) {
+    if (window._userRole !== 'admin') return;
+    if (!confirm('\uc774 \uc77c\uc815\uc744 \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?')) return;
+    try {
+      await remove(ref(db, 'companyEvents/' + id));
+      showNotif('\uc0ad\uc81c\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
+      document.getElementById('dateDetailModal').classList.remove('open');
+    } catch(e) { showNotif('\uc0ad\uc81c \uc2e4\ud328: ' + e.message, true); }
+  };
+
+  window._openDateDetail = function(dateStr) {
+    var titleEl = document.getElementById('dateDetailTitle');
+    var contentEl = document.getElementById('dateDetailContent');
+    var modal = document.getElementById('dateDetailModal');
+    if (!titleEl || !contentEl || !modal) return;
+
+    var dt = new Date(dateStr);
+    var dowK = ['\uc77c','\uc6d4','\ud654','\uc218','\ubaa9','\uae08','\ud1a0'][dt.getDay()];
+    titleEl.textContent = dateStr + ' (' + dowK + ')';
+
+    var events = Object.entries(companyEvents).filter(function(e){ return e[1] && e[1].date === dateStr; });
+    var leaves = Object.entries(leaveUsage).filter(function(e){ return e[1] && e[1].date === dateStr; });
+    var isAdmin = window._userRole === 'admin';
+
+    var html = '';
+    if (events.length) {
+      html += '<div style="margin-bottom:16px;"><div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;font-weight:700;letter-spacing:1px;">\ud83d\udcc5 \ud68c\uc0ac \uc77c\uc815</div>';
+      events.forEach(function(e){
+        html += '<div style="background:var(--surface2);padding:12px;border-radius:8px;margin-bottom:8px;border-left:3px solid var(--accent);">';
+        html += '<div style="font-weight:700;font-size:14px;margin-bottom:4px;">'+esc(e[1].title||'')+'</div>';
+        if (e[1].description) html += '<div style="font-size:12px;color:var(--text-dim);white-space:pre-wrap;line-height:1.6;">'+esc(e[1].description)+'</div>';
+        if (isAdmin) {
+          html += '<div style="display:flex;gap:6px;margin-top:10px;">';
+          html += '<button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'dateDetailModal\').classList.remove(\'open\');window._editEvent(\''+e[0]+'\')">\uc218\uc815</button>';
+          html += '<button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteEvent(\''+e[0]+'\')">\uc0ad\uc81c</button>';
+          html += '</div>';
+        }
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+    if (leaves.length) {
+      html += '<div><div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;font-weight:700;letter-spacing:1px;">\ud83c\udfd6\ufe0f \uc9c1\uc6d0 \ud734\uac00</div>';
+      leaves.forEach(function(e){
+        var u = e[1];
+        var emp = leaveEmployees[u.empId];
+        var nm = emp ? emp.name : '(\uc0ad\uc81c\ub428)';
+        var typeText = esc(u.type) + (u.hours ? ' '+u.hours+'h' : '');
+        html += '<div style="background:var(--surface2);padding:10px 12px;border-radius:8px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:10px;">';
+        html += '<div><strong style="font-size:13px;">'+esc(nm)+'</strong>';
+        if (u.reason) html += '<div style="font-size:11px;color:var(--text-dim);margin-top:2px;">'+esc(u.reason)+'</div>';
+        html += '</div>';
+        html += '<span style="background:'+leaveTypeBg(u.type)+';color:'+leaveTypeColor(u.type)+';padding:4px 10px;border-radius:5px;font-size:11px;font-weight:700;white-space:nowrap;">'+typeText+'</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+    if (!events.length && !leaves.length) {
+      html = '<div style="text-align:center;padding:30px 0;color:var(--text-dim);">\ub4f1\ub85d\ub41c \uc77c\uc815\uc774 \uc5c6\uc2b5\ub2c8\ub2e4</div>';
+    }
+    if (isAdmin) {
+      html += '<div style="margin-top:16px;text-align:right;">';
+      html += '<button class="btn btn-primary btn-sm" onclick="document.getElementById(\'dateDetailModal\').classList.remove(\'open\');window._openEventModal(\''+dateStr+'\')">\u2795 \uc774\ub0a0 \uc77c\uc815 \ucd94\uac00</button>';
+      html += '</div>';
+    }
+    contentEl.innerHTML = html;
+    modal.classList.add('open');
+  };
+
   window._openLeaveEmpModal = function() {
     editingLeaveEmpId = null;
     document.getElementById('leaveEmpModalTitle').textContent = '\uc9c1\uc6d0 \ucd94\uac00';
@@ -2345,7 +2570,7 @@
       if (name==='stats') { if(window._initYearSelect) window._initYearSelect(); if(window._renderStats) window._renderStats(); }
       if (name==='usermgmt' && window.loadUserMgmt) window.loadUserMgmt();
       if (name==='leave' && window._renderLeave) window._renderLeave();
-      if (name==='board' && window._renderBoard) window._renderBoard();
+      if (name==='board') { if(window._renderBoard) window._renderBoard(); if(window._renderCalendar) window._renderCalendar(); }
     } catch(e) {
       alert('switchPage 에러: ' + e.message);
     }
@@ -2974,21 +3199,96 @@ function fmtDateVal(val) {
   </div>
 </div>
 
-<!-- 게시판 (관리자 전용) -->
+<!-- 일정 추가/수정 모달 -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="eventModalTitle">일정 추가</div>
+      <button class="modal-close" onclick="document.getElementById('eventModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">날짜 *</label>
+          <input class="form-input" id="ev-date" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">제목 *</label>
+          <input class="form-input" id="ev-title" placeholder="예: 월례회의, 워크샵">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">설명</label>
+          <textarea class="form-textarea" id="ev-desc" placeholder="설명 (선택)" style="min-height:80px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);width:100%;font-family:'Noto Sans KR',sans-serif;font-size:13px;resize:vertical;"></textarea>
+        </div>
+      </div>
+      <div class="form-actions" style="margin-top:16px;">
+        <button class="btn btn-ghost" onclick="document.getElementById('eventModal').classList.remove('open')">취소</button>
+        <button class="btn btn-primary" id="eventSaveBtn" onclick="window._saveEvent()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 날짜 상세 모달 -->
+<div class="modal-overlay" id="dateDetailModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="dateDetailTitle">날짜 상세</div>
+      <button class="modal-close" onclick="document.getElementById('dateDetailModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;" id="dateDetailContent"></div>
+  </div>
+</div>
+
+<!-- 게시판 + 회사 일정 -->
 <div id="page-board" class="page">
   <div class="main">
     <div class="section-header">
-      <div class="section-title">📝 게시판</div>
-      <button class="btn btn-ghost btn-sm" onclick="if(window._renderBoard)window._renderBoard();">🔄 새로고침</button>
-    </div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
-      <textarea id="board-input" class="form-textarea" placeholder="메모를 입력하세요..." style="width:100%;min-height:80px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-size:13px;font-family:'Noto Sans KR',sans-serif;resize:vertical;"></textarea>
-      <div style="display:flex;justify-content:flex-end;margin-top:10px;">
-        <button class="btn btn-primary btn-sm" onclick="window._postBoard()">작성</button>
+      <div class="section-title">📝 게시판 · 일정</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <div class="cal-toggle">
+          <button id="bv-cal" onclick="window._setBoardView('calendar')">📅 달력</button>
+          <button id="bv-board" onclick="window._setBoardView('board')">📝 게시판</button>
+          <button id="bv-all" class="active" onclick="window._setBoardView('all')">전체</button>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="if(window._renderBoard)window._renderBoard();if(window._renderCalendar)window._renderCalendar();">🔄</button>
       </div>
     </div>
-    <div id="board-list"></div>
-    <div id="board-empty" class="empty" style="display:none;"><div class="empty-icon">📝</div><div>작성된 메모가 없습니다</div></div>
+
+    <!-- 달력 -->
+    <div id="cal-section" class="cal-wrap">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="window._calPrev()" style="padding:6px 10px;font-size:14px;">‹</button>
+          <div id="cal-title" style="font-size:16px;font-weight:700;min-width:110px;text-align:center;"></div>
+          <button class="btn btn-ghost btn-sm" onclick="window._calNext()" style="padding:6px 10px;font-size:14px;">›</button>
+          <button class="btn btn-ghost btn-sm" onclick="window._calToday()" style="margin-left:6px;">오늘</button>
+        </div>
+        <button class="btn btn-primary btn-sm cal-admin-only" onclick="window._openEventModal()">➕ 일정 추가</button>
+      </div>
+      <div class="cal-header-row">
+        <div class="cal-header-cell" style="color:var(--red);">일</div>
+        <div class="cal-header-cell">월</div>
+        <div class="cal-header-cell">화</div>
+        <div class="cal-header-cell">수</div>
+        <div class="cal-header-cell">목</div>
+        <div class="cal-header-cell">금</div>
+        <div class="cal-header-cell" style="color:var(--blue);">토</div>
+      </div>
+      <div id="cal-grid" class="cal-grid"></div>
+    </div>
+
+    <!-- 게시판 -->
+    <div id="board-section">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+        <textarea id="board-input" class="form-textarea" placeholder="메모를 입력하세요..." style="width:100%;min-height:80px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-size:13px;font-family:'Noto Sans KR',sans-serif;resize:vertical;"></textarea>
+        <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+          <button class="btn btn-primary btn-sm" onclick="window._postBoard()">작성</button>
+        </div>
+      </div>
+      <div id="board-list"></div>
+      <div id="board-empty" class="empty" style="display:none;"><div class="empty-icon">📝</div><div>작성된 메모가 없습니다</div></div>
+    </div>
   </div>
 </div>
 
