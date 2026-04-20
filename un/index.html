@@ -420,7 +420,7 @@
   <div class="nav-tab" onclick="switchPage('out')">🏁 출고완료</div>
   <div class="nav-tab" onclick="switchPage('stats')">📈 월별 통계</div>
   <div class="nav-tab" onclick="switchPage('migyeol')">📂 보험 미결</div>
-  <div class="nav-tab" onclick="switchPage('leave')" id="tab-leave" style="display:none">📅 연차관리</div>
+  <div class="nav-tab" onclick="switchPage('leave')" id="tab-leave">📅 연차관리</div>
   <div class="nav-tab" onclick="switchPage('board')" id="tab-board" style="display:none">📝 게시판</div>
   <div class="nav-tab" onclick="switchPage('estimate')">🔧 견적 도우미</div>
   <div class="nav-tab" onclick="switchPage('usermgmt')" id="tab-usermgmt" style="display:none">👤 사용자 관리</div>
@@ -944,8 +944,8 @@
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
     admin: ['dashboard','list','complete','out','stats','migyeol','leave','board','estimate','usermgmt'],
-    staff: ['dashboard','list','complete','out'],
-    viewer: ['dashboard']
+    staff: ['dashboard','list','complete','out','leave'],
+    viewer: ['dashboard','leave']
   };
 
   // Google 로그인 — 팝업 방식 (모바일 포함)
@@ -1009,8 +1009,8 @@
       const allowedMenus = ROLE_MENUS[role] || ROLE_MENUS.viewer;
       document.querySelectorAll('.nav-tab').forEach(tab=>{
         const page = tab.getAttribute('onclick')?.match(/switchPage\('(.+?)'\)/)?.[1];
-        if(page && !allowedMenus.includes(page)){
-          tab.style.display='none';
+        if(page){
+          tab.style.display = allowedMenus.includes(page) ? '' : 'none';
         }
       });
 
@@ -1103,6 +1103,8 @@
       var bdTab=document.getElementById('tab-board');
       if(bdTab) bdTab.style.display='';
     }
+    // 권한이 결정된 후 연차 화면을 한 번 더 그려서 admin/비admin 분기를 정확히 반영
+    if(window._renderLeave) try{ window._renderLeave(); }catch(e){ console.error(e); }
   }, 2000);
 
   // 사용자 관리 (역할 라벨/설명/색상)
@@ -2105,13 +2107,33 @@
   function getEtcCount(empId) {
     return Object.values(leaveUsage).filter(u => u.empId === empId && (u.type === '\uc870\ud1f4' || u.type === '\uc678\ucd9c')).length;
   }
+  function getYearLeaveCount(empId) {
+    return Object.values(leaveUsage).filter(u => u.empId === empId && u.type === '\uc5f0\ucc28').length;
+  }
 
   function renderLeave() {
-    var empList = Object.entries(leaveEmployees).map(function(e) { return {id:e[0], name:e[1].name, totalLeave:e[1].totalLeave, hireDate:e[1].hireDate}; });
+    var isAdmin = window._userRole === 'admin';
+    var myEmail = (window._userEmail || '').toLowerCase();
+    var myName = window._userName || '';
+
+    document.querySelectorAll('.leave-admin-only').forEach(function(el){ el.style.display = isAdmin ? '' : 'none'; });
+
+    var allEmpList = Object.entries(leaveEmployees).map(function(e) { return {id:e[0], name:e[1].name, totalLeave:e[1].totalLeave, hireDate:e[1].hireDate, email:e[1].email||''}; });
+    var empList = isAdmin ? allEmpList : allEmpList.filter(function(emp) {
+      if (emp.email && emp.email.toLowerCase() === myEmail) return true;
+      if (!emp.email && emp.name && emp.name === myName) return true;
+      return false;
+    });
+
     var empTbody = document.getElementById('leave-emp-tbody');
     var empEmpty = document.getElementById('leave-emp-empty');
     if (!empTbody) return;
-    if (!empList.length) { empTbody.innerHTML=''; empEmpty.style.display='block'; }
+    if (!empList.length) {
+      empTbody.innerHTML='';
+      empEmpty.style.display='block';
+      var msgEl = empEmpty.querySelector('div:last-child');
+      if (msgEl) msgEl.textContent = isAdmin ? '\ub4f1\ub85d\ub41c \uc9c1\uc6d0\uc774 \uc5c6\uc2b5\ub2c8\ub2e4. \uc9c1\uc6d0\uc744 \ucd94\uac00\ud574\uc8fc\uc138\uc694.' : '\ubcf8\uc778 \uc815\ubcf4\uac00 \ub4f1\ub85d\ub418\uc9c0 \uc54a\uc558\uc2b5\ub2c8\ub2e4. \uad00\ub9ac\uc790\uc5d0\uac8c \ubb38\uc758\ud574\uc8fc\uc138\uc694.';
+    }
     else {
       empEmpty.style.display='none';
       empTbody.innerHTML = empList.map(function(emp) {
@@ -2119,22 +2141,29 @@
         var totalHours = autoTotal * 8;
         var usedHours = getLeaveUsedHours(emp.id);
         var remainHours = totalHours - usedHours;
+        var yearCount = getYearLeaveCount(emp.id);
         var halfCount = getHalfDayCount(emp.id);
         var etcCount = getEtcCount(emp.id);
         var remainColor = remainHours <= 24 ? 'var(--red)' : 'var(--green)';
         var hireDateStr = emp.hireDate ? emp.hireDate : '-';
         var tenureStr = emp.hireDate ? formatHireInfo(emp.hireDate) : '-';
-        return '<tr><td><strong>'+esc(emp.name)+'</strong></td><td style="font-size:12px;">'+esc(hireDateStr)+'</td><td style="font-size:12px;">'+tenureStr+'</td><td>'+autoTotal+'\uc77c</td><td style="color:var(--accent);font-weight:600;">'+formatDayHour(usedHours)+'</td><td style="color:'+remainColor+';font-weight:700;">'+formatDayHour(Math.max(0,remainHours))+'</td><td>'+halfCount+'\ud68c</td><td>'+etcCount+'\ud68c</td><td><div style="display:flex;gap:5px;"><button class="btn btn-ghost btn-sm" onclick="window._editLeaveEmp(\''+esc(emp.id)+'\')">수정</button><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteLeaveEmp(\''+esc(emp.id)+'\',\''+esc(emp.name)+'\')">삭제</button></div></td></tr>';
+        var manageCell = isAdmin ? ('<td><div style="display:flex;gap:5px;"><button class="btn btn-ghost btn-sm" onclick="window._editLeaveEmp(\''+esc(emp.id)+'\')">\uc218\uc815</button><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteLeaveEmp(\''+esc(emp.id)+'\',\''+esc(emp.name)+'\')">\uc0ad\uc81c</button></div></td>') : '';
+        return '<tr><td><strong>'+esc(emp.name)+'</strong></td><td style="font-size:12px;">'+esc(hireDateStr)+'</td><td style="font-size:12px;">'+tenureStr+'</td><td>'+autoTotal+'\uc77c</td><td style="color:var(--accent);font-weight:600;">'+formatDayHour(usedHours)+'</td><td style="color:'+remainColor+';font-weight:700;">'+formatDayHour(Math.max(0,remainHours))+'</td><td>'+yearCount+'\ud68c</td><td>'+halfCount+'\ud68c</td><td>'+etcCount+'\ud68c</td>'+manageCell+'</tr>';
       }).join('');
     }
     var filterSel = document.getElementById('leaveFilterEmp');
     var useSel = document.getElementById('lu-emp');
     if (filterSel) { var pv=filterSel.value; filterSel.innerHTML='<option value="">\uc804\uccb4 \uc9c1\uc6d0</option>'+empList.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join(''); if(pv) filterSel.value=pv; }
-    if (useSel) { var pv2=useSel.value; useSel.innerHTML='<option value="">\uc9c1\uc6d0 \uc120\ud0dd</option>'+empList.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join(''); if(pv2) useSel.value=pv2; }
+    if (useSel) { var pv2=useSel.value; useSel.innerHTML='<option value="">\uc9c1\uc6d0 \uc120\ud0dd</option>'+allEmpList.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join(''); if(pv2) useSel.value=pv2; }
     var filterEmp = filterSel ? filterSel.value : '';
     var filterMonth = (document.getElementById('leaveFilterMonth')||{}).value || '';
     var useList = Object.entries(leaveUsage).map(function(e){return {id:e[0],empId:e[1].empId,type:e[1].type,date:e[1].date,reason:e[1].reason,createdAt:e[1].createdAt};});
-    if (filterEmp) useList = useList.filter(function(u){return u.empId===filterEmp;});
+    if (!isAdmin) {
+      var myEmpIds = empList.map(function(e){return e.id;});
+      useList = useList.filter(function(u){return myEmpIds.indexOf(u.empId)!==-1;});
+    } else if (filterEmp) {
+      useList = useList.filter(function(u){return u.empId===filterEmp;});
+    }
     if (filterMonth) useList = useList.filter(function(u){return (u.date||'').startsWith(filterMonth);});
     useList.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
     var useTbody = document.getElementById('leave-use-tbody');
@@ -2150,7 +2179,8 @@
         else if (u.type==='\uc870\ud1f4') typeBadge='<span style="background:rgba(232,68,42,0.15);color:var(--red);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">\uc870\ud1f4 '+(u.hours||'')+'h</span>';
         else if (u.type==='\uc678\ucd9c') typeBadge='<span style="background:rgba(139,92,246,0.15);color:var(--accent);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">\uc678\ucd9c '+(u.hours||'')+'h</span>';
         else typeBadge='<span style="background:rgba(251,146,60,0.15);color:#fb923c;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">'+esc(u.type)+'</span>';
-        return '<tr><td>'+esc(empName)+'</td><td>'+typeBadge+'</td><td>'+esc(u.date||'-')+'</td><td>'+esc(u.reason||'-')+'</td><td style="font-size:11px;color:var(--text-dim);">'+esc((u.createdAt||'').split('T')[0])+'</td><td><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteLeaveUse(\''+esc(u.id)+'\')">\uc0ad\uc81c</button></td></tr>';
+        var deleteCell = isAdmin ? ('<td><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteLeaveUse(\''+esc(u.id)+'\')">\uc0ad\uc81c</button></td>') : '';
+        return '<tr><td>'+esc(empName)+'</td><td>'+typeBadge+'</td><td>'+esc(u.date||'-')+'</td><td>'+esc(u.reason||'-')+'</td><td style="font-size:11px;color:var(--text-dim);">'+esc((u.createdAt||'').split('T')[0])+'</td>'+deleteCell+'</tr>';
       }).join('');
     }
   }
@@ -2213,6 +2243,7 @@
     editingLeaveEmpId = null;
     document.getElementById('leaveEmpModalTitle').textContent = '\uc9c1\uc6d0 \ucd94\uac00';
     document.getElementById('le-name').value = '';
+    document.getElementById('le-email').value = '';
     document.getElementById('le-hiredate').value = '';
     document.getElementById('le-total').value = '15';
     document.getElementById('leaveEmpModal').classList.add('open');
@@ -2222,19 +2253,21 @@
     editingLeaveEmpId = id;
     document.getElementById('leaveEmpModalTitle').textContent = '\uc9c1\uc6d0 \uc218\uc815';
     document.getElementById('le-name').value = emp.name || '';
+    document.getElementById('le-email').value = emp.email || '';
     document.getElementById('le-hiredate').value = emp.hireDate || '';
     document.getElementById('le-total').value = emp.hireDate ? calcTotalLeave(emp.hireDate) : (emp.totalLeave || 15);
     document.getElementById('leaveEmpModal').classList.add('open');
   };
   window._saveLeaveEmp = async function() {
     var name = document.getElementById('le-name').value.trim();
+    var email = document.getElementById('le-email').value.trim();
     var hireDate = document.getElementById('le-hiredate').value;
     var total = hireDate ? calcTotalLeave(hireDate) : parseFloat(document.getElementById('le-total').value);
     if (!name) { showNotif('\uc9c1\uc6d0\uba85\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694', true); return; }
     var btn = document.getElementById('leaveEmpSaveBtn');
     btn.disabled = true; btn.textContent = '\uc800\uc7a5 \uc911...';
     try {
-      var data = { name: name, totalLeave: total, hireDate: hireDate, updatedAt: new Date().toISOString() };
+      var data = { name: name, email: email, totalLeave: total, hireDate: hireDate, updatedAt: new Date().toISOString() };
       if (editingLeaveEmpId) { await update(ref(db, 'leaveEmployees/' + editingLeaveEmpId), data); showNotif(name + ' \uc815\ubcf4\uac00 \uc218\uc815\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
       else { data.createdAt = new Date().toISOString(); await push(leaveEmpRef, data); showNotif(name + ' \uc9c1\uc6d0\uc774 \ucd94\uac00\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
       document.getElementById('leaveEmpModal').classList.remove('open');
@@ -2812,7 +2845,7 @@ function fmtDateVal(val) {
     <div class="section-header">
       <div class="section-title">📅 연차/반차 관리</div>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-ghost btn-sm" onclick="window._openLeaveEmpModal()">➕ 직원 추가</button>
+        <button class="btn btn-ghost btn-sm leave-admin-only" onclick="window._openLeaveEmpModal()">➕ 직원 추가</button>
         <button class="btn btn-ghost btn-sm" onclick="window._renderLeave()">🔄 새로고침</button>
       </div>
     </div>
@@ -2820,7 +2853,7 @@ function fmtDateVal(val) {
     <!-- 직원별 연차 현황 -->
     <div class="table-wrap">
       <table>
-        <thead><tr><th>직원명</th><th>입사일</th><th>근속</th><th>총 연차</th><th>사용</th><th>잔여</th><th>반차</th><th>조퇴/외출</th><th>관리</th></tr></thead>
+        <thead><tr><th>직원명</th><th>입사일</th><th>근속</th><th>총 연차</th><th>사용</th><th>잔여</th><th>연차</th><th>반차</th><th>조퇴/외출</th><th id="leave-emp-manage-th" class="leave-admin-only">관리</th></tr></thead>
         <tbody id="leave-emp-tbody"></tbody>
       </table>
     </div>
@@ -2830,10 +2863,10 @@ function fmtDateVal(val) {
     <div class="section-header" style="margin-top:24px;">
       <div class="section-title">📋 사용 내역</div>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-primary btn-sm" onclick="window._openLeaveUseModal()">➕ 연차/반차 등록</button>
+        <button class="btn btn-primary btn-sm leave-admin-only" onclick="window._openLeaveUseModal()">➕ 연차/반차 등록</button>
       </div>
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:12px;">
+    <div class="leave-admin-only" style="display:flex;gap:8px;margin-bottom:12px;">
       <select class="form-select" id="leaveFilterEmp" onchange="window._renderLeave()" style="padding:8px 12px;font-size:13px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);min-width:120px;">
         <option value="">전체 직원</option>
       </select>
@@ -2841,7 +2874,7 @@ function fmtDateVal(val) {
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>직원명</th><th>유형</th><th>사용일</th><th>사유</th><th>등록일</th><th>관리</th></tr></thead>
+        <thead><tr><th>직원명</th><th>유형</th><th>사용일</th><th>사유</th><th>등록일</th><th id="leave-use-manage-th" class="leave-admin-only">관리</th></tr></thead>
         <tbody id="leave-use-tbody"></tbody>
       </table>
     </div>
@@ -2865,6 +2898,11 @@ function fmtDateVal(val) {
         <div class="form-group">
           <label class="form-label">입사일 *</label>
           <input class="form-input" id="le-hiredate" type="date">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Google 이메일 (본인 보기 매칭용)</label>
+          <input class="form-input" id="le-email" placeholder="employee@gmail.com" type="email">
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">미입력 시 직원명 기준 매칭 (Google 표시명과 동일해야 함)</div>
         </div>
         <div class="form-group full">
           <label class="form-label">총 연차 (자동 계산)</label>
@@ -2967,17 +3005,17 @@ function fmtDateVal(val) {
       <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px;">💳 디지털 명함 링크</div>
       <div style="display:flex;flex-direction:column;gap:8px;" id="digital-card-links">
         <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
-          <div style="font-size:13px;"><strong>박경영</strong> 총괄이사</div>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <span style="font-size:11px;color:var(--text-dim);font-family:monospace;">kgm-seongsu.co.kr/digital-card/</span>
-            <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:3px 8px;" onclick="navigator.clipboard.writeText('https://kgm-seongsu.co.kr/digital-card/');this.textContent='복사됨!';setTimeout(()=>{this.textContent='복사'},1500);">복사</button>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
           <div style="font-size:13px;"><strong>양은주</strong> 대표이사</div>
           <div style="display:flex;align-items:center;gap:6px;">
             <span style="font-size:11px;color:var(--text-dim);font-family:monospace;">kgm-seongsu.co.kr/digital-card-yang/</span>
             <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:3px 8px;" onclick="navigator.clipboard.writeText('https://kgm-seongsu.co.kr/digital-card-yang/');this.textContent='복사됨!';setTimeout(()=>{this.textContent='복사'},1500);">복사</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
+          <div style="font-size:13px;"><strong>박경영</strong> 총괄이사</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:11px;color:var(--text-dim);font-family:monospace;">kgm-seongsu.co.kr/digital-card/</span>
+            <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:3px 8px;" onclick="navigator.clipboard.writeText('https://kgm-seongsu.co.kr/digital-card/');this.textContent='복사됨!';setTimeout(()=>{this.textContent='복사'},1500);">복사</button>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
