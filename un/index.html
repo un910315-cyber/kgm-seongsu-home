@@ -968,8 +968,8 @@
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
     admin: ['dashboard','list','complete','out','stats','migyeol','leave','board','estimate','usermgmt'],
-    staff: ['dashboard','list','complete','out','leave','board'],
-    viewer: ['dashboard','leave','board']
+    staff: ['dashboard','complete','leave','board','estimate'],
+    viewer: ['dashboard','complete','leave','board']
   };
 
   // Google 로그인 — 팝업 방식 (모바일 포함)
@@ -1089,7 +1089,7 @@
         +'<div style="font-size:9px;color:var(--text-dim);">'+r.requestedAt+'</div>'
         +'</div>'
         +'<select id="role-'+r.id.replace(/[@.]/g,'_')+'" style="padding:4px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;">'
-        +'<option value="staff">KGM직원</option><option value="viewer">열람</option><option value="admin">관리자</option></select>'
+        +'<option value="staff">Staff 1단계</option><option value="viewer">Staff 2단계</option><option value="admin">관리자</option></select>'
         +'<button onclick="approveUser(\''+r.email+'\',\''+r.id.replace(/[@.]/g,'_')+'\')" style="padding:5px 12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;">승인</button>'
         +'<button onclick="denyUser(\''+r.email+'\')" style="padding:5px 8px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-dim);font-size:11px;cursor:pointer;">거절</button>'
         +'</div>'
@@ -1132,8 +1132,8 @@
   }, 2000);
 
   // 사용자 관리 (역할 라벨/설명/색상)
-  var _RL={'admin':'👑 관리자','staff':'🔧 KGM직원','viewer':'👁️ 열람'};
-  var _RD={'admin':'전체 메뉴','staff':'대시보드,입출고,수리완료,출고','viewer':'대시보드만'};
+  var _RL={'admin':'👑 관리자','staff':'🔧 Staff 1단계','viewer':'👤 Staff 2단계'};
+  var _RD={'admin':'전체 메뉴','staff':'대시보드, 수리완료, 연차, 게시판·일정, 견적','viewer':'대시보드, 수리완료, 연차, 게시판·일정'};
   var _RC={'admin':'var(--accent)','staff':'var(--blue)','viewer':'var(--text-dim)'};
 
   window.loadUserMgmt = async function(){
@@ -1173,8 +1173,8 @@
           +'<td>'+(isSelf?'<span style="font-size:10px;color:var(--text-dim);">본인</span>'
             :'<select id="umr-'+si+'" style="padding:3px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;">'
             +'<option value="admin"'+(role==='admin'?' selected':'')+'>관리자</option>'
-            +'<option value="staff"'+(role==='staff'?' selected':'')+'>KGM직원</option>'
-            +'<option value="viewer"'+(role==='viewer'?' selected':'')+'>열람</option>'
+            +'<option value="staff"'+(role==='staff'?' selected':'')+'>Staff 1단계</option>'
+            +'<option value="viewer"'+(role==='viewer'?' selected':'')+'>Staff 2단계</option>'
             +'</select> '
             +'<button onclick="umChange(\''+email+'\',\''+si+'\')" style="padding:3px 8px;background:var(--accent);border:none;border-radius:4px;color:#fff;font-size:10px;font-weight:700;cursor:pointer;">변경</button> '
             +'<button onclick="umRemove(\''+email+'\')" style="padding:3px 8px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--red);font-size:10px;cursor:pointer;">삭제</button>')
@@ -1200,7 +1200,7 @@
             +'<td style="font-size:12px;">'+(r.name||'-')+'</td>'
             +'<td style="font-size:11px;color:var(--text-dim);">'+(r.requestedAt||'').slice(0,10)+'</td>'
             +'<td><select id="umpr-'+si+'" style="padding:4px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;">'
-            +'<option value="staff">KGM직원</option><option value="viewer">열람</option><option value="admin">관리자</option></select></td>'
+            +'<option value="staff">Staff 1단계</option><option value="viewer">Staff 2단계</option><option value="admin">관리자</option></select></td>'
             +'<td><button onclick="umApprove(\''+r.email+'\',\''+si+'\',\''+((r.name||'').replace(/'/g,''))+'\')" style="padding:4px 12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;">승인</button> '
             +'<button onclick="umDeny(\''+r.email+'\')" style="padding:4px 8px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-dim);font-size:11px;cursor:pointer;">거절</button></td></tr>';
         });
@@ -3339,15 +3339,15 @@ function fmtDateVal(val) {
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:20px;">
       <div style="padding:12px 16px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:10px;">
         <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px;">👑 관리자 (admin)</div>
-        <div style="font-size:11px;color:var(--text-dim);line-height:1.6;">대시보드, 입출고, 수리완료, 출고, 통계, 보험미결, 견적, 사용자관리<br><b style="color:var(--text);">→ 전체 메뉴 접근</b></div>
+        <div style="font-size:11px;color:var(--text-dim);line-height:1.6;">대시보드, 입출고, 수리완료, 출고, 통계, 보험미결, 연차, 게시판·일정, 견적, 사용자관리<br><b style="color:var(--text);">→ 전체 메뉴 접근</b></div>
       </div>
       <div style="padding:12px 16px;background:rgba(91,163,245,.08);border:1px solid rgba(91,163,245,.2);border-radius:10px;">
-        <div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:6px;">🔧 KGM직원 (staff)</div>
-        <div style="font-size:11px;color:var(--text-dim);line-height:1.6;">대시보드, 입출고, 수리완료, 출고<br><b style="color:var(--text);">→ 통계·보험미결·견적 제외</b></div>
+        <div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:6px;">🔧 Staff 1단계 (staff)</div>
+        <div style="font-size:11px;color:var(--text-dim);line-height:1.6;">대시보드, 수리완료, 연차, 게시판·일정, 견적<br><b style="color:var(--text);">→ 입출고·출고·통계·보험미결 제외</b></div>
       </div>
       <div style="padding:12px 16px;background:rgba(163,163,163,.08);border:1px solid rgba(163,163,163,.2);border-radius:10px;">
-        <div style="font-size:13px;font-weight:700;color:var(--text-dim);margin-bottom:6px;">👁️ 열람 (viewer)</div>
-        <div style="font-size:11px;color:var(--text-dim);line-height:1.6;">대시보드만<br><b style="color:var(--text);">→ 대시보드 1개만 접근</b></div>
+        <div style="font-size:13px;font-weight:700;color:var(--text-dim);margin-bottom:6px;">👤 Staff 2단계 (viewer)</div>
+        <div style="font-size:11px;color:var(--text-dim);line-height:1.6;">대시보드, 수리완료, 연차, 게시판·일정<br><b style="color:var(--text);">→ Staff 1단계에서 견적 추가 제외</b></div>
       </div>
     </div>
 
