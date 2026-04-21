@@ -2505,6 +2505,7 @@
     document.getElementById('le-email').value = '';
     document.getElementById('le-team').value = '';
     document.getElementById('le-position').value = '\uc77c\ubc18';
+    document.getElementById('le-display-team').value = '';
     document.getElementById('le-hiredate').value = '';
     document.getElementById('le-total').value = '15';
     document.getElementById('leaveEmpModal').classList.add('open');
@@ -2527,6 +2528,7 @@
     }
     teamSel.value = savedTeam;
     document.getElementById('le-position').value = emp.position || '\uc77c\ubc18';
+    document.getElementById('le-display-team').value = emp.displayTeam || '';
     document.getElementById('le-hiredate').value = emp.hireDate || '';
     document.getElementById('le-total').value = emp.hireDate ? calcTotalLeave(emp.hireDate) : (emp.totalLeave || 15);
     document.getElementById('leaveEmpModal').classList.add('open');
@@ -2536,13 +2538,14 @@
     var email = document.getElementById('le-email').value.trim();
     var team = document.getElementById('le-team').value.trim();
     var position = document.getElementById('le-position').value;
+    var displayTeam = document.getElementById('le-display-team').value.trim();
     var hireDate = document.getElementById('le-hiredate').value;
     var total = hireDate ? calcTotalLeave(hireDate) : parseFloat(document.getElementById('le-total').value);
     if (!name) { showNotif('\uc9c1\uc6d0\uba85\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694', true); return; }
     var btn = document.getElementById('leaveEmpSaveBtn');
     btn.disabled = true; btn.textContent = '\uc800\uc7a5 \uc911...';
     try {
-      var data = { name: name, email: email, team: team, position: position, totalLeave: total, hireDate: hireDate, updatedAt: new Date().toISOString() };
+      var data = { name: name, email: email, team: team, position: position, displayTeam: displayTeam, totalLeave: total, hireDate: hireDate, updatedAt: new Date().toISOString() };
       if (editingLeaveEmpId) { await update(ref(db, 'leaveEmployees/' + editingLeaveEmpId), data); showNotif(name + ' \uc815\ubcf4\uac00 \uc218\uc815\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
       else { data.createdAt = new Date().toISOString(); await push(leaveEmpRef, data); showNotif(name + ' \uc9c1\uc6d0\uc774 \ucd94\uac00\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
       document.getElementById('leaveEmpModal').classList.remove('open');
@@ -2826,7 +2829,7 @@
   function renderOrgChart() {
     var container = document.getElementById('orgChartContainer');
     if (!container) return;
-    var allEmps = Object.entries(leaveEmployees || {}).map(function(e){ return Object.assign({id:e[0]}, e[1]); });
+    var allEmps = Object.entries(leaveEmployees || {}).map(function(e){ var x = Object.assign({id:e[0]}, e[1]); x._displayTeam = (x.displayTeam && x.displayTeam.trim()) || x.team || ''; return x; });
     var ceo = allEmps.find(function(e){ return e.position === '\ub300\ud45c'; });
     var executives = allEmps.filter(function(e){ return e.position === '\uc784\uc6d0'; });
     var teams = ['\uae30\ub2a5\ubd80','\ud310\uae08\ubd80','\ub3c4\uc7a5\ubd80','\uc0ac\ubb34\uc2e4'];
@@ -2849,8 +2852,8 @@
     html += '<div class="org-tier-label">\ubd80\uc11c</div>';
     html += '<div class="org-dept-grid">';
     teams.forEach(function(team) {
-      var head = allEmps.find(function(e){ return e.team === team && e.position === '\ubd80\uc11c\uc7a5'; });
-      var members = allEmps.filter(function(e){ return e.team === team && e.position !== '\ubd80\uc11c\uc7a5' && e.position !== '\ub300\ud45c' && e.position !== '\uc784\uc6d0'; });
+      var head = allEmps.find(function(e){ return e._displayTeam === team && e.position === '\ubd80\uc11c\uc7a5'; });
+      var members = allEmps.filter(function(e){ return e._displayTeam === team && e.position !== '\ubd80\uc11c\uc7a5' && e.position !== '\ub300\ud45c' && e.position !== '\uc784\uc6d0'; });
       html += '<div class="org-dept">';
       html += '<div class="org-dept-name">'+esc(team)+'</div>';
       html += '<div class="org-mini-label">\ubd80\uc11c\uc7a5</div>';
@@ -2866,15 +2869,15 @@
     });
     html += '</div>';
     // 별도 부서 (사고전담부 등) — 옆으로 분리 표시
-    var specialDeptsToShow = specialTeams.filter(function(t){
-      return allEmps.some(function(e){ return e.team === t; });
-    });
+    var allDisplayTeams = {};
+    allEmps.forEach(function(e){ if (e._displayTeam) allDisplayTeams[e._displayTeam] = true; });
+    var specialDeptsToShow = Object.keys(allDisplayTeams).filter(function(t){ return teams.indexOf(t) === -1; });
     if (specialDeptsToShow.length) {
       html += '<div class="org-tier-label" style="margin-top:18px;">\ud2b9\uc218 \ubd80\uc11c</div>';
       html += '<div class="org-row" style="align-items:flex-start;">';
       specialDeptsToShow.forEach(function(team) {
-        var head = allEmps.find(function(e){ return e.team === team && e.position === '\ubd80\uc11c\uc7a5'; });
-        var members = allEmps.filter(function(e){ return e.team === team && e.position !== '\ubd80\uc11c\uc7a5' && e.position !== '\ub300\ud45c' && e.position !== '\uc784\uc6d0'; });
+        var head = allEmps.find(function(e){ return e._displayTeam === team && e.position === '\ubd80\uc11c\uc7a5'; });
+        var members = allEmps.filter(function(e){ return e._displayTeam === team && e.position !== '\ubd80\uc11c\uc7a5' && e.position !== '\ub300\ud45c' && e.position !== '\uc784\uc6d0'; });
         html += '<div class="org-dept" style="min-width:140px;">';
         html += '<div class="org-dept-name">'+esc(team)+'</div>';
         if (head) { html += '<div class="org-mini-label">\ubd80\uc11c\uc7a5</div>' + card(head, '\ubd80\uc11c\uc7a5'); }
@@ -2892,7 +2895,7 @@
     }
     var unassigned = allEmps.filter(function(e){
       if (e.position === '\ub300\ud45c' || e.position === '\uc784\uc6d0') return false;
-      if (e.team && (teams.indexOf(e.team) !== -1 || specialTeams.indexOf(e.team) !== -1)) return false;
+      if (e._displayTeam) return false;
       return true;
     });
     if (unassigned.length) {
@@ -3661,6 +3664,11 @@ function fmtDateVal(val) {
             <option value="임원">임원 (대표 직속)</option>
             <option value="대표">대표</option>
           </select>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">조직도 표시 부서 (선택)</label>
+          <input class="form-input" id="le-display-team" placeholder="비워두면 위 부서로 표시. 다른 그룹으로 표시하고 싶을 때만 입력 (예: 사고전담부)">
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">결재선은 위 '부서' 기준. 이 값은 조직도 표시만 변경합니다.</div>
         </div>
         <div class="form-group full">
           <label class="form-label">Google 이메일 (본인 보기 매칭용)</label>
