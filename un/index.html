@@ -2672,6 +2672,112 @@
     document.getElementById('reject-reason').value = '';
     document.getElementById('rejectModal').classList.add('open');
   };
+  function findEmpNameByEmail(email) {
+    if (!email) return '';
+    var e = email.toLowerCase();
+    var entries = Object.entries(leaveEmployees);
+    for (var i=0; i<entries.length; i++) {
+      var emp = entries[i][1];
+      if (emp && emp.email && emp.email.toLowerCase() === e) return emp.name || '';
+    }
+    return email.split('@')[0];
+  }
+  function buildRequestFormHTML(req) {
+    if (!req) return '<div style="padding:30px;text-align:center;color:#999;">신청서를 찾을 수 없습니다</div>';
+    var emp = leaveEmployees[req.empId] || {};
+    var name = emp.name || '';
+    var team = emp.team || '';
+    var position = emp.position || '';
+    var type = req.type || '';
+    var hours = req.hours || 0;
+    var reason = req.reason || '';
+    var date = req.date || '';
+    var d = date ? new Date(date) : null;
+    var y = d ? d.getFullYear() : '';
+    var mo = d ? (d.getMonth()+1) : '';
+    var da = d ? d.getDate() : '';
+    var isOut = (type === '\uc678\ucd9c');
+    var isEarly = (type === '\uc870\ud1f4');
+    var isYC = (type === '\uc5f0\ucc28');
+    var isHalf = (type === '\uc624\uc804\ubc18\ucc28' || type === '\uc624\ud6c4\ubc18\ucc28');
+    var halfNote = type === '\uc624\uc804\ubc18\ucc28' ? '\uc624\uc804\ubc18\ucc28' : (type === '\uc624\ud6c4\ubc18\ucc28' ? '\uc624\ud6c4\ubc18\ucc28' : '');
+    var managerName = req.managerApprovedBy ? findEmpNameByEmail(req.managerApprovedBy) : '';
+    var adminName = req.adminApprovedBy ? findEmpNameByEmail(req.adminApprovedBy) : '';
+    var directorName = req.directorApprovedBy ? findEmpNameByEmail(req.directorApprovedBy) : '';
+    var ck = function(b){ return b ? '\u2611' : '\u2610'; };
+    var cellBorder = 'border:1px solid #000;';
+    var hdrCell = 'border:1px solid #000;background:#f0f0f0;text-align:center;font-weight:600;padding:6px 8px;';
+    var sealHdr = 'border:1px solid #000;background:#f0f0f0;text-align:center;font-weight:600;padding:4px;font-size:12px;';
+    var sealBody = 'border:1px solid #000;text-align:center;height:48px;vertical-align:middle;font-size:13px;';
+    var html = ''
+      + '<div class="leave-form" style="font-family:\'\ub9d1\uc740 \uace0\ub515\',\'Malgun Gothic\',sans-serif;color:#000;background:#fff;padding:24px 28px;max-width:680px;margin:0 auto;font-size:13px;">'
+      + '<div style="border:2px solid #000;padding:10px;text-align:center;font-size:17px;font-weight:700;margin-bottom:0;">'
+      + '(\uc678\ucd9c'+ck(isOut)+', \uc870\ud1f4'+ck(isEarly)+', \ud734\uac00\u2610, \uc5f0\ucc28'+ck(isYC)+', \ubc18\ucc28'+ck(isHalf)+') \uc2e0\uccad\uc11c'
+      + '</div>'
+      + '<table style="width:100%;border-collapse:collapse;margin-top:6px;">'
+      + '<tr>'
+      + '<td rowspan="2" style="'+hdrCell+'width:24%;">\uc218&nbsp;\uc2e0&nbsp;\ubd80&nbsp;\uc11c</td>'
+      + '<td style="'+sealHdr+'width:25%;">\ubd80\uc11c\ud300\uc7a5</td>'
+      + '<td style="'+sealHdr+'width:25%;">\uad00\ub9ac\ud300\uc7a5</td>'
+      + '<td style="'+sealHdr+'width:26%;">\ub300\ud45c</td>'
+      + '</tr>'
+      + '<tr>'
+      + '<td style="'+sealBody+'">'+esc(managerName)+'</td>'
+      + '<td style="'+sealBody+'">'+esc(adminName)+'</td>'
+      + '<td style="'+sealBody+'">'+esc(directorName)+'</td>'
+      + '</tr>'
+      + '</table>'
+      + '<table style="width:100%;border-collapse:collapse;border-top:none;margin-top:6px;">'
+      + '<tr>'
+      + '<td style="'+hdrCell+'width:14%;">\uc18c&nbsp;\uc18d</td>'
+      + '<td style="'+cellBorder+'width:36%;padding:8px 10px;">'+esc(team)+'</td>'
+      + '<td style="'+hdrCell+'width:14%;">\uc0ac&nbsp;\ubc88</td>'
+      + '<td style="'+cellBorder+'width:36%;padding:8px 10px;">&nbsp;</td>'
+      + '</tr>'
+      + '<tr>'
+      + '<td style="'+hdrCell+'">\uc9c1&nbsp;\uc704</td>'
+      + '<td style="'+cellBorder+'padding:8px 10px;">'+esc(position)+'</td>'
+      + '<td style="'+hdrCell+'">\uc131&nbsp;\uba85</td>'
+      + '<td style="'+cellBorder+'padding:8px 10px;">'+esc(name)+' <span style="color:#888;font-size:11px;">(\uc11c\uba85)</span></td>'
+      + '</tr>'
+      + '</table>'
+      + '<div style="border:1px solid #000;border-top:none;padding:16px 18px;line-height:1.8;">'
+      + '<div style="margin-bottom:8px;">\uc704 \uc0ac\ub78c\uc758 (\uc678\ucd9c, \uc870\ud1f4, \ud734\uac00, \uc5f0\ucc28, \ubc18\ucc28, \ubcd1\uac00, \uacbd\uc870) \uc2e0\uccad\uc6d0\uc744 \uc81c\ucd9c\ud558\uc624\ub2c8 \ud5c8\uac00\ud558\uc5ec \uc8fc\uc2dc\uae30 \ubc14\ub78d\ub2c8\ub2e4.</div>'
+      + '<div style="margin:14px 0 6px;font-weight:700;">1. \uae30 \uac04 :</div>'
+      + '<div style="margin-left:18px;">'+y+'\ub144 '+mo+'\uc6d4 '+da+'\uc77c \ubd80\ud130</div>'
+      + '<div style="margin-left:18px;">'+y+'\ub144 '+mo+'\uc6d4 '+da+'\uc77c \uae4c\uc9c0</div>'
+      + (hours ? '<div style="margin-left:18px;color:#444;">( \u3000 \uc2dc \u3000 \ubd84\ubd80\ud130 \u3000 \uc2dc \u3000 \ubd84\uae4c\uc9c0 \u00a0\u00a0 '+hours+'\uc2dc\uac04 )</div>' : '')
+      + (halfNote ? '<div style="margin-left:18px;color:#444;">( '+halfNote+' )</div>' : '')
+      + '<div style="margin:18px 0 6px;font-weight:700;">2. \uc0ac \uc720 :</div>'
+      + '<div style="margin-left:18px;min-height:60px;white-space:pre-wrap;">'+esc(reason)+'</div>'
+      + '</div>'
+      + '<div style="text-align:center;padding:24px 0 6px;font-size:15px;font-weight:700;">\ucf00\uc774\uc9c0\ubaa8\ube4c\ub9ac\ud2f0\uc131\uc218\uc11c\ube44\uc2a4\uc13c\ud130\u33d2</div>'
+      + '</div>';
+    return html;
+  }
+  var _currentPrintReqId = null;
+  window._openRequestPrintView = function(id) {
+    var req = leaveRequests[id];
+    if (!req) { showNotif('\uc2e0\uccad\uc11c\ub97c \ucc3e\uc744 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4', true); return; }
+    _currentPrintReqId = id;
+    document.getElementById('requestPrintContent').innerHTML = buildRequestFormHTML(req);
+    document.getElementById('requestPrintModal').classList.add('open');
+  };
+  window._printRequest = function() {
+    if (!_currentPrintReqId) return;
+    var req = leaveRequests[_currentPrintReqId];
+    if (!req) return;
+    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>\uc5f0\uc6d4\ucc28 \uc2e0\uccad\uc11c</title>'
+      + '<style>@page{size:A4;margin:18mm 16mm;}body{margin:0;padding:0;background:#fff;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style>'
+      + '</head><body>' + buildRequestFormHTML(req) + '</body></html>';
+    var w = window.open('', '_blank', 'width=820,height=1100');
+    if (!w) { showNotif('\ud31d\uc5c5 \ucc28\ub2e8 \uc2dc \uc778\uc1c4\uac00 \uc548 \ub429\ub2c8\ub2e4', true); return; }
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(function(){ try { w.print(); } catch(e){} }, 300);
+  };
+
   window._confirmReject = async function() {
     if (!editingRejectId) return;
     var reason = document.getElementById('reject-reason').value.trim();
@@ -2700,9 +2806,11 @@
     tbody.innerHTML = list.map(function(r) {
       var typeText = r.type + (r.hours ? ' '+r.hours+'h' : '');
       var canCancel = (r.status === 'pending_manager' || r.status === 'pending_admin' || r.status === 'pending_director');
-      var actionCell = canCancel
+      var viewBtn = '<button class="btn btn-ghost btn-sm" onclick="window._openRequestPrintView(\''+esc(r.id)+'\')">\ud83d\udcc4 \uc591\uc2dd</button>';
+      var afterBtn = canCancel
         ? '<button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._cancelMyRequest(\''+esc(r.id)+'\')">\ucde8\uc18c</button>'
-        : (r.status === 'rejected' && r.rejectedReason ? '<span style="font-size:11px;color:var(--text-dim);" title="'+esc(r.rejectedReason)+'">\uc0ac\uc720: '+esc(r.rejectedReason).slice(0,20)+'</span>' : '-');
+        : (r.status === 'rejected' && r.rejectedReason ? '<span style="font-size:11px;color:var(--text-dim);" title="'+esc(r.rejectedReason)+'">\uc0ac\uc720: '+esc(r.rejectedReason).slice(0,20)+'</span>' : '');
+      var actionCell = '<div style="display:flex;gap:5px;align-items:center;">'+viewBtn+afterBtn+'</div>';
       return '<tr><td>'+esc(typeText)+'</td><td>'+esc(r.date||'-')+'</td><td>'+esc(r.reason||'-')+'</td><td>'+reqStatusBadge(r.status)+'</td><td style="font-size:11px;color:var(--text-dim);">'+esc((r.createdAt||'').split('T')[0])+'</td><td>'+actionCell+'</td></tr>';
     }).join('');
   }
@@ -2740,9 +2848,11 @@
       var team = emp ? (emp.team || '-') : '-';
       var typeText = r.type + (r.hours ? ' '+r.hours+'h' : '');
       var canAct = userCanActOn(r);
-      var actions = canAct
-        ? '<div style="display:flex;gap:5px;"><button class="btn btn-primary btn-sm" onclick="window._approveRequest(\''+esc(r.id)+'\')">\uc2b9\uc778</button><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._openRejectModal(\''+esc(r.id)+'\')">\ubc18\ub824</button></div>'
+      var viewBtn = '<button class="btn btn-ghost btn-sm" onclick="window._openRequestPrintView(\''+esc(r.id)+'\')">\ud83d\udcc4 \uc591\uc2dd</button>';
+      var actBtns = canAct
+        ? '<button class="btn btn-primary btn-sm" onclick="window._approveRequest(\''+esc(r.id)+'\')">\uc2b9\uc778</button><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._openRejectModal(\''+esc(r.id)+'\')">\ubc18\ub824</button>'
         : '<span style="font-size:11px;color:var(--text-dim);">' + (r.status==='pending_manager'?(team+' \ubd80\uc11c\uc7a5'):(r.status==='pending_admin'?'\uad00\ub9ac\uc790':'\ub300\ud45c')) + ' \ub300\uae30 \uc911</span>';
+      var actions = '<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">'+viewBtn+actBtns+'</div>';
       return '<tr><td><strong>'+esc(name)+'</strong></td><td style="font-size:12px;">'+esc(team)+'</td><td>'+esc(typeText)+'</td><td>'+esc(r.date||'-')+'</td><td>'+esc(r.reason||'-')+'</td><td>'+reqStatusBadge(r.status)+'</td><td>'+actions+'</td></tr>';
     }).join('');
   }
@@ -3558,6 +3668,20 @@ function fmtDateVal(val) {
         <button class="btn" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" id="rejectConfirmBtn" onclick="window._confirmReject()">반려</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- 신청서 양식 미리보기 + 인쇄 모달 -->
+<div class="modal-overlay" id="requestPrintModal">
+  <div class="modal" style="max-width:780px;">
+    <div class="modal-header">
+      <div class="modal-title">신청서 양식 미리보기</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-primary btn-sm" onclick="window._printRequest()">🖨️ 인쇄</button>
+        <button class="modal-close" onclick="document.getElementById('requestPrintModal').classList.remove('open')">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;background:#444;" id="requestPrintContent"></div>
   </div>
 </div>
 
