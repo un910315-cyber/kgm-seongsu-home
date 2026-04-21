@@ -377,6 +377,33 @@
     .cal-toggle button{padding:5px 10px;font-size:11px;}
   }
 
+  /* ───── ORG CHART ───── */
+  .org-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 16px;}
+  .org-section{display:flex;flex-direction:column;align-items:center;gap:0;}
+  .org-tier-label{font-size:11px;font-weight:700;color:var(--text-dim);letter-spacing:2px;margin:10px 0 6px;text-transform:uppercase;}
+  .org-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .org-card{background:var(--surface2);border:2px solid var(--border);border-radius:10px;padding:10px 16px;text-align:center;min-width:110px;font-size:13px;line-height:1.3;}
+  .org-card-name{font-weight:700;font-size:14px;}
+  .org-card-sub{font-size:10px;color:var(--text-dim);margin-top:2px;letter-spacing:0.5px;}
+  .org-card.role-대표{border-color:var(--accent);background:rgba(139,92,246,0.12);}
+  .org-card.role-대표 .org-card-name{color:var(--accent);}
+  .org-card.role-임원{border-color:var(--blue);background:rgba(75,156,255,0.10);}
+  .org-card.role-임원 .org-card-name{color:var(--blue);}
+  .org-card.role-부서장{border-color:#fb923c;background:rgba(251,146,60,0.10);}
+  .org-card.role-부서장 .org-card-name{color:#fb923c;}
+  .org-card.role-일반{opacity:0.85;}
+  .org-card.empty{border-style:dashed;opacity:0.45;font-style:italic;color:var(--text-dim);}
+  .org-vline{width:2px;height:18px;background:var(--border);}
+  .org-dept-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;width:100%;margin-top:8px;}
+  .org-dept{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .org-dept-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;letter-spacing:1px;}
+  .org-mini-label{font-size:10px;color:var(--text-dim);letter-spacing:1px;}
+  @media (max-width: 700px){
+    .org-dept-grid{grid-template-columns:repeat(2,1fr);}
+    .org-card{min-width:80px;font-size:12px;padding:8px 10px;}
+    .org-card-name{font-size:12px;}
+  }
+
 </style>
 </head>
 <body>
@@ -2080,7 +2107,7 @@
   let leaveUsage = {};
   let editingLeaveEmpId = null;
 
-  onValue(leaveEmpRef, (snap) => { leaveEmployees = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} try { if(window._renderMyRequests) window._renderMyRequests(); if(window._renderApprovalQueue) window._renderApprovalQueue(); } catch(e) {} });
+  onValue(leaveEmpRef, (snap) => { leaveEmployees = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} try { if(window._renderMyRequests) window._renderMyRequests(); if(window._renderApprovalQueue) window._renderApprovalQueue(); } catch(e) {} try { if(window._renderOrgChart) window._renderOrgChart(); } catch(e) {} });
   onValue(leaveUseRef, (snap) => { leaveUsage = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} });
 
   // 총 사용 시간 (시간 단위로 통합 계산, 1일=8시간)
@@ -2490,7 +2517,7 @@
     document.getElementById('le-email').value = emp.email || '';
     var teamSel = document.getElementById('le-team');
     var savedTeam = emp.team || '';
-    var preset = ['', '\uc0ac\ubb34\uc2e4', '\ud310\uae08\ubd80', '\ub3c4\uc7a5\ubd80', '\uae30\ub2a5\ubd80'];
+    var preset = ['', '\uc0ac\ubb34\uc2e4', '\ud310\uae08\ubd80', '\ub3c4\uc7a5\ubd80', '\uae30\ub2a5\ubd80', '\uc0ac\uace0\uc804\ub2f4\ubd80'];
     // 기존 옵션에 없는 커스텀 값이면 임시로 옵션 추가
     Array.from(teamSel.querySelectorAll('option[data-custom]')).forEach(function(o){ o.remove(); });
     if (savedTeam && preset.indexOf(savedTeam) === -1) {
@@ -2796,6 +2823,89 @@
     setTimeout(function(){ try { w.print(); } catch(e){} }, 300);
   };
 
+  function renderOrgChart() {
+    var container = document.getElementById('orgChartContainer');
+    if (!container) return;
+    var allEmps = Object.entries(leaveEmployees || {}).map(function(e){ return Object.assign({id:e[0]}, e[1]); });
+    var ceo = allEmps.find(function(e){ return e.position === '\ub300\ud45c'; });
+    var executives = allEmps.filter(function(e){ return e.position === '\uc784\uc6d0'; });
+    var teams = ['\uae30\ub2a5\ubd80','\ud310\uae08\ubd80','\ub3c4\uc7a5\ubd80','\uc0ac\ubb34\uc2e4'];
+    var specialTeams = ['\uc0ac\uace0\uc804\ub2f4\ubd80'];
+    function card(emp, role) {
+      if (!emp) return '<div class="org-card empty">\ubbf8\uc9c0\uc815</div>';
+      return '<div class="org-card role-'+role+'"><div class="org-card-name">'+esc(emp.name||'')+'</div>'+(emp.position?'<div class="org-card-sub">'+esc(emp.position)+'</div>':'')+'</div>';
+    }
+    var html = '<div class="org-section">';
+    html += '<div class="org-tier-label">\ub300\ud45c</div>';
+    html += card(ceo, '\ub300\ud45c');
+    if (executives.length) {
+      html += '<div class="org-vline"></div>';
+      html += '<div class="org-tier-label">\uc784\uc6d0</div>';
+      html += '<div class="org-row">';
+      executives.forEach(function(e){ html += card(e, '\uc784\uc6d0'); });
+      html += '</div>';
+    }
+    html += '<div class="org-vline"></div>';
+    html += '<div class="org-tier-label">\ubd80\uc11c</div>';
+    html += '<div class="org-dept-grid">';
+    teams.forEach(function(team) {
+      var head = allEmps.find(function(e){ return e.team === team && e.position === '\ubd80\uc11c\uc7a5'; });
+      var members = allEmps.filter(function(e){ return e.team === team && e.position !== '\ubd80\uc11c\uc7a5' && e.position !== '\ub300\ud45c' && e.position !== '\uc784\uc6d0'; });
+      html += '<div class="org-dept">';
+      html += '<div class="org-dept-name">'+esc(team)+'</div>';
+      html += '<div class="org-mini-label">\ubd80\uc11c\uc7a5</div>';
+      html += card(head, '\ubd80\uc11c\uc7a5');
+      if (members.length) {
+        html += '<div class="org-vline" style="height:12px;"></div>';
+        html += '<div class="org-mini-label">\ud300\uc6d0</div>';
+        members.forEach(function(m){ html += card(m, '\uc77c\ubc18'); });
+      } else {
+        html += '<div style="font-size:10px;color:var(--text-dim);margin-top:6px;font-style:italic;opacity:0.6;">\ud300\uc6d0 \uc5c6\uc74c</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+    // 별도 부서 (사고전담부 등) — 옆으로 분리 표시
+    var specialDeptsToShow = specialTeams.filter(function(t){
+      return allEmps.some(function(e){ return e.team === t; });
+    });
+    if (specialDeptsToShow.length) {
+      html += '<div class="org-tier-label" style="margin-top:18px;">\ud2b9\uc218 \ubd80\uc11c</div>';
+      html += '<div class="org-row" style="align-items:flex-start;">';
+      specialDeptsToShow.forEach(function(team) {
+        var head = allEmps.find(function(e){ return e.team === team && e.position === '\ubd80\uc11c\uc7a5'; });
+        var members = allEmps.filter(function(e){ return e.team === team && e.position !== '\ubd80\uc11c\uc7a5' && e.position !== '\ub300\ud45c' && e.position !== '\uc784\uc6d0'; });
+        html += '<div class="org-dept" style="min-width:140px;">';
+        html += '<div class="org-dept-name">'+esc(team)+'</div>';
+        if (head) { html += '<div class="org-mini-label">\ubd80\uc11c\uc7a5</div>' + card(head, '\ubd80\uc11c\uc7a5'); }
+        if (members.length) {
+          if (head) html += '<div class="org-vline" style="height:12px;"></div>';
+          html += '<div class="org-mini-label">\ud300\uc6d0</div>';
+          members.forEach(function(m){ html += card(m, '\uc77c\ubc18'); });
+        }
+        if (!head && !members.length) {
+          html += '<div style="font-size:10px;color:var(--text-dim);font-style:italic;opacity:0.6;">\uc778\uc6d0 \uc5c6\uc74c</div>';
+        }
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+    var unassigned = allEmps.filter(function(e){
+      if (e.position === '\ub300\ud45c' || e.position === '\uc784\uc6d0') return false;
+      if (e.team && (teams.indexOf(e.team) !== -1 || specialTeams.indexOf(e.team) !== -1)) return false;
+      return true;
+    });
+    if (unassigned.length) {
+      html += '<div class="org-tier-label" style="margin-top:18px;">\ubd80\uc11c \ubbf8\uc9c0\uc815</div>';
+      html += '<div class="org-row">';
+      unassigned.forEach(function(e){ html += card(e, e.position === '\ubd80\uc11c\uc7a5' ? '\ubd80\uc11c\uc7a5' : '\uc77c\ubc18'); });
+      html += '</div>';
+    }
+    html += '</div>';
+    container.innerHTML = html;
+  }
+  window._renderOrgChart = renderOrgChart;
+
   window._confirmReject = async function() {
     if (!editingRejectId) return;
     var reason = document.getElementById('reject-reason').value.trim();
@@ -2946,7 +3056,7 @@
       if (name==='complete' && window._renderComplete) window._renderComplete();
       if (name==='out' && window._renderOut) window._renderOut();
       if (name==='stats') { if(window._initYearSelect) window._initYearSelect(); if(window._renderStats) window._renderStats(); }
-      if (name==='usermgmt' && window.loadUserMgmt) window.loadUserMgmt();
+      if (name==='usermgmt') { if(window.loadUserMgmt) window.loadUserMgmt(); if(window._renderOrgChart) window._renderOrgChart(); }
       if (name==='leave' && window._renderLeave) window._renderLeave();
       if (name==='board') { if(window._renderBoard) window._renderBoard(); if(window._renderCalendar) window._renderCalendar(); }
     } catch(e) {
@@ -3540,6 +3650,7 @@ function fmtDateVal(val) {
             <option value="판금부">판금부</option>
             <option value="도장부">도장부</option>
             <option value="기능부">기능부</option>
+            <option value="사고전담부">사고전담부</option>
           </select>
         </div>
         <div class="form-group">
@@ -3898,6 +4009,13 @@ function fmtDateVal(val) {
         <tbody id="umPending"></tbody>
       </table>
     </div>
+
+    <!-- 조직도 -->
+    <div class="section-header" style="margin-top:24px;">
+      <div class="section-title">🏢 조직도</div>
+      <div style="font-size:11px;color:var(--text-dim);">연차관리 직원 정보 기준 자동 생성</div>
+    </div>
+    <div id="orgChartContainer" class="org-wrap"></div>
   </div>
 </div>
 
