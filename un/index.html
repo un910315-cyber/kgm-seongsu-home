@@ -2482,7 +2482,17 @@
     document.getElementById('leaveEmpModalTitle').textContent = '\uc9c1\uc6d0 \uc218\uc815';
     document.getElementById('le-name').value = emp.name || '';
     document.getElementById('le-email').value = emp.email || '';
-    document.getElementById('le-team').value = emp.team || '';
+    var teamSel = document.getElementById('le-team');
+    var savedTeam = emp.team || '';
+    var preset = ['', '\uc0ac\ubb34\uc2e4', '\ud310\uae08\ubd80', '\ub3c4\uc7a5\ubd80', '\uae30\ub2a5\ubd80'];
+    // 기존 옵션에 없는 커스텀 값이면 임시로 옵션 추가
+    Array.from(teamSel.querySelectorAll('option[data-custom]')).forEach(function(o){ o.remove(); });
+    if (savedTeam && preset.indexOf(savedTeam) === -1) {
+      var opt = document.createElement('option');
+      opt.value = savedTeam; opt.textContent = savedTeam + ' (\uc774\uc804 \uac12)'; opt.setAttribute('data-custom','1');
+      teamSel.appendChild(opt);
+    }
+    teamSel.value = savedTeam;
     document.getElementById('le-position').value = emp.position || '\uc77c\ubc18';
     document.getElementById('le-hiredate').value = emp.hireDate || '';
     document.getElementById('le-total').value = emp.hireDate ? calcTotalLeave(emp.hireDate) : (emp.totalLeave || 15);
@@ -3515,8 +3525,14 @@ function fmtDateVal(val) {
           <input class="form-input" id="le-hiredate" type="date">
         </div>
         <div class="form-group">
-          <label class="form-label">팀 (결재선 그룹)</label>
-          <input class="form-input" id="le-team" placeholder="예: 정비팀, 사무팀">
+          <label class="form-label">부서 (결재선 그룹)</label>
+          <select class="form-select" id="le-team">
+            <option value="">선택</option>
+            <option value="사무실">사무실</option>
+            <option value="판금부">판금부</option>
+            <option value="도장부">도장부</option>
+            <option value="기능부">기능부</option>
+          </select>
         </div>
         <div class="form-group">
           <label class="form-label">직책 분류</label>
