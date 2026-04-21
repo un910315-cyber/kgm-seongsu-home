@@ -50,8 +50,8 @@ Firestore `users/{email}.role` 필드:
 
 - `records/{id}` — 입출고 레코드
 - `leaveEmployees/{id}` — 연차 대상 직원 (name, email, hireDate, totalLeave, team, position)
-  - `position` enum: `'일반' | '부서장' | '대표'` (결재선용)
-  - `team`: 자유 입력 문자열 (부서장 매칭용)
+  - `position` enum: `'일반' | '부서장' | '임원' | '대표'` (결재선용)
+  - `team`: 사무실/판금부/도장부/기능부 (드롭다운, 빈값 가능)
 - `leaveUsage/{id}` — 연차/반차/조퇴/외출 사용 내역 (empId, type, date, hours, reason, fromRequestId?)
 - `leaveRequests/{id}` — 연차 신청서 (empId, type, date, hours, reason, team, status, *ApprovedAt/By, rejected*, finalUsageId?)
   - `status` enum: `pending_manager | pending_admin | pending_director | approved | rejected | canceled`
@@ -64,6 +64,7 @@ Firestore `users/{email}.role` 필드:
 
 자동 패스 규칙:
 - 신청자 `position === '대표'` → 즉시 최종 승인 (모든 단계 패스)
+- 신청자 `position === '임원'` → 부서장·관리자 단계 패스, 바로 대표 단계로
 - 신청자 `position === '부서장'` → 부서장 단계 자동 패스
 - 신청자 팀에 부서장 미등록 → 부서장 단계 자동 패스
 - 신청자 시스템 role === 'admin' AND 부서장 단계가 패스된 상태 → 관리자 단계도 자동 패스
