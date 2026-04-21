@@ -2548,7 +2548,7 @@
       default: return status;
     }
   }
-  function statusBadge(status) {
+  function reqStatusBadge(status) {
     var bg, color;
     if (status === 'approved') { bg='rgba(75,156,255,0.15)'; color='var(--blue)'; }
     else if (status === 'rejected') { bg='rgba(232,68,42,0.15)'; color='var(--red)'; }
@@ -2703,7 +2703,7 @@
       var actionCell = canCancel
         ? '<button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._cancelMyRequest(\''+esc(r.id)+'\')">\ucde8\uc18c</button>'
         : (r.status === 'rejected' && r.rejectedReason ? '<span style="font-size:11px;color:var(--text-dim);" title="'+esc(r.rejectedReason)+'">\uc0ac\uc720: '+esc(r.rejectedReason).slice(0,20)+'</span>' : '-');
-      return '<tr><td>'+esc(typeText)+'</td><td>'+esc(r.date||'-')+'</td><td>'+esc(r.reason||'-')+'</td><td>'+statusBadge(r.status)+'</td><td style="font-size:11px;color:var(--text-dim);">'+esc((r.createdAt||'').split('T')[0])+'</td><td>'+actionCell+'</td></tr>';
+      return '<tr><td>'+esc(typeText)+'</td><td>'+esc(r.date||'-')+'</td><td>'+esc(r.reason||'-')+'</td><td>'+reqStatusBadge(r.status)+'</td><td style="font-size:11px;color:var(--text-dim);">'+esc((r.createdAt||'').split('T')[0])+'</td><td>'+actionCell+'</td></tr>';
     }).join('');
   }
   function renderApprovalQueue() {
@@ -2743,7 +2743,7 @@
       var actions = canAct
         ? '<div style="display:flex;gap:5px;"><button class="btn btn-primary btn-sm" onclick="window._approveRequest(\''+esc(r.id)+'\')">\uc2b9\uc778</button><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._openRejectModal(\''+esc(r.id)+'\')">\ubc18\ub824</button></div>'
         : '<span style="font-size:11px;color:var(--text-dim);">' + (r.status==='pending_manager'?(team+' \ubd80\uc11c\uc7a5'):(r.status==='pending_admin'?'\uad00\ub9ac\uc790':'\ub300\ud45c')) + ' \ub300\uae30 \uc911</span>';
-      return '<tr><td><strong>'+esc(name)+'</strong></td><td style="font-size:12px;">'+esc(team)+'</td><td>'+esc(typeText)+'</td><td>'+esc(r.date||'-')+'</td><td>'+esc(r.reason||'-')+'</td><td>'+statusBadge(r.status)+'</td><td>'+actions+'</td></tr>';
+      return '<tr><td><strong>'+esc(name)+'</strong></td><td style="font-size:12px;">'+esc(team)+'</td><td>'+esc(typeText)+'</td><td>'+esc(r.date||'-')+'</td><td>'+esc(r.reason||'-')+'</td><td>'+reqStatusBadge(r.status)+'</td><td>'+actions+'</td></tr>';
     }).join('');
   }
   window._renderMyRequests = renderMyRequests;
