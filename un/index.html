@@ -2074,7 +2074,7 @@
   let leaveUsage = {};
   let editingLeaveEmpId = null;
 
-  onValue(leaveEmpRef, (snap) => { leaveEmployees = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} });
+  onValue(leaveEmpRef, (snap) => { leaveEmployees = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} try { if(window._renderMyRequests) window._renderMyRequests(); if(window._renderApprovalQueue) window._renderApprovalQueue(); } catch(e) {} });
   onValue(leaveUseRef, (snap) => { leaveUsage = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} });
 
   // 총 사용 시간 (시간 단위로 통합 계산, 1일=8시간)
@@ -2207,6 +2207,7 @@
         return '<tr><td>'+esc(empName)+'</td><td>'+typeBadge+'</td><td>'+esc(u.date||'-')+'</td><td>'+esc(u.reason||'-')+'</td><td style="font-size:11px;color:var(--text-dim);">'+esc((u.createdAt||'').split('T')[0])+'</td>'+deleteCell+'</tr>';
       }).join('');
     }
+    try { if(window._renderMyRequests) window._renderMyRequests(); if(window._renderApprovalQueue) window._renderApprovalQueue(); } catch(e) { console.error(e); }
   }
   window._renderLeave = renderLeave;
 
@@ -2469,6 +2470,8 @@
     document.getElementById('leaveEmpModalTitle').textContent = '\uc9c1\uc6d0 \ucd94\uac00';
     document.getElementById('le-name').value = '';
     document.getElementById('le-email').value = '';
+    document.getElementById('le-team').value = '';
+    document.getElementById('le-position').value = '\uc77c\ubc18';
     document.getElementById('le-hiredate').value = '';
     document.getElementById('le-total').value = '15';
     document.getElementById('leaveEmpModal').classList.add('open');
@@ -2479,6 +2482,8 @@
     document.getElementById('leaveEmpModalTitle').textContent = '\uc9c1\uc6d0 \uc218\uc815';
     document.getElementById('le-name').value = emp.name || '';
     document.getElementById('le-email').value = emp.email || '';
+    document.getElementById('le-team').value = emp.team || '';
+    document.getElementById('le-position').value = emp.position || '\uc77c\ubc18';
     document.getElementById('le-hiredate').value = emp.hireDate || '';
     document.getElementById('le-total').value = emp.hireDate ? calcTotalLeave(emp.hireDate) : (emp.totalLeave || 15);
     document.getElementById('leaveEmpModal').classList.add('open');
@@ -2486,19 +2491,264 @@
   window._saveLeaveEmp = async function() {
     var name = document.getElementById('le-name').value.trim();
     var email = document.getElementById('le-email').value.trim();
+    var team = document.getElementById('le-team').value.trim();
+    var position = document.getElementById('le-position').value;
     var hireDate = document.getElementById('le-hiredate').value;
     var total = hireDate ? calcTotalLeave(hireDate) : parseFloat(document.getElementById('le-total').value);
     if (!name) { showNotif('\uc9c1\uc6d0\uba85\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694', true); return; }
     var btn = document.getElementById('leaveEmpSaveBtn');
     btn.disabled = true; btn.textContent = '\uc800\uc7a5 \uc911...';
     try {
-      var data = { name: name, email: email, totalLeave: total, hireDate: hireDate, updatedAt: new Date().toISOString() };
+      var data = { name: name, email: email, team: team, position: position, totalLeave: total, hireDate: hireDate, updatedAt: new Date().toISOString() };
       if (editingLeaveEmpId) { await update(ref(db, 'leaveEmployees/' + editingLeaveEmpId), data); showNotif(name + ' \uc815\ubcf4\uac00 \uc218\uc815\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
       else { data.createdAt = new Date().toISOString(); await push(leaveEmpRef, data); showNotif(name + ' \uc9c1\uc6d0\uc774 \ucd94\uac00\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
       document.getElementById('leaveEmpModal').classList.remove('open');
     } catch(e) { showNotif('\uc800\uc7a5 \uc2e4\ud328: ' + e.message, true); }
     btn.disabled = false; btn.textContent = '\uc800\uc7a5';
   };
+  // ---- LEAVE REQUESTS (신청서 워크플로) ----
+  const leaveRequestsRef = ref(db, 'leaveRequests');
+  let leaveRequests = {};
+  let editingRejectId = null;
+  let editingRejectStage = null;
+
+  onValue(leaveRequestsRef, (snap) => { leaveRequests = snap.val() || {}; try { renderMyRequests(); renderApprovalQueue(); } catch(e) { console.error(e); } });
+
+  function getMyEmpRecord() {
+    if (!window._userEmail) return null;
+    var myEmail = window._userEmail.toLowerCase();
+    var myName = window._userName || '';
+    var entries = Object.entries(leaveEmployees);
+    for (var i=0; i<entries.length; i++) {
+      var e = entries[i];
+      if (e[1] && e[1].email && e[1].email.toLowerCase() === myEmail) return Object.assign({id:e[0]}, e[1]);
+    }
+    for (var i=0; i<entries.length; i++) {
+      var e = entries[i];
+      if (e[1] && !e[1].email && e[1].name && e[1].name === myName) return Object.assign({id:e[0]}, e[1]);
+    }
+    return null;
+  }
+  function teamHasManager(team) {
+    if (!team) return false;
+    var entries = Object.entries(leaveEmployees);
+    for (var i=0; i<entries.length; i++) {
+      if (entries[i][1] && entries[i][1].team === team && entries[i][1].position === '\ubd80\uc11c\uc7a5') return true;
+    }
+    return false;
+  }
+  function statusLabel(status) {
+    switch(status) {
+      case 'pending_manager': return '\ubd80\uc11c\uc7a5 \ub300\uae30';
+      case 'pending_admin': return '\uad00\ub9ac\uc790 \ub300\uae30';
+      case 'pending_director': return '\ub300\ud45c \ub300\uae30';
+      case 'approved': return '\uc2b9\uc778';
+      case 'rejected': return '\ubc18\ub824';
+      case 'canceled': return '\ucde8\uc18c';
+      default: return status;
+    }
+  }
+  function statusBadge(status) {
+    var bg, color;
+    if (status === 'approved') { bg='rgba(75,156,255,0.15)'; color='var(--blue)'; }
+    else if (status === 'rejected') { bg='rgba(232,68,42,0.15)'; color='var(--red)'; }
+    else if (status === 'canceled') { bg='rgba(163,163,163,0.15)'; color='var(--text-dim)'; }
+    else { bg='rgba(251,146,60,0.15)'; color='#fb923c'; }
+    return '<span style="background:'+bg+';color:'+color+';padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;white-space:nowrap;">'+statusLabel(status)+'</span>';
+  }
+  function determineInitialStatus(emp) {
+    var pos = emp.position || '\uc77c\ubc18';
+    var requesterIsAdmin = window._userRole === 'admin';
+    if (pos === '\ub300\ud45c') return 'approved';
+    var startsWithManager = (pos !== '\ubd80\uc11c\uc7a5' && teamHasManager(emp.team));
+    if (startsWithManager) return 'pending_manager';
+    if (requesterIsAdmin) return 'pending_director';
+    return 'pending_admin';
+  }
+  function canApproveStage(stage, currentEmp) {
+    var isAdmin = window._userRole === 'admin';
+    if (stage === 'pending_admin') return isAdmin;
+    if (stage === 'pending_manager') {
+      if (!currentEmp) return false;
+      return currentEmp.position === '\ubd80\uc11c\uc7a5';
+    }
+    if (stage === 'pending_director') {
+      if (!currentEmp) return false;
+      return currentEmp.position === '\ub300\ud45c';
+    }
+    return false;
+  }
+
+  window._openMyRequestModal = function() {
+    var myEmp = getMyEmpRecord();
+    if (!myEmp) { showNotif('\ubcf8\uc778 \uc9c1\uc6d0 \uc815\ubcf4\uac00 \ub4f1\ub85d\ub418\uc9c0 \uc54a\uc544 \uc2e0\uccad\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4. \uad00\ub9ac\uc790\uc5d0\uac8c \ubb38\uc758\ud574\uc8fc\uc138\uc694.', true); return; }
+    document.getElementById('mr-type').value = '\uc5f0\ucc28';
+    document.getElementById('mr-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('mr-reason').value = '';
+    document.getElementById('mr-hours').value = '1';
+    document.getElementById('mr-hours-group').style.display = 'none';
+    var pos = myEmp.position || '\uc77c\ubc18';
+    var flowText = '';
+    if (pos === '\ub300\ud45c') flowText = '\ub300\ud45c\ub2d8 \uc2e0\uccad\uc740 \uc81c\ucd9c \uc989\uc2dc \uc2b9\uc778\ub429\ub2c8\ub2e4.';
+    else if (pos === '\ubd80\uc11c\uc7a5') flowText = '\uacb0\uc7ac \uc21c\uc11c: \uad00\ub9ac\uc790 \u2192 \ub300\ud45c (\ubd80\uc11c\uc7a5 \ub2e8\uacc4 \uc790\ub3d9 \ud328\uc2a4)';
+    else if (window._userRole === 'admin') flowText = '\uacb0\uc7ac \uc21c\uc11c: \ub300\ud45c (\uad00\ub9ac\uc790 \ub2e8\uacc4 \uc790\ub3d9 \ud328\uc2a4)' + (teamHasManager(myEmp.team)?', \ubd80\uc11c\uc7a5 \uba3c\uc800':'');
+    else if (!teamHasManager(myEmp.team)) flowText = '\uacb0\uc7ac \uc21c\uc11c: \uad00\ub9ac\uc790 \u2192 \ub300\ud45c (\uc18c\uc18d \ud300 \ubd80\uc11c\uc7a5 \ubbf8\ub4f1\ub85d, \ubd80\uc11c\uc7a5 \ub2e8\uacc4 \uc790\ub3d9 \ud328\uc2a4)';
+    else flowText = '\uacb0\uc7ac \uc21c\uc11c: ' + esc(myEmp.team || '\ud300') + ' \ubd80\uc11c\uc7a5 \u2192 \uad00\ub9ac\uc790 \u2192 \ub300\ud45c';
+    document.getElementById('myreq-flow-info').innerHTML = flowText;
+    document.getElementById('myRequestModal').classList.add('open');
+  };
+  window._submitLeaveRequest = async function() {
+    var myEmp = getMyEmpRecord();
+    if (!myEmp) { showNotif('\uc9c1\uc6d0 \uc815\ubcf4\uac00 \uc5c6\uc2b5\ub2c8\ub2e4', true); return; }
+    var type = document.getElementById('mr-type').value;
+    var date = document.getElementById('mr-date').value;
+    var reason = document.getElementById('mr-reason').value.trim();
+    var hours = (type === '\uc870\ud1f4' || type === '\uc678\ucd9c') ? parseInt(document.getElementById('mr-hours').value) : null;
+    if (!date) { showNotif('\uc0ac\uc6a9\uc77c\uc744 \uc120\ud0dd\ud574\uc8fc\uc138\uc694', true); return; }
+    var btn = document.getElementById('myReqSaveBtn');
+    btn.disabled = true; btn.textContent = '\uc81c\ucd9c \uc911...';
+    try {
+      var initStatus = determineInitialStatus(myEmp);
+      var nowStr = new Date().toISOString();
+      var data = { empId: myEmp.id, type: type, date: date, reason: reason, team: myEmp.team || '', status: initStatus, createdAt: nowStr, requestedBy: window._userEmail || '' };
+      if (hours) data.hours = hours;
+      if (initStatus === 'approved') {
+        data.approvedAt = nowStr; data.approvedBy = window._userEmail || '';
+        data.directorApprovedAt = nowStr; data.directorApprovedBy = window._userEmail || '';
+        var newRef = await push(leaveRequestsRef, data);
+        var usageData = { empId: myEmp.id, type: type, date: date, reason: reason, createdAt: nowStr, fromRequestId: newRef.key };
+        if (hours) usageData.hours = hours;
+        var usageRef = await push(leaveUseRef, usageData);
+        await update(ref(db, 'leaveRequests/' + newRef.key), { finalUsageId: usageRef.key });
+        showNotif('\uc2e0\uccad\uc774 \uc989\uc2dc \uc2b9\uc778\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
+      } else {
+        await push(leaveRequestsRef, data);
+        showNotif('\uc2e0\uccad\uc774 \uc81c\ucd9c\ub418\uc5c8\uc2b5\ub2c8\ub2e4 (' + statusLabel(initStatus) + ')');
+      }
+      document.getElementById('myRequestModal').classList.remove('open');
+    } catch(e) { showNotif('\uc81c\ucd9c \uc2e4\ud328: ' + e.message, true); }
+    btn.disabled = false; btn.textContent = '\uc81c\ucd9c';
+  };
+  window._cancelMyRequest = async function(id) {
+    var req = leaveRequests[id]; if (!req) return;
+    if (req.status !== 'pending_manager' && req.status !== 'pending_admin' && req.status !== 'pending_director') {
+      showNotif('\uacb0\uc7ac\uac00 \uc644\ub8cc\ub41c \uc2e0\uccad\uc740 \ucde8\uc18c\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4', true);
+      return;
+    }
+    if (!confirm('\uc774 \uc2e0\uccad\uc744 \ucde8\uc18c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?')) return;
+    try {
+      await update(ref(db, 'leaveRequests/' + id), { status: 'canceled', canceledAt: new Date().toISOString(), canceledBy: window._userEmail || '' });
+      showNotif('\uc2e0\uccad\uc774 \ucde8\uc18c\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
+    } catch(e) { showNotif('\ucde8\uc18c \uc2e4\ud328: ' + e.message, true); }
+  };
+  window._approveRequest = async function(id) {
+    var req = leaveRequests[id]; if (!req) return;
+    var stage = req.status;
+    var nextStatus = '';
+    var nowStr = new Date().toISOString();
+    var updates = {};
+    if (stage === 'pending_manager') { nextStatus = 'pending_admin'; updates.managerApprovedAt = nowStr; updates.managerApprovedBy = window._userEmail || ''; }
+    else if (stage === 'pending_admin') { nextStatus = 'pending_director'; updates.adminApprovedAt = nowStr; updates.adminApprovedBy = window._userEmail || ''; }
+    else if (stage === 'pending_director') { nextStatus = 'approved'; updates.directorApprovedAt = nowStr; updates.directorApprovedBy = window._userEmail || ''; updates.approvedAt = nowStr; updates.approvedBy = window._userEmail || ''; }
+    else { showNotif('\uacb0\uc7ac\ud560 \uc218 \uc5c6\ub294 \uc0c1\ud0dc\uc785\ub2c8\ub2e4', true); return; }
+    updates.status = nextStatus;
+    try {
+      await update(ref(db, 'leaveRequests/' + id), updates);
+      if (nextStatus === 'approved') {
+        var usageData = { empId: req.empId, type: req.type, date: req.date, reason: req.reason || '', createdAt: nowStr, fromRequestId: id };
+        if (req.hours) usageData.hours = req.hours;
+        var usageRef = await push(leaveUseRef, usageData);
+        await update(ref(db, 'leaveRequests/' + id), { finalUsageId: usageRef.key });
+        showNotif('\ucd5c\uc885 \uc2b9\uc778 \uc644\ub8cc, \uc0ac\uc6a9 \ub0b4\uc5ed\uc5d0 \uc790\ub3d9 \ub4f1\ub85d\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
+      } else {
+        showNotif('\uc2b9\uc778 \uc644\ub8cc \u2192 ' + statusLabel(nextStatus));
+      }
+    } catch(e) { showNotif('\uc2b9\uc778 \uc2e4\ud328: ' + e.message, true); }
+  };
+  window._openRejectModal = function(id) {
+    editingRejectId = id;
+    var req = leaveRequests[id];
+    editingRejectStage = req ? req.status : null;
+    document.getElementById('reject-reason').value = '';
+    document.getElementById('rejectModal').classList.add('open');
+  };
+  window._confirmReject = async function() {
+    if (!editingRejectId) return;
+    var reason = document.getElementById('reject-reason').value.trim();
+    if (!reason) { showNotif('\ubc18\ub824 \uc0ac\uc720\ub97c \uc785\ub825\ud574\uc8fc\uc138\uc694', true); return; }
+    var btn = document.getElementById('rejectConfirmBtn');
+    btn.disabled = true; btn.textContent = '\ucc98\ub9ac \uc911...';
+    try {
+      await update(ref(db, 'leaveRequests/' + editingRejectId), { status: 'rejected', rejectedAt: new Date().toISOString(), rejectedBy: window._userEmail || '', rejectedReason: reason, rejectedAtStage: editingRejectStage });
+      document.getElementById('rejectModal').classList.remove('open');
+      showNotif('\ubc18\ub824 \ucc98\ub9ac\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
+    } catch(e) { showNotif('\ubc18\ub824 \uc2e4\ud328: ' + e.message, true); }
+    btn.disabled = false; btn.textContent = '\ubc18\ub824';
+    editingRejectId = null; editingRejectStage = null;
+  };
+
+  function renderMyRequests() {
+    var tbody = document.getElementById('myreq-tbody');
+    var empty = document.getElementById('myreq-empty');
+    if (!tbody) return;
+    var myEmp = getMyEmpRecord();
+    if (!myEmp) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; return; }
+    var list = Object.entries(leaveRequests).filter(function(e){ return e[1] && e[1].empId === myEmp.id; }).map(function(e){ return Object.assign({id:e[0]}, e[1]); });
+    list.sort(function(a,b){ return new Date(b.createdAt) - new Date(a.createdAt); });
+    if (!list.length) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; return; }
+    if (empty) empty.style.display = 'none';
+    tbody.innerHTML = list.map(function(r) {
+      var typeText = r.type + (r.hours ? ' '+r.hours+'h' : '');
+      var canCancel = (r.status === 'pending_manager' || r.status === 'pending_admin' || r.status === 'pending_director');
+      var actionCell = canCancel
+        ? '<button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._cancelMyRequest(\''+esc(r.id)+'\')">\ucde8\uc18c</button>'
+        : (r.status === 'rejected' && r.rejectedReason ? '<span style="font-size:11px;color:var(--text-dim);" title="'+esc(r.rejectedReason)+'">\uc0ac\uc720: '+esc(r.rejectedReason).slice(0,20)+'</span>' : '-');
+      return '<tr><td>'+esc(typeText)+'</td><td>'+esc(r.date||'-')+'</td><td>'+esc(r.reason||'-')+'</td><td>'+statusBadge(r.status)+'</td><td style="font-size:11px;color:var(--text-dim);">'+esc((r.createdAt||'').split('T')[0])+'</td><td>'+actionCell+'</td></tr>';
+    }).join('');
+  }
+  function renderApprovalQueue() {
+    var section = document.getElementById('approval-section');
+    var tbody = document.getElementById('approval-tbody');
+    var empty = document.getElementById('approval-empty');
+    if (!tbody || !section) return;
+    var myEmp = getMyEmpRecord();
+    var isAdmin = window._userRole === 'admin';
+    var canBeApprover = isAdmin || (myEmp && (myEmp.position === '\ubd80\uc11c\uc7a5' || myEmp.position === '\ub300\ud45c'));
+    if (!canBeApprover) { section.style.display = 'none'; return; }
+    section.style.display = '';
+    var allReq = Object.entries(leaveRequests).map(function(e){ return Object.assign({id:e[0]}, e[1]); });
+    var pending = allReq.filter(function(r){ return r.status === 'pending_manager' || r.status === 'pending_admin' || r.status === 'pending_director'; });
+    function userCanActOn(r) {
+      if (!canApproveStage(r.status, myEmp)) return false;
+      if (r.status === 'pending_manager') {
+        var reqEmp = leaveEmployees[r.empId];
+        if (!reqEmp) return false;
+        if (myEmp && reqEmp.team !== myEmp.team) return false;
+      }
+      return true;
+    }
+    var visible = pending.filter(function(r) {
+      if (isAdmin) return true; // 관리자는 모든 진행중 신청을 볼 수 있음
+      return userCanActOn(r);
+    });
+    visible.sort(function(a,b){ return new Date(a.createdAt) - new Date(b.createdAt); });
+    if (!visible.length) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; return; }
+    if (empty) empty.style.display = 'none';
+    tbody.innerHTML = visible.map(function(r) {
+      var emp = leaveEmployees[r.empId];
+      var name = emp ? emp.name : '(\uc0ad\uc81c\ub428)';
+      var team = emp ? (emp.team || '-') : '-';
+      var typeText = r.type + (r.hours ? ' '+r.hours+'h' : '');
+      var canAct = userCanActOn(r);
+      var actions = canAct
+        ? '<div style="display:flex;gap:5px;"><button class="btn btn-primary btn-sm" onclick="window._approveRequest(\''+esc(r.id)+'\')">\uc2b9\uc778</button><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._openRejectModal(\''+esc(r.id)+'\')">\ubc18\ub824</button></div>'
+        : '<span style="font-size:11px;color:var(--text-dim);">' + (r.status==='pending_manager'?(team+' \ubd80\uc11c\uc7a5'):(r.status==='pending_admin'?'\uad00\ub9ac\uc790':'\ub300\ud45c')) + ' \ub300\uae30 \uc911</span>';
+      return '<tr><td><strong>'+esc(name)+'</strong></td><td style="font-size:12px;">'+esc(team)+'</td><td>'+esc(typeText)+'</td><td>'+esc(r.date||'-')+'</td><td>'+esc(r.reason||'-')+'</td><td>'+statusBadge(r.status)+'</td><td>'+actions+'</td></tr>';
+    }).join('');
+  }
+  window._renderMyRequests = renderMyRequests;
+  window._renderApprovalQueue = renderApprovalQueue;
+
   window._deleteLeaveEmp = async function(id, name) {
     if (!confirm(name + ' \uc9c1\uc6d0\uc744 \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?\n\ud574\ub2f9 \uc9c1\uc6d0\uc758 \uc5f0\ucc28 \uc0ac\uc6a9 \ub0b4\uc5ed\ub3c4 \ubaa8\ub450 \uc0ad\uc81c\ub429\ub2c8\ub2e4.')) return;
     try {
@@ -3075,7 +3325,37 @@ function fmtDateVal(val) {
       </div>
     </div>
 
+    <!-- 내 신청서 -->
+    <div class="section-header" style="margin-top:8px;">
+      <div class="section-title" style="font-size:14px;">📥 내 신청서</div>
+      <button class="btn btn-primary btn-sm" onclick="window._openMyRequestModal()">➕ 신청서 작성</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>유형</th><th>사용일</th><th>사유</th><th>진행 상태</th><th>신청일</th><th>액션</th></tr></thead>
+        <tbody id="myreq-tbody"></tbody>
+      </table>
+    </div>
+    <div id="myreq-empty" class="empty" style="display:none;"><div class="empty-icon">📥</div><div>제출한 신청서가 없습니다</div></div>
+
+    <!-- 결재 대기 (관리자/부서장/대표만) -->
+    <div id="approval-section" style="display:none;">
+      <div class="section-header" style="margin-top:24px;">
+        <div class="section-title" style="font-size:14px;">📨 결재 대기</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>신청자</th><th>팀</th><th>유형</th><th>사용일</th><th>사유</th><th>현재 단계</th><th>액션</th></tr></thead>
+          <tbody id="approval-tbody"></tbody>
+        </table>
+      </div>
+      <div id="approval-empty" class="empty" style="display:none;"><div class="empty-icon">📨</div><div>결재할 신청이 없습니다</div></div>
+    </div>
+
     <!-- 직원별 연차 현황 -->
+    <div class="section-header" style="margin-top:24px;">
+      <div class="section-title" style="font-size:14px;">📊 직원별 연차 현황</div>
+    </div>
     <div class="table-wrap">
       <table>
         <thead><tr><th>직원명</th><th>입사일</th><th>근속</th><th>총 연차</th><th>사용</th><th>잔여</th><th>연차</th><th>반차</th><th>조퇴/외출</th><th id="leave-emp-manage-th" class="leave-admin-only">관리</th></tr></thead>
@@ -3123,6 +3403,18 @@ function fmtDateVal(val) {
         <div class="form-group">
           <label class="form-label">입사일 *</label>
           <input class="form-input" id="le-hiredate" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">팀 (결재선 그룹)</label>
+          <input class="form-input" id="le-team" placeholder="예: 정비팀, 사무팀">
+        </div>
+        <div class="form-group">
+          <label class="form-label">직책 분류</label>
+          <select class="form-select" id="le-position">
+            <option value="일반">일반</option>
+            <option value="부서장">부서장</option>
+            <option value="대표">대표</option>
+          </select>
         </div>
         <div class="form-group full">
           <label class="form-label">Google 이메일 (본인 보기 매칭용)</label>
@@ -3194,6 +3486,76 @@ function fmtDateVal(val) {
       <div class="form-actions" style="margin-top:16px;">
         <button class="btn btn-ghost" onclick="document.getElementById('leaveUseModal').classList.remove('open')">취소</button>
         <button class="btn btn-primary" id="leaveUseSaveBtn" onclick="window._saveLeaveUse()">등록</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 내 연차 신청 모달 -->
+<div class="modal-overlay" id="myRequestModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">연차 신청서</div>
+      <button class="modal-close" onclick="document.getElementById('myRequestModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;">
+      <div id="myreq-flow-info" style="background:var(--surface2);padding:10px 12px;border-radius:8px;margin-bottom:12px;font-size:11px;color:var(--text-dim);line-height:1.5;"></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">유형 *</label>
+          <select class="form-select" id="mr-type" onchange="document.getElementById('mr-hours-group').style.display=(this.value==='조퇴'||this.value==='외출')?'flex':'none';">
+            <option value="연차">연차 (1일)</option>
+            <option value="오전반차">오전반차 (0.5일)</option>
+            <option value="오후반차">오후반차 (0.5일)</option>
+            <option value="조퇴">조퇴 (시간 선택)</option>
+            <option value="외출">외출 (시간 선택)</option>
+          </select>
+        </div>
+        <div class="form-group" id="mr-hours-group" style="display:none;">
+          <label class="form-label">시간 *</label>
+          <select class="form-select" id="mr-hours">
+            <option value="1">1시간</option>
+            <option value="2">2시간</option>
+            <option value="3">3시간</option>
+            <option value="4">4시간</option>
+            <option value="5">5시간</option>
+            <option value="6">6시간</option>
+            <option value="7">7시간</option>
+            <option value="8">8시간</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">사용일 *</label>
+          <input class="form-input" id="mr-date" type="date">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">사유</label>
+          <input class="form-input" id="mr-reason" placeholder="사유 입력 (선택)">
+        </div>
+      </div>
+      <div class="form-actions" style="margin-top:16px;">
+        <button class="btn btn-ghost" onclick="document.getElementById('myRequestModal').classList.remove('open')">취소</button>
+        <button class="btn btn-primary" id="myReqSaveBtn" onclick="window._submitLeaveRequest()">제출</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 반려 사유 모달 -->
+<div class="modal-overlay" id="rejectModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">반려 사유</div>
+      <button class="modal-close" onclick="document.getElementById('rejectModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;">
+      <div class="form-group full">
+        <label class="form-label">사유 *</label>
+        <textarea id="reject-reason" placeholder="반려 사유를 입력해주세요" style="min-height:80px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);width:100%;font-family:'Noto Sans KR',sans-serif;font-size:13px;resize:vertical;"></textarea>
+      </div>
+      <div class="form-actions" style="margin-top:16px;">
+        <button class="btn btn-ghost" onclick="document.getElementById('rejectModal').classList.remove('open')">취소</button>
+        <button class="btn" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" id="rejectConfirmBtn" onclick="window._confirmReject()">반려</button>
       </div>
     </div>
   </div>

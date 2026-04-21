@@ -49,10 +49,33 @@ Firestore `users/{email}.role` 필드:
 ### 주요 Firebase 경로
 
 - `records/{id}` — 입출고 레코드
-- `leaveEmployees/{id}` — 연차 대상 직원 (name, email, hireDate, totalLeave)
-- `leaveUsage/{id}` — 연차/반차/조퇴/외출 사용 내역 (empId, type, date, hours, reason)
+- `leaveEmployees/{id}` — 연차 대상 직원 (name, email, hireDate, totalLeave, team, position)
+  - `position` enum: `'일반' | '부서장' | '대표'` (결재선용)
+  - `team`: 자유 입력 문자열 (부서장 매칭용)
+- `leaveUsage/{id}` — 연차/반차/조퇴/외출 사용 내역 (empId, type, date, hours, reason, fromRequestId?)
+- `leaveRequests/{id}` — 연차 신청서 (empId, type, date, hours, reason, team, status, *ApprovedAt/By, rejected*, finalUsageId?)
+  - `status` enum: `pending_manager | pending_admin | pending_director | approved | rejected | canceled`
 - `companyEvents/{id}` — 회사 일정 (title, date, description, createdBy)
 - `board/{id}` — 게시판 메모
+
+### 연차 신청서 결재 워크플로
+
+신청 → **부서장 → 관리자(시스템 admin) → 대표** → 승인 시 자동으로 `leaveUsage`에 entry 생성.
+
+자동 패스 규칙:
+- 신청자 `position === '대표'` → 즉시 최종 승인 (모든 단계 패스)
+- 신청자 `position === '부서장'` → 부서장 단계 자동 패스
+- 신청자 팀에 부서장 미등록 → 부서장 단계 자동 패스
+- 신청자 시스템 role === 'admin' AND 부서장 단계가 패스된 상태 → 관리자 단계도 자동 패스
+
+승인 권한:
+- `pending_manager`: 신청자와 같은 `team`인 `position === '부서장'` 직원
+- `pending_admin`: `role === 'admin'` 사용자
+- `pending_director`: `position === '대표'` 직원
+
+관리자(`role === 'admin'`)는 단계 무관하게 모든 진행중 신청 가시. 단 본인 차례가 아니면 액션 버튼 비활성, "대기 중" 표시.
+
+승인된 신청은 `leaveUsage`에 자동 등록되며 `fromRequestId`/`finalUsageId`로 양방향 연결.
 
 ### 페이지별 렌더 함수
 
