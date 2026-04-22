@@ -2948,8 +2948,13 @@
     sel.innerHTML = '<option value="">직원 선택</option>' + Object.entries(leaveEmployees).map(function(e){
       return '<option value="'+e[0]+'">'+esc(e[1].name||'')+(e[1].team?' ('+esc(e[1].team)+')':'')+'</option>';
     }).join('');
-    ['ni-birth','ni-dept','ni-position','ni-hire','ni-total','ni-used','ni-remain','ni-accruedate','ni-accrue-start','ni-accrue-end','ni-usage-start','ni-usage-end'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+    ['ni-birth','ni-dept','ni-position','ni-hire','ni-total','ni-used','ni-remain','ni-accruedate'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
     document.getElementById('ni-under1y').checked = false;
+    var yr = new Date().getFullYear();
+    document.getElementById('ni-accrue-start').value = yr + '-01-01';
+    document.getElementById('ni-accrue-end').value = yr + '-12-31';
+    document.getElementById('ni-usage-start').value = yr + '-01-01';
+    document.getElementById('ni-usage-end').value = yr + '-12-31';
     document.getElementById('issueNoticeModal').classList.add('open');
   };
   window._onIssueEmpSelect = function() {
@@ -2959,6 +2964,7 @@
     document.getElementById('ni-dept').value = emp.team || '';
     document.getElementById('ni-position').value = emp.position && emp.position !== '\uc77c\ubc18' ? emp.position : '';
     document.getElementById('ni-hire').value = emp.hireDate || '';
+    document.getElementById('ni-accruedate').value = emp.hireDate || '';
     var total = emp.hireDate && typeof calcTotalLeave==='function' ? calcTotalLeave(emp.hireDate) : (emp.totalLeave||15);
     var usedHours = (typeof getLeaveUsedHours==='function') ? getLeaveUsedHours(empId) : 0;
     var usedDays = +(usedHours/8).toFixed(1);
