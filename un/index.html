@@ -3221,7 +3221,8 @@
     tbody.innerHTML = visible.map(function(n) {
       var emp = n.employee || {}; var li = n.leaveInfo || {}; var up = li.usagePeriod || {};
       var actions = '<div style="display:flex;gap:5px;flex-wrap:wrap;">';
-      var canFill = !isAdmin && myEmp && emp.empId === myEmp.id && (n.status === 'issued' || n.status === 'draft');
+      var isMyNotice = myEmp && emp.empId === myEmp.id;
+      var canFill = isMyNotice && (n.status === 'issued' || n.status === 'draft');
       if (canFill) actions += '<button class="btn btn-primary btn-sm" onclick="window._openFillNoticeModal(\''+esc(n.id)+'\')">📝 작성</button>';
       actions += '<button class="btn btn-ghost btn-sm" onclick="window._openNoticePrintView(\''+esc(n.id)+'\')">📄 보기</button>';
       if (isAdmin && n.status !== 'approved') actions += '<button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteNotice(\''+esc(n.id)+'\')">삭제</button>';
