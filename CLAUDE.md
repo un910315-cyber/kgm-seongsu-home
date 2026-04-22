@@ -16,7 +16,7 @@ GitHub Pages로 배포되는 정적 사이트. 회사 대표 페이지 + 임원 
 /digital-card-lee/       # 이동근 정비팀장 카드
 /digital-card-yang/      # 양은주 대표이사 카드
 /digital-card-yoon/      # 윤유현 부장 카드
-/un/index.html           # 내부용 관리 페이지(싱글 HTML, ~3800 lines)
+/un/index.html           # 내부용 관리 페이지(싱글 HTML, ~5100 lines)
 /kakao-qr/               # 카카오톡 QR 페이지
 /CNAME                   # 커스텀 도메인 설정
 ```
@@ -49,17 +49,20 @@ Firestore `users/{email}.role` 필드:
 ### 주요 Firebase 경로
 
 - `records/{id}` — 입출고 레코드
-- `leaveEmployees/{id}` — 연차 대상 직원 (name, email, hireDate, totalLeave, team, position)
+- `leaveEmployees/{id}` — 연차 대상 직원 (name, email, hireDate, totalLeave, team, position, displayTeam?)
   - `position` enum: `'일반' | '부서장' | '임원' | '대표'` (결재선용)
-  - `team`: 사무실/판금부/도장부/기능부 (드롭다운, 빈값 가능)
+  - `team`: 사무실/판금부/도장부/기능부/사고전담부 (드롭다운, 빈값 가능) — **결재선 라우팅용**
+  - `displayTeam`: 선택값. 있으면 조직도 표시만 이 값으로 그룹핑 (결재선은 team 그대로 사용). 예: 사고전담부 인력을 team=사무실, displayTeam=사고전담부로 설정하면 사무실 부서장이 결재하되 조직도에서는 별도 표시.
 - `leaveUsage/{id}` — 연차/반차/조퇴/외출 사용 내역 (empId, type, date, hours, reason, fromRequestId?)
 - `leaveRequests/{id}` — 연차 신청서 (empId, type, date, hours, reason, team, status, *ApprovedAt/By, rejected*, finalUsageId?)
   - `status` enum: `pending_manager | pending_admin | pending_director | approved | rejected | canceled`
 - `companyEvents/{id}` — 회사 일정 (title, date, description, createdBy)
 - `board/{id}` — 게시판 메모
-- `annualLeaveNotices/{id}` — 연차 사용촉진 통지서 (employee, leaveInfo, plan[], status, approval, noticeDate)
+- `annualLeaveNotices/{id}` — 연차 사용촉진 통지서 (employee, leaveInfo, plan[], status, approval, noticeDate, submittedAt/By, createdBy)
   - `status` enum: `issued | draft | submitted | approved`
-  - 워크플로: 관리자 발행 → 직원 사용계획서 작성/제출 → 관리자 승인. 법적 증빙용(근로기준법 제61조).
+  - 워크플로: 관리자 발행 → 직원 사용계획서 작성/제출 → 관리자 승인. 법적 증빙용(근로기준법 제61조, 별지-확인서식 제22호).
+  - 승인 시 `approval: {approved, timestamp, approverEmail, approverName}` 기록. 인쇄 시 결재 박스 표시.
+  - **법정 시기 주의**: 1차 촉진은 사용기간 만료 6개월 전 기준 10일 이내(회계연도 기준 7/1~7/10), 2차는 2개월 전까지(~10/31). 시기 어긋나면 법적 효력 인정 어려움. 지금 시스템은 1차/2차 구분 없이 단일 통지서 구조 — 엄밀한 법적 면책 원할 시 7월/10월에 각각 별도 발행 필요.
 
 ### 연차 신청서 결재 워크플로
 
@@ -83,15 +86,39 @@ Firestore `users/{email}.role` 필드:
 
 ### 페이지별 렌더 함수
 
-`switchPage(name)`(~2556행)이 탭 전환 + 페이지별 `_render*` 호출:
+`switchPage(name)`이 탭 전환 + 페이지별 `_render*` 호출:
 
 - `list` → `_renderList`
 - `complete` → `_renderComplete`
 - `out` → `_renderOut`
 - `stats` → `_initYearSelect` + `_renderStats`
-- `usermgmt` → `loadUserMgmt`
-- `leave` → `_renderLeave`
+- `usermgmt` → `loadUserMgmt` + `_renderOrgChart`
+- `leave` → `_renderLeave` (내부에서 연쇄적으로 `_renderMyRequests`·`_renderApprovalQueue`·`_renderNotices` 호출)
 - `board` → `_renderBoard` + `_renderCalendar`
+
+`leaveEmpRef` onValue는 변경 시 `renderLeave` + `_renderCalendar` + `_renderMyRequests` + `_renderApprovalQueue` + `_renderOrgChart` + `_renderNotices` 연쇄 호출로 모든 관련 뷰 동기화.
+
+### 연차관리 페이지 섹션 구성 (`page-leave`)
+
+위에서 아래 순서:
+1. **내 신청서** (전 직원): 신청서 작성 버튼 + 본인 신청 이력 + 양식 보기·인쇄 버튼
+2. **결재 대기** (관리자/부서장/대표): 진행중 신청 목록. 관리자는 모두 가시, 본인 차례 아닌 건 "대기 중" 표시
+3. **연차 사용촉진 통지서** (관리자 발행 + 전 직원 본인 것 열람/작성/제출): 상태 필터 드롭다운, 📝 작성 / 📄 보기 / 삭제 버튼. 승인 PDF에 결재 박스 표시
+4. **직원별 연차 현황** (전 직원, 비관리자는 본인 행만): 총/사용/잔여/연차/반차/조퇴외출 집계
+5. **사용 내역** (전 직원, 비관리자는 본인 것만)
+
+### 게시판·일정 페이지 섹션 구성 (`page-board`)
+
+- 상단 토글: `[📅 달력] [📝 게시판] [전체]`, 기본 "전체" (달력 위·게시판 아래)
+- 달력: 월 그리드에 회사 일정(companyEvents) + 직원 휴가(leaveUsage) 통합 표시. 날짜 클릭 시 상세 모달
+- 일정 등록/수정/삭제는 관리자만
+
+### 사용자 관리 페이지 섹션 구성 (`page-usermgmt`) — 관리자 전용
+
+1. 역할 안내 카드 3종 (admin/staff/viewer)
+2. 승인된 사용자 테이블
+3. 접근 요청(대기) 테이블
+4. 🏢 조직도 — 대표 → 임원들 → 4개 메인 부서(기능부/판금부/도장부/사무실, 부서장+팀원) + 특수 부서(사고전담부 등, `displayTeam` 기반)
 
 ## 코드 관습
 
@@ -123,7 +150,31 @@ Firestore `users/{email}.role` 필드:
 
 `ROLE_MENUS`, `_RL`/`_RD`, 드롭다운 옵션 3곳, 역할 안내 카드 3개(~3340행) 전부 맞춰서 수정해야 드리프트 없음.
 
+## Firebase 보안 규칙
+
+Firebase Realtime Database 규칙은 Firebase Console에서 관리 (레포에는 없음). 새 경로 추가 시 규칙에도 등록 필요. 현재 규칙 템플릿:
+
+```json
+{
+  "rules": {
+    "records":             { ".read": "auth != null", ".write": "auth != null" },
+    "leaveEmployees":      { ".read": "auth != null", ".write": "auth != null" },
+    "leaveUsage":          { ".read": "auth != null", ".write": "auth != null" },
+    "leaveRequests":       { ".read": "auth != null", ".write": "auth != null" },
+    "annualLeaveNotices":  { ".read": "auth != null", ".write": "auth != null" },
+    "board":               { ".read": "auth != null", ".write": "auth != null" },
+    "companyEvents":       { ".read": "auth != null", ".write": "auth != null" },
+    "$other":              { ".read": false, ".write": false }
+  }
+}
+```
+
+Console: https://console.firebase.google.com/project/unmotors/database/unmotors-default-rtdb/rules
+
+신규 컬렉션 추가 시 여기 블록 추가 안 하면 `PERMISSION_DENIED` 에러 발생.
+
 ## 알려진 제약
 
 - `switchPage()`에 권한 가드 없음. 현재는 nav-tab의 `display:none`으로 차단되지만, 프로그래매틱 호출은 막히지 않음. 위험한 엔트리포인트(대시보드의 직접 이동 버튼 등)가 생기면 가드 추가 필요.
-- 모든 Firebase 보안 규칙은 별도. 클라이언트 UI 차단은 1차 방어선일 뿐.
+- `statusBadge`처럼 흔한 이름은 이미 다른 용도로 선점된 경우가 많음 — 신규 함수는 도메인 prefix(`reqStatusBadge`, `noticeStatusBadge` 등) 붙일 것. 동명 선언 시 ES6 module 전체 파싱 실패로 앱 전체가 "Firebase 연결 중..."에서 멈춤.
+- 큰 JS 추가 후 푸시 전 **`node --check`로 syntax 검증 필수** (MEMORY 참고).
