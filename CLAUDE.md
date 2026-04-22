@@ -57,6 +57,9 @@ Firestore `users/{email}.role` 필드:
   - `status` enum: `pending_manager | pending_admin | pending_director | approved | rejected | canceled`
 - `companyEvents/{id}` — 회사 일정 (title, date, description, createdBy)
 - `board/{id}` — 게시판 메모
+- `annualLeaveNotices/{id}` — 연차 사용촉진 통지서 (employee, leaveInfo, plan[], status, approval, noticeDate)
+  - `status` enum: `issued | draft | submitted | approved`
+  - 워크플로: 관리자 발행 → 직원 사용계획서 작성/제출 → 관리자 승인. 법적 증빙용(근로기준법 제61조).
 
 ### 연차 신청서 결재 워크플로
 

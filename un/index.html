@@ -2107,7 +2107,7 @@
   let leaveUsage = {};
   let editingLeaveEmpId = null;
 
-  onValue(leaveEmpRef, (snap) => { leaveEmployees = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} try { if(window._renderMyRequests) window._renderMyRequests(); if(window._renderApprovalQueue) window._renderApprovalQueue(); } catch(e) {} try { if(window._renderOrgChart) window._renderOrgChart(); } catch(e) {} });
+  onValue(leaveEmpRef, (snap) => { leaveEmployees = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} try { if(window._renderMyRequests) window._renderMyRequests(); if(window._renderApprovalQueue) window._renderApprovalQueue(); } catch(e) {} try { if(window._renderOrgChart) window._renderOrgChart(); } catch(e) {} try { if(window._renderNotices) window._renderNotices(); } catch(e) {} });
   onValue(leaveUseRef, (snap) => { leaveUsage = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} });
 
   // 총 사용 시간 (시간 단위로 통합 계산, 1일=8시간)
@@ -2241,6 +2241,7 @@
       }).join('');
     }
     try { if(window._renderMyRequests) window._renderMyRequests(); if(window._renderApprovalQueue) window._renderApprovalQueue(); } catch(e) { console.error(e); }
+    try { if(window._renderNotices) window._renderNotices(); } catch(e) { console.error(e); }
   }
   window._renderLeave = renderLeave;
 
@@ -2908,6 +2909,321 @@
     container.innerHTML = html;
   }
   window._renderOrgChart = renderOrgChart;
+
+  // ---- ANNUAL LEAVE NOTICES (사용촉진 통지서) ----
+  const noticesRef = ref(db, 'annualLeaveNotices');
+  let leaveNotices = {};
+  let editingNoticeId = null;
+  let viewingNoticeId = null;
+
+  onValue(noticesRef, (snap) => { leaveNotices = snap.val() || {}; try { renderNotices(); } catch(e) { console.error(e); } });
+
+  function noticeStatusLabel(s) {
+    if (s === 'issued') return '발행됨';
+    if (s === 'draft') return '작성중';
+    if (s === 'submitted') return '제출됨';
+    if (s === 'approved') return '승인완료';
+    return s || '-';
+  }
+  function noticeStatusBadge(s) {
+    var bg, color;
+    if (s === 'approved') { bg='rgba(75,156,255,0.15)'; color='var(--blue)'; }
+    else if (s === 'submitted') { bg='rgba(139,92,246,0.15)'; color='var(--accent)'; }
+    else if (s === 'draft') { bg='rgba(251,146,60,0.15)'; color='#fb923c'; }
+    else { bg='rgba(163,163,163,0.15)'; color='var(--text-dim)'; }
+    return '<span style="background:'+bg+';color:'+color+';padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;white-space:nowrap;">'+noticeStatusLabel(s)+'</span>';
+  }
+
+  function calcRemaining(empId) {
+    var emp = leaveEmployees[empId];
+    if (!emp) return 0;
+    var total = emp.hireDate ? (calcTotalLeave ? calcTotalLeave(emp.hireDate) : (emp.totalLeave||15)) : (emp.totalLeave||15);
+    var usedHours = (typeof getLeaveUsedHours==='function') ? getLeaveUsedHours(empId) : 0;
+    return Math.max(0, total - (usedHours/8));
+  }
+
+  window._openIssueNoticeModal = function() {
+    editingNoticeId = null;
+    var sel = document.getElementById('ni-emp');
+    sel.innerHTML = '<option value="">직원 선택</option>' + Object.entries(leaveEmployees).map(function(e){
+      return '<option value="'+e[0]+'">'+esc(e[1].name||'')+(e[1].team?' ('+esc(e[1].team)+')':'')+'</option>';
+    }).join('');
+    ['ni-birth','ni-dept','ni-position','ni-hire','ni-total','ni-used','ni-remain','ni-accruedate','ni-accrue-start','ni-accrue-end','ni-usage-start','ni-usage-end'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('ni-under1y').checked = false;
+    document.getElementById('issueNoticeModal').classList.add('open');
+  };
+  window._onIssueEmpSelect = function() {
+    var empId = document.getElementById('ni-emp').value;
+    var emp = leaveEmployees[empId];
+    if (!emp) return;
+    document.getElementById('ni-dept').value = emp.team || '';
+    document.getElementById('ni-position').value = emp.position && emp.position !== '\uc77c\ubc18' ? emp.position : '';
+    document.getElementById('ni-hire').value = emp.hireDate || '';
+    var total = emp.hireDate && typeof calcTotalLeave==='function' ? calcTotalLeave(emp.hireDate) : (emp.totalLeave||15);
+    var usedHours = (typeof getLeaveUsedHours==='function') ? getLeaveUsedHours(empId) : 0;
+    var usedDays = +(usedHours/8).toFixed(1);
+    var remainDays = +((total - usedDays)).toFixed(1);
+    document.getElementById('ni-total').value = total;
+    document.getElementById('ni-used').value = usedDays;
+    document.getElementById('ni-remain').value = remainDays;
+    if (emp.hireDate) {
+      var hd = new Date(emp.hireDate);
+      var now = new Date();
+      var months = (now.getFullYear()-hd.getFullYear())*12 + (now.getMonth()-hd.getMonth());
+      document.getElementById('ni-under1y').checked = months < 12;
+    }
+  };
+  window._submitIssueNotice = async function() {
+    var empId = document.getElementById('ni-emp').value;
+    if (!empId) { showNotif('직원을 선택해주세요', true); return; }
+    var emp = leaveEmployees[empId] || {};
+    var data = {
+      employee: {
+        empId: empId,
+        name: emp.name || '',
+        birthDate: document.getElementById('ni-birth').value,
+        department: document.getElementById('ni-dept').value.trim(),
+        position: document.getElementById('ni-position').value.trim()
+      },
+      leaveInfo: {
+        hireDate: document.getElementById('ni-hire').value,
+        isUnder1Year: document.getElementById('ni-under1y').checked,
+        accrueDate: document.getElementById('ni-accruedate').value,
+        totalDays: parseFloat(document.getElementById('ni-total').value) || 0,
+        usedDays: parseFloat(document.getElementById('ni-used').value) || 0,
+        remainingDays: parseFloat(document.getElementById('ni-remain').value) || 0,
+        accrualPeriod: { start: document.getElementById('ni-accrue-start').value, end: document.getElementById('ni-accrue-end').value },
+        usagePeriod: { start: document.getElementById('ni-usage-start').value, end: document.getElementById('ni-usage-end').value }
+      },
+      noticeDate: new Date().toISOString(),
+      plan: [],
+      status: 'issued',
+      createdAt: new Date().toISOString(),
+      createdBy: window._userEmail || ''
+    };
+    if (!data.employee.department) { showNotif('부서를 입력해주세요', true); return; }
+    if (!data.leaveInfo.usagePeriod.start || !data.leaveInfo.usagePeriod.end) { showNotif('사용대상기간을 입력해주세요', true); return; }
+    var btn = document.getElementById('issueNoticeBtn');
+    btn.disabled = true; btn.textContent = '발행 중...';
+    try {
+      await push(noticesRef, data);
+      showNotif(data.employee.name + ' 통지서가 발행되었습니다');
+      document.getElementById('issueNoticeModal').classList.remove('open');
+    } catch(e) { showNotif('발행 실패: ' + e.message, true); }
+    btn.disabled = false; btn.textContent = '발행';
+  };
+
+  function buildPlanRowsHTML(plan, readonly) {
+    var html = '';
+    for (var i=0; i<7; i++) {
+      var row = (plan && plan[i]) || { startDate:'', endDate:'', days:'', note:'' };
+      var ro = readonly ? 'readonly' : '';
+      html += '<tr>'
+        + '<td style="text-align:center;font-weight:700;">'+(i+1)+'</td>'
+        + '<td><input type="date" data-pi="'+i+'" data-pf="startDate" '+ro+' value="'+esc(row.startDate||'')+'" oninput="window._onPlanChange('+i+')" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:6px;font-size:12px;"></td>'
+        + '<td><input type="date" data-pi="'+i+'" data-pf="endDate" '+ro+' value="'+esc(row.endDate||'')+'" oninput="window._onPlanChange('+i+')" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:6px;font-size:12px;"></td>'
+        + '<td><input type="number" step="0.5" min="0" data-pi="'+i+'" data-pf="days" '+ro+' value="'+esc(row.days||'')+'" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:6px;font-size:12px;text-align:center;"></td>'
+        + '<td><input type="text" data-pi="'+i+'" data-pf="note" '+ro+' value="'+esc(row.note||'')+'" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:6px;font-size:12px;" placeholder="비고"></td>'
+        + '</tr>';
+    }
+    return html;
+  }
+  window._onPlanChange = function(i) {
+    var s = document.querySelector('[data-pi="'+i+'"][data-pf="startDate"]').value;
+    var e = document.querySelector('[data-pi="'+i+'"][data-pf="endDate"]').value;
+    if (s && e) {
+      var d1 = new Date(s), d2 = new Date(e);
+      var diff = Math.floor((d2-d1)/86400000) + 1;
+      if (diff > 0) document.querySelector('[data-pi="'+i+'"][data-pf="days"]').value = diff;
+    }
+  };
+  function collectPlan(readonly) {
+    var plan = [];
+    for (var i=0; i<7; i++) {
+      var s = document.querySelector('[data-pi="'+i+'"][data-pf="startDate"]');
+      if (!s) continue;
+      var sv = s.value;
+      var ev = document.querySelector('[data-pi="'+i+'"][data-pf="endDate"]').value;
+      var dv = document.querySelector('[data-pi="'+i+'"][data-pf="days"]').value;
+      var nv = document.querySelector('[data-pi="'+i+'"][data-pf="note"]').value;
+      if (sv || ev || dv || nv) {
+        plan.push({ startDate:sv, endDate:ev, days:parseFloat(dv)||0, note:nv });
+      }
+    }
+    return plan;
+  }
+
+  window._openFillNoticeModal = function(id) {
+    var n = leaveNotices[id]; if (!n) return;
+    editingNoticeId = id;
+    var info = n.employee || {}; var li = n.leaveInfo || {};
+    var html = '<strong>대상자:</strong> '+esc(info.name||'')+' / '+esc(info.department||'')+' / '+esc(info.position||'')
+      + '<br><strong>입사일:</strong> '+esc(li.hireDate||'-')+(li.isUnder1Year?' (1년 미만)':'')
+      + '<br><strong>연차발생:</strong> '+li.totalDays+'일 / <strong>사용:</strong> '+li.usedDays+'일 / <strong>잔여:</strong> <span style="color:var(--accent);font-weight:700;">'+li.remainingDays+'일</span>'
+      + '<br><strong>발생대상기간:</strong> '+esc((li.accrualPeriod||{}).start||'-')+' ~ '+esc((li.accrualPeriod||{}).end||'-')
+      + '<br><strong>사용대상기간:</strong> '+esc((li.usagePeriod||{}).start||'-')+' ~ '+esc((li.usagePeriod||{}).end||'-');
+    document.getElementById('fillNoticeInfo').innerHTML = html;
+    var readonly = (n.status === 'submitted' || n.status === 'approved');
+    document.getElementById('fill-plan-tbody').innerHTML = buildPlanRowsHTML(n.plan, readonly);
+    document.getElementById('fillNoticeSaveBtn').style.display = readonly ? 'none' : '';
+    document.getElementById('fillNoticeSubmitBtn').style.display = readonly ? 'none' : '';
+    document.getElementById('fillNoticeModal').classList.add('open');
+  };
+  window._saveNoticeDraft = async function() {
+    if (!editingNoticeId) return;
+    var plan = collectPlan();
+    try {
+      await update(ref(db, 'annualLeaveNotices/' + editingNoticeId), { plan: plan, status: 'draft', updatedAt: new Date().toISOString() });
+      showNotif('임시저장되었습니다');
+    } catch(e) { showNotif('저장 실패: ' + e.message, true); }
+  };
+  window._submitNoticePlan = async function() {
+    if (!editingNoticeId) return;
+    var plan = collectPlan();
+    if (!plan.length) { showNotif('사용계획을 1행 이상 입력해주세요', true); return; }
+    if (!confirm('제출 후에는 수정할 수 없습니다. 제출하시겠습니까?')) return;
+    try {
+      await update(ref(db, 'annualLeaveNotices/' + editingNoticeId), { plan: plan, status: 'submitted', submittedAt: new Date().toISOString(), submittedBy: window._userEmail||'', updatedAt: new Date().toISOString() });
+      showNotif('통지서가 제출되었습니다');
+      document.getElementById('fillNoticeModal').classList.remove('open');
+    } catch(e) { showNotif('제출 실패: ' + e.message, true); }
+  };
+
+  window._approveNotice = async function() {
+    if (!viewingNoticeId) return;
+    var n = leaveNotices[viewingNoticeId]; if (!n) return;
+    if (n.status !== 'submitted') { showNotif('제출된 통지서만 승인 가능합니다', true); return; }
+    if (!confirm('이 통지서를 승인하시겠습니까?')) return;
+    var nowStr = new Date().toISOString();
+    try {
+      await update(ref(db, 'annualLeaveNotices/' + viewingNoticeId), { status: 'approved', approval: { approved: true, timestamp: nowStr, approverEmail: window._userEmail||'', approverName: window._userName||'' }, updatedAt: nowStr });
+      showNotif('승인 완료');
+      document.getElementById('noticePrintModal').classList.remove('open');
+    } catch(e) { showNotif('승인 실패: ' + e.message, true); }
+  };
+
+  function buildNoticeFormHTML(n) {
+    if (!n) return '<div style="padding:30px;text-align:center;color:#999;">통지서를 찾을 수 없습니다</div>';
+    var emp = n.employee || {};
+    var li = n.leaveInfo || {};
+    var ap = li.accrualPeriod || {}; var up = li.usagePeriod || {};
+    var plan = n.plan || [];
+    var noticeDateStr = n.noticeDate ? n.noticeDate.split('T')[0] : '';
+    var approval = n.approval || {};
+    var border = 'border:1px solid #000;';
+    var hdr = 'border:1px solid #000;background:#f0f0f0;text-align:center;font-weight:600;padding:6px 8px;font-size:12px;';
+    var cell = 'border:1px solid #000;padding:7px 10px;font-size:12px;';
+    function fmtRange(p) {
+      if (!p.start && !p.end) return '20  년  월  일 ~ 20  년  월  일';
+      return (p.start||'____-__-__') + ' ~ ' + (p.end||'____-__-__');
+    }
+    var planRows = '';
+    for (var i=0; i<7; i++) {
+      var r = plan[i] || {};
+      planRows += '<tr>'
+        + '<td style="'+cell+'text-align:center;width:40px;">'+(i+1)+'</td>'
+        + '<td style="'+cell+'">'+esc(r.startDate||'')+(r.startDate&&r.endDate?'  ~  ':'')+esc(r.endDate||'')+'</td>'
+        + '<td style="'+cell+'text-align:center;width:90px;">'+(r.days?(r.days+'일'):'')+'</td>'
+        + '<td style="'+cell+'width:140px;">'+esc(r.note||'')+'</td>'
+        + '</tr>';
+    }
+    var html = '<div style="font-family:\'Malgun Gothic\',\'맑은 고딕\',sans-serif;color:#000;background:#fff;padding:24px 28px;max-width:740px;margin:0 auto;font-size:13px;">'
+      + '<div style="font-size:11px;text-align:left;margin-bottom:6px;">[별지-확인서식 제22호]</div>'
+      + '<div style="text-align:center;font-size:20px;font-weight:700;padding:14px 0 18px;">연차휴가 사용일 지정 통지서</div>'
+      + '<div style="font-weight:700;margin-bottom:6px;">1. 대상근로자</div>'
+      + '<table style="width:100%;border-collapse:collapse;margin-bottom:14px;">'
+      + '<tr><td style="'+hdr+'width:20%;">성명</td><td style="'+cell+'width:30%;">'+esc(emp.name||'')+'</td>'
+      + '<td style="'+hdr+'width:20%;">생년월일</td><td style="'+cell+'width:30%;">'+esc(emp.birthDate||'')+'</td></tr>'
+      + '<tr><td style="'+hdr+'">부서</td><td style="'+cell+'">'+esc(emp.department||'')+'</td>'
+      + '<td style="'+hdr+'">직책/직무</td><td style="'+cell+'">'+esc(emp.position||'')+'</td></tr>'
+      + '</table>'
+      + '<div style="font-weight:700;margin-bottom:6px;">2. 세부 내용</div>'
+      + '<div style="margin-bottom:8px;line-height:1.7;">「근로기준법」 제61조 연차휴가의 사용촉진 조항에 근거하여 「잔여 연차유급휴가 사용일」을 지정하여 통지합니다.</div>'
+      + '<table style="width:100%;border-collapse:collapse;margin-bottom:14px;">'
+      + '<tr><td style="'+hdr+'width:24%;">입사일</td><td style="'+cell+'width:26%;">'+esc(li.hireDate||'')+'</td>'
+      + '<td style="'+hdr+'width:24%;">1년 미만</td><td style="'+cell+'width:26%;text-align:center;">'+(li.isUnder1Year?'☑ 해당':'☐ 해당')+'</td></tr>'
+      + '<tr><td style="'+hdr+'">발생일</td><td style="'+cell+'">'+esc(li.accrueDate||'')+'</td>'
+      + '<td style="'+hdr+'">연차발생일수</td><td style="'+cell+'text-align:center;font-weight:700;">'+(li.totalDays||0)+'일</td></tr>'
+      + '<tr><td style="'+hdr+'">사용일</td><td style="'+cell+'">'+(li.usedDays||0)+'일</td>'
+      + '<td style="'+hdr+'">잔여연차일수</td><td style="'+cell+'text-align:center;font-weight:700;color:#c00;">'+(li.remainingDays||0)+'일</td></tr>'
+      + '<tr><td style="'+hdr+'">발생대상기간</td><td colspan="3" style="'+cell+'">'+fmtRange(ap)+'</td></tr>'
+      + '<tr><td style="'+hdr+'">사용대상기간</td><td colspan="3" style="'+cell+'">'+fmtRange(up)+'</td></tr>'
+      + '</table>'
+      + '<div style="font-weight:700;margin-bottom:6px;">3. 휴가 사용계획서 제출</div>'
+      + '<table style="width:100%;border-collapse:collapse;margin-bottom:14px;">'
+      + '<thead><tr>'
+      + '<td style="'+hdr+'width:40px;">구분</td>'
+      + '<td style="'+hdr+'">사용일자 (시작일 / 종료일)</td>'
+      + '<td style="'+hdr+'width:90px;">휴가사용일수</td>'
+      + '<td style="'+hdr+'width:140px;">비고</td>'
+      + '</tr></thead><tbody>' + planRows + '</tbody></table>'
+      + '<div style="margin:18px 0 6px;">* 휴가사용일 지정 통지일: ' + esc(noticeDateStr) + '</div>'
+      + '<div style="text-align:center;margin-top:24px;font-size:14px;font-weight:700;">회사명: 케이지모빌리티성수서비스센터(주)</div>';
+    if (approval.approved) {
+      var apDate = approval.timestamp ? approval.timestamp.replace('T',' ').slice(0,16) : '';
+      html += '<div style="margin-top:20px;border:2px solid #c00;padding:14px 16px;text-align:right;font-size:12px;">'
+        + '<div style="font-weight:700;color:#c00;margin-bottom:4px;">[ 결재 완료 ]</div>'
+        + '<div>승인자: <strong>' + esc(approval.approverName||approval.approverEmail||'') + '</strong></div>'
+        + '<div>승인일시: ' + esc(apDate) + '</div>'
+        + '</div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  window._openNoticePrintView = function(id) {
+    var n = leaveNotices[id]; if (!n) { showNotif('통지서를 찾을 수 없습니다', true); return; }
+    viewingNoticeId = id;
+    document.getElementById('noticePrintContent').innerHTML = buildNoticeFormHTML(n);
+    var apBtn = document.getElementById('noticeApproveBtn');
+    if (apBtn) apBtn.style.display = (window._userRole==='admin' && n.status==='submitted') ? '' : 'none';
+    document.getElementById('noticePrintModal').classList.add('open');
+  };
+  window._printNotice = function() {
+    if (!viewingNoticeId) return;
+    var n = leaveNotices[viewingNoticeId]; if (!n) return;
+    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>연차휴가 사용일 지정 통지서</title>'
+      + '<style>@page{size:A4;margin:18mm 16mm;}body{margin:0;padding:0;background:#fff;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style>'
+      + '</head><body>' + buildNoticeFormHTML(n) + '</body></html>';
+    var w = window.open('', '_blank', 'width=820,height=1100');
+    if (!w) { showNotif('팝업 차단 시 인쇄 안 됩니다', true); return; }
+    w.document.write(html); w.document.close(); w.focus();
+    setTimeout(function(){ try { w.print(); } catch(e){} }, 300);
+  };
+  window._deleteNotice = async function(id) {
+    if (window._userRole !== 'admin') return;
+    if (!confirm('이 통지서를 삭제하시겠습니까?')) return;
+    try { await remove(ref(db, 'annualLeaveNotices/' + id)); showNotif('삭제되었습니다'); }
+    catch(e) { showNotif('삭제 실패: ' + e.message, true); }
+  };
+
+  function renderNotices() {
+    var tbody = document.getElementById('notice-tbody');
+    var empty = document.getElementById('notice-empty');
+    if (!tbody) return;
+    var isAdmin = window._userRole === 'admin';
+    var myEmp = (typeof getMyEmpRecord==='function') ? getMyEmpRecord() : null;
+    var all = Object.entries(leaveNotices).map(function(e){ return Object.assign({id:e[0]}, e[1]); });
+    var visible = isAdmin ? all : all.filter(function(n){ return myEmp && n.employee && n.employee.empId === myEmp.id; });
+    if (isAdmin) {
+      var filterStatus = (document.getElementById('noticeFilterStatus')||{}).value || '';
+      if (filterStatus) visible = visible.filter(function(n){ return n.status === filterStatus; });
+    }
+    visible.sort(function(a,b){ return new Date(b.createdAt||b.noticeDate) - new Date(a.createdAt||a.noticeDate); });
+    if (!visible.length) { tbody.innerHTML=''; if (empty) empty.style.display='block'; return; }
+    if (empty) empty.style.display='none';
+    tbody.innerHTML = visible.map(function(n) {
+      var emp = n.employee || {}; var li = n.leaveInfo || {}; var up = li.usagePeriod || {};
+      var actions = '<div style="display:flex;gap:5px;flex-wrap:wrap;">';
+      var canFill = !isAdmin && myEmp && emp.empId === myEmp.id && (n.status === 'issued' || n.status === 'draft');
+      if (canFill) actions += '<button class="btn btn-primary btn-sm" onclick="window._openFillNoticeModal(\''+esc(n.id)+'\')">📝 작성</button>';
+      actions += '<button class="btn btn-ghost btn-sm" onclick="window._openNoticePrintView(\''+esc(n.id)+'\')">📄 보기</button>';
+      if (isAdmin && n.status !== 'approved') actions += '<button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteNotice(\''+esc(n.id)+'\')">삭제</button>';
+      actions += '</div>';
+      return '<tr><td><strong>'+esc(emp.name||'-')+'</strong></td><td style="font-size:12px;">'+esc(emp.department||'-')+'</td><td style="text-align:center;font-weight:700;color:var(--accent);">'+(li.remainingDays||0)+'일</td><td style="font-size:11px;">'+esc(up.start||'-')+' ~ '+esc(up.end||'-')+'</td><td>'+noticeStatusBadge(n.status)+'</td><td style="font-size:11px;color:var(--text-dim);">'+esc((n.noticeDate||'').split('T')[0])+'</td><td>'+actions+'</td></tr>';
+    }).join('');
+  }
+  window._renderNotices = renderNotices;
 
   window._confirmReject = async function() {
     if (!editingRejectId) return;
@@ -3593,6 +3909,28 @@ function fmtDateVal(val) {
       <div id="approval-empty" class="empty" style="display:none;"><div class="empty-icon">📨</div><div>결재할 신청이 없습니다</div></div>
     </div>
 
+    <!-- 연차 사용촉진 통지서 -->
+    <div class="section-header" style="margin-top:24px;">
+      <div class="section-title" style="font-size:14px;">📋 연차 사용촉진 통지서</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select class="form-select leave-admin-only" id="noticeFilterStatus" onchange="window._renderNotices()" style="padding:6px 10px;font-size:12px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);">
+          <option value="">전체 상태</option>
+          <option value="issued">발행됨</option>
+          <option value="draft">작성중</option>
+          <option value="submitted">제출됨</option>
+          <option value="approved">승인완료</option>
+        </select>
+        <button class="btn btn-primary btn-sm leave-admin-only" onclick="window._openIssueNoticeModal()">➕ 통지서 발행</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>대상자</th><th>부서</th><th>잔여연차</th><th>사용대상기간</th><th>상태</th><th>발행일</th><th>액션</th></tr></thead>
+        <tbody id="notice-tbody"></tbody>
+      </table>
+    </div>
+    <div id="notice-empty" class="empty" style="display:none;"><div class="empty-icon">📋</div><div>통지서가 없습니다</div></div>
+
     <!-- 직원별 연차 현황 -->
     <div class="section-header" style="margin-top:24px;">
       <div class="section-title" style="font-size:14px;">📊 직원별 연차 현황</div>
@@ -3826,6 +4164,121 @@ function fmtDateVal(val) {
       </div>
     </div>
     <div class="modal-body" style="padding:20px 24px;background:#444;" id="requestPrintContent"></div>
+  </div>
+</div>
+
+<!-- 통지서 발행 모달 (관리자) -->
+<div class="modal-overlay" id="issueNoticeModal">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-header">
+      <div class="modal-title">사용촉진 통지서 발행</div>
+      <button class="modal-close" onclick="document.getElementById('issueNoticeModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">대상 직원 *</label>
+          <select class="form-select" id="ni-emp" onchange="window._onIssueEmpSelect()"><option value="">직원 선택</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">생년월일</label>
+          <input class="form-input" id="ni-birth" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">부서 *</label>
+          <input class="form-input" id="ni-dept" placeholder="자동 채움">
+        </div>
+        <div class="form-group">
+          <label class="form-label">직책/직무 *</label>
+          <input class="form-input" id="ni-position" placeholder="예: 정비팀장, 부장">
+        </div>
+        <div class="form-group">
+          <label class="form-label">입사일</label>
+          <input class="form-input" id="ni-hire" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="display:flex;align-items:center;gap:8px;margin-top:24px;">
+            <input type="checkbox" id="ni-under1y" style="margin:0;"> 1년 미만 근로자
+          </label>
+        </div>
+        <div class="form-group">
+          <label class="form-label">연차발생일수 *</label>
+          <input class="form-input" id="ni-total" type="number" step="0.5" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">사용일수</label>
+          <input class="form-input" id="ni-used" type="number" step="0.5" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">잔여연차일수 *</label>
+          <input class="form-input" id="ni-remain" type="number" step="0.5" min="0" style="font-weight:700;color:var(--accent);">
+        </div>
+        <div class="form-group">
+          <label class="form-label">발생일</label>
+          <input class="form-input" id="ni-accruedate" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">발생대상기간 시작 *</label>
+          <input class="form-input" id="ni-accrue-start" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">발생대상기간 종료 *</label>
+          <input class="form-input" id="ni-accrue-end" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">사용대상기간 시작 *</label>
+          <input class="form-input" id="ni-usage-start" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">사용대상기간 종료 *</label>
+          <input class="form-input" id="ni-usage-end" type="date">
+        </div>
+      </div>
+      <div class="form-actions" style="margin-top:16px;">
+        <button class="btn btn-ghost" onclick="document.getElementById('issueNoticeModal').classList.remove('open')">취소</button>
+        <button class="btn btn-primary" id="issueNoticeBtn" onclick="window._submitIssueNotice()">발행</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 통지서 작성/제출 모달 (직원) -->
+<div class="modal-overlay" id="fillNoticeModal">
+  <div class="modal" style="max-width:780px;">
+    <div class="modal-header">
+      <div class="modal-title">사용촉진 통지서 — 사용계획서 작성</div>
+      <button class="modal-close" onclick="document.getElementById('fillNoticeModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;">
+      <div id="fillNoticeInfo" style="background:var(--surface2);padding:14px 16px;border-radius:8px;margin-bottom:16px;font-size:12px;line-height:1.7;"></div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px;">📝 휴가 사용계획서 (최대 7행)</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th style="width:40px;">구분</th><th>시작일</th><th>종료일</th><th style="width:100px;">사용일수</th><th>비고</th></tr></thead>
+          <tbody id="fill-plan-tbody"></tbody>
+        </table>
+      </div>
+      <div class="form-actions" style="margin-top:16px;">
+        <button class="btn btn-ghost" onclick="document.getElementById('fillNoticeModal').classList.remove('open')">닫기</button>
+        <button class="btn btn-ghost" id="fillNoticeSaveBtn" onclick="window._saveNoticeDraft()">임시저장</button>
+        <button class="btn btn-primary" id="fillNoticeSubmitBtn" onclick="window._submitNoticePlan()">제출</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 통지서 인쇄/미리보기 모달 -->
+<div class="modal-overlay" id="noticePrintModal">
+  <div class="modal" style="max-width:820px;">
+    <div class="modal-header">
+      <div class="modal-title">사용촉진 통지서 미리보기</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-primary btn-sm leave-admin-only" id="noticeApproveBtn" onclick="window._approveNotice()" style="display:none;">✅ 승인</button>
+        <button class="btn btn-primary btn-sm" onclick="window._printNotice()">🖨️ 인쇄</button>
+        <button class="modal-close" onclick="document.getElementById('noticePrintModal').classList.remove('open')">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;background:#444;" id="noticePrintContent"></div>
   </div>
 </div>
 
