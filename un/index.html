@@ -2717,6 +2717,20 @@
       }
     } catch(e) { showNotif('\uc2b9\uc778 \uc2e4\ud328: ' + e.message, true); }
   };
+  window._acknowledgeRequest = async function(id) {
+    if (window._userRole !== 'admin') return;
+    var req = leaveRequests[id]; if (!req) return;
+    if (req.status !== 'approved') return;
+    if (!confirm('이 신청서의 양식을 인쇄·확인하셨나요?\n확인하면 결재 대기 목록에서 제거됩니다.')) return;
+    try {
+      await update(ref(db, 'leaveRequests/' + id), {
+        adminAcknowledged: true,
+        adminAcknowledgedAt: new Date().toISOString(),
+        adminAcknowledgedBy: window._userEmail || ''
+      });
+      showNotif('확인 완료, 목록에서 제거됩니다');
+    } catch(e) { showNotif('처리 실패: ' + e.message, true); }
+  };
   window._openRejectModal = function(id) {
     editingRejectId = id;
     var req = leaveRequests[id];
@@ -3282,7 +3296,6 @@
     if (!canBeApprover) { section.style.display = 'none'; return; }
     section.style.display = '';
     var allReq = Object.entries(leaveRequests).map(function(e){ return Object.assign({id:e[0]}, e[1]); });
-    var pending = allReq.filter(function(r){ return r.status === 'pending_manager' || r.status === 'pending_admin' || r.status === 'pending_director'; });
     function userCanActOn(r) {
       if (!canApproveStage(r.status, myEmp)) return false;
       if (r.status === 'pending_manager') {
@@ -3292,9 +3305,12 @@
       }
       return true;
     }
-    var visible = pending.filter(function(r) {
-      if (isAdmin) return true; // 관리자는 모든 진행중 신청을 볼 수 있음
-      return userCanActOn(r);
+    var visible = allReq.filter(function(r) {
+      var isPending = (r.status === 'pending_manager' || r.status === 'pending_admin' || r.status === 'pending_director');
+      // 관리자: 진행중 + 승인 후 미확인 모두 표시
+      if (isAdmin) return isPending || (r.status === 'approved' && !r.adminAcknowledged);
+      // 비관리자: 본인이 처리 가능한 진행중만
+      return isPending && userCanActOn(r);
     });
     visible.sort(function(a,b){ return new Date(a.createdAt) - new Date(b.createdAt); });
     if (!visible.length) { tbody.innerHTML = ''; if (empty) empty.style.display = 'block'; return; }
@@ -3304,13 +3320,20 @@
       var name = emp ? emp.name : '(\uc0ad\uc81c\ub428)';
       var team = emp ? (emp.team || '-') : '-';
       var typeText = r.type + (r.hours ? ' '+r.hours+'h' : '');
-      var canAct = userCanActOn(r);
       var viewBtn = '<button class="btn btn-ghost btn-sm" onclick="window._openRequestPrintView(\''+esc(r.id)+'\')">\ud83d\udcc4 \uc591\uc2dd</button>';
-      var actBtns = canAct
-        ? '<button class="btn btn-primary btn-sm" onclick="window._approveRequest(\''+esc(r.id)+'\')">\uc2b9\uc778</button><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._openRejectModal(\''+esc(r.id)+'\')">\ubc18\ub824</button>'
-        : '<span style="font-size:11px;color:var(--text-dim);">' + (r.status==='pending_manager'?(team+' \ubd80\uc11c\uc7a5'):(r.status==='pending_admin'?'\uad00\ub9ac\uc790':'\ub300\ud45c')) + ' \ub300\uae30 \uc911</span>';
+      var actBtns;
+      var rowStyle = '';
+      if (r.status === 'approved') {
+        // 승인 완료, 관리자 확인 대기
+        actBtns = '<button class="btn btn-primary btn-sm" style="background:#22c55e;border-color:#22c55e;" onclick="window._acknowledgeRequest(\''+esc(r.id)+'\')">\u2705 \uc778\uc1c4 \uc644\ub8cc \ud655\uc778</button>';
+        rowStyle = ' style="background:rgba(75,156,255,0.05);"';
+      } else if (userCanActOn(r)) {
+        actBtns = '<button class="btn btn-primary btn-sm" onclick="window._approveRequest(\''+esc(r.id)+'\')">\uc2b9\uc778</button><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._openRejectModal(\''+esc(r.id)+'\')">\ubc18\ub824</button>';
+      } else {
+        actBtns = '<span style="font-size:11px;color:var(--text-dim);">' + (r.status==='pending_manager'?(team+' \ubd80\uc11c\uc7a5'):(r.status==='pending_admin'?'\uad00\ub9ac\uc790':'\ub300\ud45c')) + ' \ub300\uae30 \uc911</span>';
+      }
       var actions = '<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">'+viewBtn+actBtns+'</div>';
-      return '<tr><td><strong>'+esc(name)+'</strong></td><td style="font-size:12px;">'+esc(team)+'</td><td>'+esc(typeText)+'</td><td>'+esc(r.date||'-')+'</td><td>'+esc(r.reason||'-')+'</td><td>'+reqStatusBadge(r.status)+'</td><td>'+actions+'</td></tr>';
+      return '<tr'+rowStyle+'><td><strong>'+esc(name)+'</strong></td><td style="font-size:12px;">'+esc(team)+'</td><td>'+esc(typeText)+'</td><td>'+esc(r.date||'-')+'</td><td>'+esc(r.reason||'-')+'</td><td>'+reqStatusBadge(r.status)+'</td><td>'+actions+'</td></tr>';
     }).join('');
   }
   window._renderMyRequests = renderMyRequests;
