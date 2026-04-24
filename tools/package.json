@@ -1,0 +1,14 @@
+{
+  "name": "kgm-seongsu-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "KGM 성수 사이트 운영 도구 (백업 등)",
+  "scripts": {
+    "backup": "node backup/backup-all.js",
+    "backup:firestore": "node backup/backup-firestore.js",
+    "backup:rtdb": "node backup/backup-rtdb.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}

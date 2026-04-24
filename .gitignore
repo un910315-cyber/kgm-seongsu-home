@@ -1,0 +1,22 @@
+# Firebase service account key — 절대 커밋 금지
+tools/service-account-key.json
+tools/**/service-account*.json
+
+# 백업 출력물 (용량 큼, GitHub에 올리지 않음)
+tools/backup/backups/
+
+# Node modules
+node_modules/
+tools/node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 에디터
+.vscode/
+.idea/
+
+# 임시
+*.log
+*.tmp
