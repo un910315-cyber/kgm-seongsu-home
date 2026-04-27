@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UN-MOTORS | 수입차 판금도색·사고수리 전문</title>
+<meta name="description" content="벤츠·BMW·아우디·포르쉐 등 수입차 판금도색, 사고수리 전문. 20년 명장의 손길로 원형 그대로 복원합니다. 무료 견적 010-3350-5925">
+<meta name="theme-color" content="#0a0a0a">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="UN-MOTORS | 수입차 판금도색·사고수리 전문">
+<meta property="og:description" content="벤츠·BMW·아우디·포르쉐 등 수입차 판금도색, 사고수리 전문. 20년 명장의 손길로 원형 그대로 복원합니다.">
+<meta property="og:image" content="https://kgm-seongsu.co.kr/unmotors/images/hero.jpg">
+<meta property="og:url" content="https://kgm-seongsu.co.kr/unmotors/">
+
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{
+    font-family:'Pretendard',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    background:#0a0a0a;
+    color:#f5f5f5;
+    line-height:1.6;
+    font-feature-settings:'tnum';
+    -webkit-font-smoothing:antialiased;
+  }
+  img{max-width:100%;display:block}
+  a{color:inherit;text-decoration:none}
+
+  /* ===== Top Nav ===== */
+  .nav{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    padding:14px 20px;
+    background:rgba(10,10,10,.78);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    display:flex;justify-content:space-between;align-items:center;
+    border-bottom:1px solid rgba(255,255,255,.06);
+  }
+  .nav-logo{font-weight:800;letter-spacing:.05em;font-size:16px}
+  .nav-menu{display:flex;gap:18px;font-size:13px;color:#bbb}
+  .nav-menu a{transition:color .15s}
+  .nav-menu a:hover{color:#fff}
+  @media(max-width:520px){.nav-menu{display:none}}
+
+  /* ===== Hero ===== */
+  .hero{
+    position:relative;
+    min-height:100vh;
+    padding:120px 24px 60px;
+    display:flex;flex-direction:column;justify-content:center;
+    background:
+      linear-gradient(90deg, rgba(10,10,10,1) 0%, rgba(10,10,10,.6) 18%, rgba(10,10,10,0) 38%, rgba(10,10,10,0) 62%, rgba(10,10,10,.6) 82%, rgba(10,10,10,1) 100%),
+      linear-gradient(180deg, rgba(10,10,10,.45) 0%, rgba(10,10,10,.85) 100%),
+      url('images/hero.jpg') center/cover no-repeat;
+  }
+  .hero-eyebrow{
+    font-size:12px;letter-spacing:.2em;color:#dc2626;
+    font-weight:700;margin-bottom:20px;
+  }
+  .hero-eyebrow .dot{display:inline-block;margin:0 8px;opacity:.5}
+  .hero-title{
+    font-size:clamp(34px, 8vw, 64px);
+    font-weight:800;line-height:1.15;letter-spacing:-.02em;
+    margin-bottom:20px;
+  }
+  .hero-sub{
+    font-size:clamp(14px, 2.4vw, 17px);
+    color:#cfcfcf;max-width:560px;
+    margin-bottom:36px;
+  }
+  .hero-ctas{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:48px}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:16px 24px;border-radius:8px;
+    font-size:15px;font-weight:700;
+    transition:transform .12s, box-shadow .15s, filter .15s;
+    border:none;cursor:pointer;
+  }
+  .btn:hover{transform:translateY(-1px);filter:brightness(1.05)}
+  .btn:active{transform:translateY(0)}
+  .btn-tel{background:#dc2626;color:#fff;box-shadow:0 4px 14px rgba(220,38,38,.35)}
+  .btn-kakao{background:#ffe600;color:#181600;box-shadow:0 4px 14px rgba(255,230,0,.25)}
+
+  /* ===== Stats ===== */
+  .stats{
+    display:grid;grid-template-columns:repeat(3,1fr);
+    gap:8px;max-width:540px;
+    border-top:1px solid rgba(255,255,255,.12);
+    padding-top:24px;
+  }
+  .stat-num{
+    font-size:clamp(22px, 5vw, 32px);
+    font-weight:800;color:#fff;letter-spacing:-.02em;
+  }
+  .stat-num em{font-style:normal;color:#dc2626}
+  .stat-label{font-size:12px;color:#999;margin-top:4px}
+
+  /* ===== Section base ===== */
+  .section{padding:80px 24px}
+  .section-inner{max-width:1080px;margin:0 auto}
+  .section-title{
+    font-size:clamp(26px, 5vw, 38px);
+    font-weight:800;line-height:1.25;letter-spacing:-.02em;
+    margin-bottom:16px;
+  }
+  .section-title .accent{color:#dc2626}
+  .section-desc{color:#bbb;font-size:15px;max-width:620px;margin-bottom:48px}
+
+  /* ===== Services ===== */
+  .services{
+    display:grid;grid-template-columns:repeat(2,1fr);
+    gap:14px;
+  }
+  @media(max-width:600px){.services{grid-template-columns:1fr}}
+  .service{
+    background:#141414;border:1px solid rgba(255,255,255,.06);
+    border-radius:12px;padding:28px 24px;
+    transition:border-color .2s, transform .15s;
+  }
+  .service:hover{border-color:rgba(220,38,38,.4);transform:translateY(-2px)}
+  .service-tag{
+    font-size:11px;color:#dc2626;font-weight:700;
+    letter-spacing:.15em;margin-bottom:14px;
+  }
+  .service-name{font-size:20px;font-weight:700;margin-bottom:8px}
+  .service-desc{font-size:13px;color:#999;line-height:1.55}
+
+  /* ===== Cases (블로그 카드) ===== */
+  .cases{
+    display:grid;grid-template-columns:repeat(2,1fr);
+    gap:14px;
+  }
+  @media(max-width:520px){.cases{grid-template-columns:1fr}}
+  .case-thumb-empty{
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,#141414 0%,#0a0a0a 100%);
+    color:#3a3a3a;font-size:12px;letter-spacing:.15em;
+  }
+  .case{
+    display:block;
+    background:#141414;border:1px solid rgba(255,255,255,.06);
+    border-radius:12px;overflow:hidden;
+    transition:border-color .2s, transform .15s;
+  }
+  .case:hover{border-color:rgba(220,38,38,.4);transform:translateY(-2px)}
+  .case-thumb{
+    aspect-ratio:16/10;
+    background:#0a0a0a center/cover no-repeat;
+    border-bottom:1px solid rgba(255,255,255,.04);
+  }
+  .case-body{padding:18px 20px 20px}
+  .case-tag{
+    font-size:11px;color:#dc2626;font-weight:700;
+    letter-spacing:.15em;margin-bottom:8px;
+  }
+  .case-title{
+    font-size:16px;font-weight:700;line-height:1.4;
+    margin-bottom:10px;color:#f5f5f5;
+  }
+  .case-link{
+    font-size:12px;color:#999;
+    display:inline-flex;align-items:center;gap:4px;
+  }
+  .case:hover .case-link{color:#fff}
+
+  /* ===== Final CTA ===== */
+  .cta{
+    text-align:center;padding:90px 24px;
+    background:linear-gradient(180deg, #0a0a0a 0%, #141414 100%);
+    border-top:1px solid rgba(255,255,255,.05);
+  }
+  .cta-eyebrow{
+    font-size:12px;letter-spacing:.2em;color:#999;
+    font-weight:700;margin-bottom:14px;
+  }
+  .cta-title{
+    font-size:clamp(28px, 5.5vw, 42px);
+    font-weight:800;line-height:1.2;margin-bottom:14px;
+  }
+  .cta-desc{color:#bbb;margin-bottom:36px}
+  .cta-tel{
+    display:inline-block;
+    background:#dc2626;color:#fff;
+    padding:22px 48px;border-radius:10px;
+    font-size:clamp(24px, 5vw, 34px);font-weight:800;
+    letter-spacing:.02em;margin-bottom:14px;
+    box-shadow:0 6px 20px rgba(220,38,38,.4);
+    transition:transform .12s, filter .15s;
+  }
+  .cta-tel:hover{transform:translateY(-2px);filter:brightness(1.05)}
+  .cta-tel-label{font-size:11px;letter-spacing:.2em;opacity:.85;display:block;margin-bottom:4px}
+  .cta-kakao{
+    display:inline-flex;align-items:center;gap:10px;
+    background:#ffe600;color:#181600;
+    padding:18px 36px;border-radius:10px;
+    font-size:16px;font-weight:700;margin-top:14px;
+    box-shadow:0 4px 14px rgba(255,230,0,.25);
+    transition:transform .12s, filter .15s;
+  }
+  .cta-kakao:hover{transform:translateY(-2px);filter:brightness(1.03)}
+  .cta-kakao-label{
+    background:#181600;color:#ffe600;
+    font-size:11px;font-weight:700;
+    padding:3px 8px;border-radius:4px;
+  }
+
+  /* ===== Footer ===== */
+  .footer{
+    background:#070707;padding:48px 24px;
+    border-top:1px solid rgba(255,255,255,.05);
+    color:#777;font-size:13px;
+  }
+  .footer-inner{max-width:1080px;margin:0 auto}
+  .footer-logo{font-size:16px;font-weight:800;color:#fff;letter-spacing:.05em;margin-bottom:6px}
+  .footer-tagline{font-size:12px;color:#999;margin-bottom:24px}
+  .footer-info{display:grid;grid-template-columns:repeat(auto-fit, minmax(220px,1fr));gap:16px}
+  .footer-info dt{color:#bbb;font-size:11px;letter-spacing:.1em;margin-bottom:4px;font-weight:600}
+  .footer-info dd{color:#888;font-size:13px;line-height:1.6}
+  .footer-copy{
+    margin-top:32px;padding-top:20px;
+    border-top:1px solid rgba(255,255,255,.05);
+    font-size:11px;color:#555;
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">UN-MOTORS</div>
+  <div class="nav-menu">
+    <a href="#service">서비스</a>
+    <a href="#contact">견적·문의</a>
+    <a href="#location">오시는 길</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-eyebrow">SINCE 2005<span class="dot">·</span>20 YEARS</div>
+  <h1 class="hero-title">수입차 판금도색,<br>정밀함이 만드는 차이.</h1>
+  <p class="hero-sub">벤츠·BMW·아우디·포르쉐 등 20년 명장의 손길로<br>완벽 그대로 재현합니다.</p>
+
+  <div class="hero-ctas">
+    <a href="tel:010-3350-5925" class="btn btn-tel">📞 견적 전화 010-3350-5925</a>
+    <a href="https://open.kakao.com/o/sUvnPSri" target="_blank" rel="noopener" class="btn btn-kakao">💬 카톡 상담</a>
+  </div>
+
+  <div class="stats">
+    <div>
+      <div class="stat-num">3,400<em>+</em></div>
+      <div class="stat-label">누적 수리 대수</div>
+    </div>
+    <div>
+      <div class="stat-num">20<em>년</em></div>
+      <div class="stat-label">전문 경력</div>
+    </div>
+    <div>
+      <div class="stat-num">0.3<em>%</em></div>
+      <div class="stat-label">클레임률</div>
+    </div>
+  </div>
+</section>
+
+<!-- About -->
+<section class="section">
+  <div class="section-inner">
+    <h2 class="section-title">복원이 아닌,<br><span class="accent">원형 그대로.</span></h2>
+    <p class="section-desc">
+      성수 UN모터스는 벤츠·BMW·아우디를 포함한 모든 수입차 브랜드의 판금·도색 전문공장입니다.
+      도장 매칭, 판금 마감 등을 완벽히 복원합니다.
+    </p>
+  </div>
+</section>
+
+<!-- Cases (블로그) -->
+<section class="section" style="padding-top:0">
+  <div class="section-inner">
+    <h2 class="section-title">최근 수리 사례</h2>
+    <p class="section-desc">실제 수리 진행 과정과 결과를 블로그에 정리하고 있습니다. 각 사례를 누르면 블로그로 이동합니다.</p>
+
+    <div class="cases">
+      <a href="https://blog.naver.com/un3466/223734075390" target="_blank" rel="noopener" class="case">
+        <div class="case-thumb" style="background-image:url('images/case-1.jpg')"></div>
+        <div class="case-body">
+          <div class="case-tag">CASE 01</div>
+          <div class="case-title">마이바흐 판금도장</div>
+          <div class="case-link">블로그에서 자세히 보기 →</div>
+        </div>
+      </a>
+
+      <a href="https://blog.naver.com/un3466/223690867655" target="_blank" rel="noopener" class="case">
+        <div class="case-thumb" style="background-image:url('images/case-2.jpg')"></div>
+        <div class="case-body">
+          <div class="case-tag">CASE 02</div>
+          <div class="case-title">파나메라 판금도장</div>
+          <div class="case-link">블로그에서 자세히 보기 →</div>
+        </div>
+      </a>
+
+      <a href="https://blog.naver.com/un3466/223522413192" target="_blank" rel="noopener" class="case">
+        <div class="case-thumb" style="background-image:url('images/case-3.jpg')"></div>
+        <div class="case-body">
+          <div class="case-tag">CASE 03</div>
+          <div class="case-title">머스탱 판금도장</div>
+          <div class="case-link">블로그에서 자세히 보기 →</div>
+        </div>
+      </a>
+
+      <a href="https://blog.naver.com/un3466/223513114422" target="_blank" rel="noopener" class="case">
+        <div class="case-thumb" style="background-image:url('images/case-4.jpg')"></div>
+        <div class="case-body">
+          <div class="case-tag">CASE 04</div>
+          <div class="case-title">BMW XM 판금도장</div>
+          <div class="case-link">블로그에서 자세히 보기 →</div>
+        </div>
+      </a>
+    </div>
+
+    <div style="text-align:center;margin-top:36px">
+      <a href="https://blog.naver.com/un3466" target="_blank" rel="noopener"
+         style="display:inline-block;padding:14px 28px;border:1px solid rgba(255,255,255,.15);border-radius:8px;font-size:14px;color:#bbb;transition:all .15s">
+        블로그 전체 보기 →
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Services -->
+<section class="section" id="service" style="padding-top:0">
+  <div class="section-inner">
+    <h2 class="section-title">수입차 전문 복원</h2>
+    <div class="services">
+      <div class="service">
+        <div class="service-tag">SERVICE 01</div>
+        <div class="service-name">판금·도색</div>
+        <div class="service-desc">사고·외관 손상의 정밀 복원. 원래 색감과 광택 그대로.</div>
+      </div>
+      <div class="service">
+        <div class="service-tag">SERVICE 02</div>
+        <div class="service-name">덴트 복원</div>
+        <div class="service-desc">패널 교체 없이 원형 복원. 도장 살리는 무도장 덴트.</div>
+      </div>
+      <div class="service">
+        <div class="service-tag">SERVICE 03</div>
+        <div class="service-name">전기차 수리</div>
+        <div class="service-desc">테슬라 등 전기차 판금·도장 전문.</div>
+      </div>
+      <div class="service">
+        <div class="service-tag">SERVICE 04</div>
+        <div class="service-name">디테일링</div>
+        <div class="service-desc">광택·코팅·실내 세정. 신차 컨디션 그대로 유지.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Final CTA -->
+<section class="cta" id="contact">
+  <div class="cta-eyebrow">CALL · KAKAO</div>
+  <h2 class="cta-title">지금 바로<br>무료 견적 받기.</h2>
+  <p class="cta-desc">상담·견적은 무료입니다. 부담없이 전화·카톡 주세요.</p>
+
+  <a href="tel:010-3350-5925" class="cta-tel">
+    <span class="cta-tel-label">CALL</span>
+    010-3350-5925
+  </a>
+  <br>
+  <a href="https://open.kakao.com/o/sUvnPSri" target="_blank" rel="noopener" class="cta-kakao">
+    <span class="cta-kakao-label">KAKAO</span>
+    카카오톡으로 1:1 상담하기
+  </a>
+</section>
+
+<!-- Footer -->
+<footer class="footer" id="location">
+  <div class="footer-inner">
+    <div class="footer-logo">UN-MOTORS</div>
+    <div class="footer-tagline">IMPORTED CAR SPECIALIST</div>
+
+    <dl class="footer-info">
+      <div>
+        <dt>ADDRESS</dt>
+        <dd>서울 성동구 아차산로 11가길 37<br>유엔모터스</dd>
+      </div>
+      <div>
+        <dt>CONTACT</dt>
+        <dd>010-3350-5925</dd>
+      </div>
+      <div>
+        <dt>HOURS</dt>
+        <dd>평일 08:30 — 18:00<br>주말·공휴일 휴무</dd>
+      </div>
+    </dl>
+
+    <div class="footer-copy">© UN-MOTORS. All rights reserved.</div>
+  </div>
+</footer>
+
+</body>
+</html>
