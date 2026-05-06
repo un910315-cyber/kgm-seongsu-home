@@ -75,12 +75,16 @@
   .stat-card.green::before { background: var(--green); }
   .stat-card.blue::before { background: var(--blue); }
   .stat-card.red::before { background: var(--red); }
+  .stat-card.purple::before { background: #a78bfa; }
+  .stat-card.gray::before { background: #94a3b8; }
   .stat-label { font-size: 11px; color: var(--text-dim); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
   .stat-value { font-size: 28px; font-weight: 900; font-family: 'JetBrains Mono', monospace; }
   .stat-card.orange .stat-value { color: var(--accent); }
   .stat-card.green .stat-value { color: var(--green); }
   .stat-card.blue .stat-value { color: var(--blue); }
   .stat-card.red .stat-value { color: var(--red); }
+  .stat-card.purple .stat-value { color: #a78bfa; }
+  .stat-card.gray .stat-value { color: #94a3b8; }
   .stat-sub { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
 
   /* TOOLBAR */
@@ -113,9 +117,11 @@
 
   .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
   .badge-in { background: rgba(75,156,255,0.15); color: var(--blue); border: 1px solid rgba(75,156,255,0.3); }
+  .badge-wait { background: rgba(168,139,250,0.15); color: #a78bfa; border: 1px solid rgba(168,139,250,0.35); }
   .badge-repair { background: rgba(245,166,35,0.15); color: #f5a623; border: 1px solid rgba(245,166,35,0.3); }
   .badge-done { background: rgba(45,206,137,0.15); color: var(--green); border: 1px solid rgba(45,206,137,0.3); }
   .badge-out { background: rgba(124,130,150,0.15); color: var(--text-dim); border: 1px solid rgba(124,130,150,0.3); }
+  .badge-out-norepair { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
   .bdot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
   .badge-in .bdot, .badge-repair .bdot { animation: pulse 1.5s infinite; }
 
@@ -516,9 +522,11 @@
     </div>
     <div class="stats-grid">
       <div class="stat-card orange"><div class="stat-label">현재 입고</div><div class="stat-value" id="stat-total">0</div><div class="stat-sub">공업사 내 차량</div></div>
+      <div class="stat-card purple"><div class="stat-label">수리 대기</div><div class="stat-value" id="stat-wait">0</div><div class="stat-sub">작업 대기 중</div></div>
       <div class="stat-card blue"><div class="stat-label">수리 중</div><div class="stat-value" id="stat-repair">0</div><div class="stat-sub">작업 진행 중</div></div>
       <div class="stat-card green"><div class="stat-label">수리 완료</div><div class="stat-value" id="stat-done">0</div><div class="stat-sub">출고 대기</div></div>
       <div class="stat-card red"><div class="stat-label">오늘 입고</div><div class="stat-value" id="stat-today">0</div><div class="stat-sub">금일 접수</div></div>
+      <div class="stat-card gray"><div class="stat-label">미수리 출고</div><div class="stat-value" id="stat-norepair">0</div><div class="stat-sub">미수리 출고 누적</div></div>
     </div>
     <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
       <div class="section-title">📋 현황 목록</div>
@@ -539,6 +547,7 @@
         <select class="form-input" id="dashFilterStatus" onchange="renderDashboard()" style="width:100px;padding:8px 10px;font-size:13px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);">
           <option value="">전체 상태</option>
           <option value="입고">입고</option>
+          <option value="수리대기">수리대기</option>
           <option value="수리중">수리중</option>
           <option value="수리완료">수리완료</option>
         </select>
@@ -562,9 +571,11 @@
       <select class="filter-select" id="filterStatus" onchange="renderList()">
         <option value="">전체 상태</option>
         <option value="입고">입고</option>
+        <option value="수리대기">수리대기</option>
         <option value="수리중">수리중</option>
         <option value="수리완료">수리완료</option>
         <option value="출고">출고</option>
+        <option value="미수리 출고">미수리 출고</option>
       </select>
       <button class="btn btn-primary" onclick="openModal()">+ 차량 등록</button>
     </div>
@@ -762,9 +773,11 @@
           <label class="form-label">상태 *</label>
           <select class="form-select" id="f-status">
             <option value="입고">입고</option>
+            <option value="수리대기">수리대기</option>
             <option value="수리중">수리중</option>
             <option value="수리완료">수리완료</option>
             <option value="출고">출고</option>
+            <option value="미수리 출고">미수리 출고</option>
           </select>
         </div>
         <div class="form-group">
@@ -898,6 +911,10 @@
           style="padding:14px;border-radius:10px;border:2px solid rgba(75,156,255,0.3);background:rgba(75,156,255,0.1);color:var(--blue);font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:left;">
           🔵 입고 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">차량 접수 완료</span>
         </button>
+        <button class="status-pick-btn" data-val="수리대기" onclick="saveStatus('수리대기')"
+          style="padding:14px;border-radius:10px;border:2px solid rgba(168,139,250,0.35);background:rgba(168,139,250,0.1);color:#a78bfa;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:left;">
+          🟣 수리대기 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">작업 시작 전 대기</span>
+        </button>
         <button class="status-pick-btn" data-val="수리중" onclick="saveStatus('수리중')"
           style="padding:14px;border-radius:10px;border:2px solid rgba(245,166,35,0.3);background:rgba(245,166,35,0.1);color:var(--accent);font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:left;">
           🟡 수리중 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">작업 진행 중</span>
@@ -909,6 +926,10 @@
         <button class="status-pick-btn" data-val="출고" onclick="saveStatus('출고')"
           style="padding:14px;border-radius:10px;border:2px solid rgba(124,130,150,0.3);background:rgba(124,130,150,0.1);color:var(--text-dim);font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:left;">
           ⚪ 출고 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">오늘 날짜 자동 입력</span>
+        </button>
+        <button class="status-pick-btn" data-val="미수리 출고" onclick="saveStatus('미수리 출고')"
+          style="padding:14px;border-radius:10px;border:2px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#f87171;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:left;">
+          🔴 미수리 출고 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">수리 안 하고 출고 (오늘 날짜 자동 입력)</span>
         </button>
       </div>
     </div>
@@ -1360,12 +1381,12 @@
 
   // ---- HELPERS ----
   function statusBadge(s) {
-    const map = { '입고': 'badge-in', '수리중': 'badge-repair', '수리완료': 'badge-done', '출고': 'badge-out' };
+    const map = { '입고': 'badge-in', '수리대기': 'badge-wait', '수리중': 'badge-repair', '수리완료': 'badge-done', '출고': 'badge-out', '미수리 출고': 'badge-out-norepair' };
     return `<span class="badge ${map[s]||''}"><span class="bdot"></span>${s}</span>`;
   }
   function locationBadge(loc, status) {
     if (!loc) return '-';
-    if (status === '출고') return '-';
+    if (status === '출고' || status === '미수리 출고') return '-';
     const colors = { '1층':'#a78bfa', '판금':'#f472b6', '도장':'#fb923c', '정비':'#34d399', '도장대기중':'#fbbf24', '조립대기중':'#2dd4bf', '조립중':'#84cc16', '5층':'#60a5fa', '지하':'#94a3b8' };
     const c = colors[loc]||'#94a3b8';
     return `<span style="display:inline-block;white-space:nowrap;background:${c}22;color:${c};padding:2px 10px;border-radius:5px;font-size:12px;font-weight:700;border:1px solid ${c}44;">${loc}</span>`;
@@ -1399,7 +1420,7 @@
 
   // 위치 빠른변경 셀
   function locationQuickCell(id, loc, status) {
-    if (status === '출고') return '-';
+    if (status === '출고' || status === '미수리 출고') return '-';
     const badge = loc
       ? locationBadge(loc, status)
       : `<span style="color:var(--text-dim);font-size:12px;border:1px dashed var(--border);padding:2px 10px;border-radius:5px;cursor:pointer;">위치없음</span>`;
@@ -1423,7 +1444,7 @@
   window.saveStatus = async function(val) {
     const id = document.getElementById('statusPickerId').value;
     const updateData = { status: val, updatedAt: new Date().toISOString() };
-    if (val === '출고') updateData.outDate = new Date().toISOString().split('T')[0];
+    if (val === '출고' || val === '미수리 출고') updateData.outDate = new Date().toISOString().split('T')[0];
     try {
       await update(ref(db, `records/${id}`), updateData);
       showNotif(`상태가 "${val}"(으)로 변경되었습니다 ✅`);
@@ -1472,7 +1493,7 @@
     return { start: monday.getTime(), end: sunday.getTime() };
   }
   function renderOutSchedule() {
-    const list = getList().filter(r => r.status !== '출고' && r.outDate);
+    const list = getList().filter(r => r.status !== '출고' && r.status !== '미수리 출고' && r.outDate);
     const tw = _weekRange(0);
     const nw = _weekRange(1);
     const inRange = (d, r) => { const t = new Date(d).getTime(); return !isNaN(t) && t >= r.start && t <= r.end; };
@@ -1492,12 +1513,14 @@
 
   function renderDashboard() {
     const list = getList();
-    const active = list.filter(r => r.status !== '출고');
+    const active = list.filter(r => r.status !== '출고' && r.status !== '미수리 출고');
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('stat-total').textContent = active.length;
+    document.getElementById('stat-wait').textContent = list.filter(r=>r.status==='수리대기').length;
     document.getElementById('stat-repair').textContent = list.filter(r=>r.status==='수리중').length;
     document.getElementById('stat-done').textContent = list.filter(r=>r.status==='수리완료').length;
     document.getElementById('stat-today').textContent = list.filter(r=>r.inDate===today).length;
+    document.getElementById('stat-norepair').textContent = list.filter(r=>r.status==='미수리 출고').length;
     renderOutSchedule();
 
     const dq = (document.getElementById('dashSearchInput')?.value||'').toLowerCase().trim();
@@ -1506,7 +1529,7 @@
     const resultEl = document.getElementById('dashSearchResult');
 
     const show = list.filter(r => {
-      if (r.status === '출고') return false;
+      if (r.status === '출고' || r.status === '미수리 출고') return false;
       const mq = !dq || r.carNum.toLowerCase().includes(dq) || r.name.toLowerCase().includes(dq) || (r.phone||'').includes(dq) || (r.repair||'').toLowerCase().includes(dq);
       const ml = !dLoc || (r.location||'') === dLoc;
       const ms = !dSt || r.status === dSt;
@@ -1691,7 +1714,7 @@
       phone: document.getElementById('f-phone').value.trim(),
       status,
       inDate,
-      outDate: status === '출고'
+      outDate: (status === '출고' || status === '미수리 출고')
         ? (document.getElementById('f-outdate').value || new Date().toISOString().split('T')[0])
         : document.getElementById('f-outdate').value||'',
       repair: document.getElementById('f-repair').value.trim(),
