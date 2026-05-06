@@ -165,6 +165,21 @@
   .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
   .section-title { font-size: 15px; font-weight: 700; }
 
+  /* DASHBOARD 좌측 출고 일정 사이드바 */
+  .dash-out-side { position: fixed; left: 16px; top: 130px; width: 220px; max-height: calc(100vh - 150px); overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; z-index: 5; }
+  .dash-out-side h4 { font-size: 11px; color: var(--text-dim); margin: 0 0 8px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+  .dash-out-side h4 .cnt { background: var(--surface2); color: var(--text); padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 700; letter-spacing: 0; }
+  .dash-out-side .group { margin-bottom: 14px; }
+  .dash-out-side .group:last-child { margin-bottom: 0; }
+  .dash-out-side .item { padding: 8px 10px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); margin-bottom: 6px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .dash-out-side .item:hover { border-color: rgba(245,166,35,.5); background: rgba(245,166,35,.05); }
+  .dash-out-side .item:last-child { margin-bottom: 0; }
+  .dash-out-side .item .car { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--accent); }
+  .dash-out-side .item .meta { font-size: 11px; color: var(--text-dim); margin-top: 2px; display: flex; justify-content: space-between; gap: 6px; }
+  .dash-out-side .item .meta .nm { color: var(--text); }
+  .dash-out-side .empty-mini { font-size: 11px; color: var(--text-dim); padding: 6px 4px; }
+  @media (max-width: 1500px) { .dash-out-side { display: none; } }
+
   @media (max-width: 600px) {
     .form-grid { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
@@ -479,6 +494,16 @@
 
 <!-- DASHBOARD -->
 <div id="page-dashboard" class="page active">
+  <aside class="dash-out-side" id="dashOutSide">
+    <div class="group">
+      <h4>📅 이번주 출고 <span class="cnt" id="outSideThisCnt">0</span></h4>
+      <div id="outSideThis"></div>
+    </div>
+    <div class="group">
+      <h4>🗓️ 다음주 출고 <span class="cnt" id="outSideNextCnt">0</span></h4>
+      <div id="outSideNext"></div>
+    </div>
+  </aside>
   <div class="main">
     <!-- 접근 요청 알림 (관리자만) -->
     <div id="accessRequests" style="display:none;margin-bottom:16px;padding:14px 18px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.25);border-radius:12px;">
@@ -1340,7 +1365,7 @@
   }
   function locationBadge(loc, status) {
     if (!loc) return '-';
-    if (status === '출고' || status === '수리완료') return '-';
+    if (status === '출고') return '-';
     const colors = { '1층':'#a78bfa', '판금':'#f472b6', '도장':'#fb923c', '정비':'#34d399', '도장대기중':'#fbbf24', '조립대기중':'#2dd4bf', '조립중':'#84cc16', '5층':'#60a5fa', '지하':'#94a3b8' };
     const c = colors[loc]||'#94a3b8';
     return `<span style="display:inline-block;white-space:nowrap;background:${c}22;color:${c};padding:2px 10px;border-radius:5px;font-size:12px;font-weight:700;border:1px solid ${c}44;">${loc}</span>`;
@@ -1374,7 +1399,7 @@
 
   // 위치 빠른변경 셀
   function locationQuickCell(id, loc, status) {
-    if (status === '출고' || status === '수리완료') return '-';
+    if (status === '출고') return '-';
     const badge = loc
       ? locationBadge(loc, status)
       : `<span style="color:var(--text-dim);font-size:12px;border:1px dashed var(--border);padding:2px 10px;border-radius:5px;cursor:pointer;">위치없음</span>`;
@@ -1435,6 +1460,36 @@
   };
 
   // ---- DASHBOARD ----
+  function _weekRange(offset) {
+    const now = new Date();
+    const day = now.getDay() || 7; // 일요일=7로 처리
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - day + 1 + offset * 7);
+    monday.setHours(0,0,0,0);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23,59,59,999);
+    return { start: monday.getTime(), end: sunday.getTime() };
+  }
+  function renderOutSchedule() {
+    const list = getList().filter(r => r.status !== '출고' && r.outDate);
+    const tw = _weekRange(0);
+    const nw = _weekRange(1);
+    const inRange = (d, r) => { const t = new Date(d).getTime(); return !isNaN(t) && t >= r.start && t <= r.end; };
+    const thisWk = list.filter(r => inRange(r.outDate, tw)).sort((a,b)=> new Date(a.outDate)-new Date(b.outDate));
+    const nextWk = list.filter(r => inRange(r.outDate, nw)).sort((a,b)=> new Date(a.outDate)-new Date(b.outDate));
+    const dayLabel = (d) => { const x = new Date(d); const wk = ['일','월','화','수','목','금','토'][x.getDay()]; return `${x.getMonth()+1}/${x.getDate()}(${wk})`; };
+    const itemHtml = (r) => `<div class="item" onclick="openDetailModal('${esc(r.id)}')" title="클릭하여 상세보기"><div class="car">${esc(r.carNum)}</div><div class="meta"><span class="nm">${esc(r.name)||'-'}</span><span>${dayLabel(r.outDate)}</span></div></div>`;
+    const tEl = document.getElementById('outSideThis');
+    const nEl = document.getElementById('outSideNext');
+    if (tEl) tEl.innerHTML = thisWk.length ? thisWk.map(itemHtml).join('') : `<div class="empty-mini">예정 없음</div>`;
+    if (nEl) nEl.innerHTML = nextWk.length ? nextWk.map(itemHtml).join('') : `<div class="empty-mini">예정 없음</div>`;
+    const tc = document.getElementById('outSideThisCnt');
+    const nc = document.getElementById('outSideNextCnt');
+    if (tc) tc.textContent = thisWk.length;
+    if (nc) nc.textContent = nextWk.length;
+  }
+
   function renderDashboard() {
     const list = getList();
     const active = list.filter(r => r.status !== '출고');
@@ -1443,6 +1498,7 @@
     document.getElementById('stat-repair').textContent = list.filter(r=>r.status==='수리중').length;
     document.getElementById('stat-done').textContent = list.filter(r=>r.status==='수리완료').length;
     document.getElementById('stat-today').textContent = list.filter(r=>r.inDate===today).length;
+    renderOutSchedule();
 
     const dq = (document.getElementById('dashSearchInput')?.value||'').toLowerCase().trim();
     const dLoc = document.getElementById('dashFilterLoc')?.value||'';
@@ -1567,7 +1623,7 @@
         <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">🔍 ${esc(r.carNum)}</span></td>
         <td>${esc(r.name)}</td>
         <td>${esc(r.phone)||'-'}</td>
-        <td>${locationBadge(r.location, r.status)}</td>
+        <td>${locationQuickCell(r.id, r.location, r.status)}</td>
         <td>${insBadge(r.insDaemul,'대물')}</td>
         <td>${insBadge(r.insJacha,'자차')}</td>
         <td>${repairCell(r.repair)}</td>
@@ -2680,6 +2736,75 @@
       document.getElementById('myRequestModal').classList.remove('open');
     } catch(e) { showNotif('\uc81c\ucd9c \uc2e4\ud328: ' + e.message, true); }
     btn.disabled = false; btn.textContent = '\uc81c\ucd9c';
+  };
+  window._openProxyRequestModal = function() {
+    if (window._userRole !== 'admin') return;
+    var sel = document.getElementById('pr-emp');
+    sel.innerHTML = '<option value="">-- \uc9c1\uc6d0 \uc120\ud0dd --</option>';
+    Object.entries(leaveEmployees || {})
+      .map(function(e){ return Object.assign({id:e[0]}, e[1]); })
+      .sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); })
+      .forEach(function(emp){
+        var label = (emp.name||'') + (emp.team ? ' ('+emp.team+')' : '') + (emp.position && emp.position !== '\uc77c\ubc18' ? ' \u00b7 '+emp.position : '');
+        var opt = document.createElement('option');
+        opt.value = emp.id;
+        opt.textContent = label;
+        sel.appendChild(opt);
+      });
+    document.getElementById('pr-type').value = '\uc5f0\ucc28';
+    document.getElementById('pr-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('pr-reason').value = '';
+    document.getElementById('pr-hours').value = '1';
+    document.getElementById('pr-hours-group').style.display = 'none';
+    document.getElementById('proxyRequestModal').classList.add('open');
+  };
+  window._submitProxyRequest = async function() {
+    if (window._userRole !== 'admin') { showNotif('\uad00\ub9ac\uc790\ub9cc \uc0ac\uc6a9\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4', true); return; }
+    var empId = document.getElementById('pr-emp').value;
+    var type = document.getElementById('pr-type').value;
+    var date = document.getElementById('pr-date').value;
+    var reason = document.getElementById('pr-reason').value.trim();
+    var hours = (type === '\uc870\ud1f4' || type === '\uc678\ucd9c') ? parseInt(document.getElementById('pr-hours').value) : null;
+    if (!empId) { showNotif('\uc9c1\uc6d0\uc744 \uc120\ud0dd\ud574\uc8fc\uc138\uc694', true); return; }
+    if (!date) { showNotif('\uc0ac\uc6a9\uc77c\uc744 \uc120\ud0dd\ud574\uc8fc\uc138\uc694', true); return; }
+    var emp = leaveEmployees[empId];
+    if (!emp) { showNotif('\uc9c1\uc6d0 \uc815\ubcf4\ub97c \ucc3e\uc744 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4', true); return; }
+    var addHours = (type === '\uc5f0\ucc28') ? 8 : (type === '\uc624\uc804\ubc18\ucc28' || type === '\uc624\ud6c4\ubc18\ucc28') ? 4 : (hours || 0);
+    var usedHours = getLeaveUsedHours(empId);
+    var autoTotal = (emp.hireDate) ? calcTotalLeave(emp.hireDate) : (emp.totalLeave || 15);
+    var totalHours = autoTotal * 8;
+    if (addHours > 0 && (usedHours + addHours) > totalHours) {
+      var remain = Math.max(0, totalHours - usedHours);
+      if (!confirm(emp.name + ' \ub2d8\uc758 \uc794\uc5ec \uc5f0\ucc28\uac00 \ubd80\uc871\ud569\ub2c8\ub2e4 (\uc794\uc5ec: ' + formatDayHour(remain) + '). \uadf8\ub798\ub3c4 \ub300\uc2e0 \ub4f1\ub85d\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?')) return;
+    }
+    var btn = document.getElementById('proxyReqSaveBtn');
+    btn.disabled = true; btn.textContent = '\ub4f1\ub85d \uc911...';
+    try {
+      var nowStr = new Date().toISOString();
+      var adminEmail = window._userEmail || '';
+      var data = {
+        empId: empId, type: type, date: date, reason: reason,
+        team: emp.team || '',
+        status: 'approved',
+        createdAt: nowStr,
+        requestedBy: adminEmail,
+        submittedOnBehalf: true,
+        onBehalfBy: adminEmail,
+        managerApprovedAt: nowStr, managerApprovedBy: adminEmail,
+        adminApprovedAt: nowStr, adminApprovedBy: adminEmail,
+        directorApprovedAt: nowStr, directorApprovedBy: adminEmail,
+        approvedAt: nowStr, approvedBy: adminEmail
+      };
+      if (hours) data.hours = hours;
+      var newRef = await push(leaveRequestsRef, data);
+      var usageData = { empId: empId, type: type, date: date, reason: reason, createdAt: nowStr, fromRequestId: newRef.key, registeredOnBehalfBy: adminEmail };
+      if (hours) usageData.hours = hours;
+      var usageRef = await push(leaveUseRef, usageData);
+      await update(ref(db, 'leaveRequests/' + newRef.key), { finalUsageId: usageRef.key });
+      showNotif(emp.name + ' \ub2d8\uc758 ' + type + ' \uc2e0\uccad\uc744 \ub300\uc2e0 \ub4f1\ub85d\u00b7\uc2b9\uc778\ud588\uc2b5\ub2c8\ub2e4');
+      document.getElementById('proxyRequestModal').classList.remove('open');
+    } catch(e) { showNotif('\ub4f1\ub85d \uc2e4\ud328: ' + e.message, true); }
+    btn.disabled = false; btn.textContent = '\ub4f1\ub85d';
   };
   window._cancelMyRequest = async function(id) {
     var req = leaveRequests[id]; if (!req) return;
@@ -3918,7 +4043,10 @@ function fmtDateVal(val) {
     <!-- 내 신청서 -->
     <div class="section-header" style="margin-top:8px;">
       <div class="section-title" style="font-size:14px;">📥 내 신청서</div>
-      <button class="btn btn-primary btn-sm" onclick="window._openMyRequestModal()">➕ 신청서 작성</button>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-sm leave-admin-only" onclick="window._openProxyRequestModal()" title="긴급한 경우 관리자가 직원 대신 연차/반차를 등록·즉시 승인">👤 대신 신청</button>
+        <button class="btn btn-primary btn-sm" onclick="window._openMyRequestModal()">➕ 신청서 작성</button>
+      </div>
     </div>
     <div class="table-wrap">
       <table>
@@ -4161,6 +4289,60 @@ function fmtDateVal(val) {
       <div class="form-actions" style="margin-top:16px;">
         <button class="btn btn-ghost" onclick="document.getElementById('myRequestModal').classList.remove('open')">취소</button>
         <button class="btn btn-primary" id="myReqSaveBtn" onclick="window._submitLeaveRequest()">제출</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 관리자 대신 신청 모달 -->
+<div class="modal-overlay" id="proxyRequestModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">대신 신청 (관리자)</div>
+      <button class="modal-close" onclick="document.getElementById('proxyRequestModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;">
+      <div style="background:var(--surface2);padding:10px 12px;border-radius:8px;margin-bottom:12px;font-size:11px;color:var(--text-dim);line-height:1.5;">관리자가 직원 대신 등록하며 결재 단계 없이 즉시 승인 처리됩니다. 사용 내역에도 자동 등록됩니다.</div>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">대상 직원 *</label>
+          <select class="form-select" id="pr-emp"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">유형 *</label>
+          <select class="form-select" id="pr-type" onchange="document.getElementById('pr-hours-group').style.display=(this.value==='조퇴'||this.value==='외출')?'flex':'none';">
+            <option value="연차">연차 (1일)</option>
+            <option value="오전반차">오전반차 (0.5일)</option>
+            <option value="오후반차">오후반차 (0.5일)</option>
+            <option value="조퇴">조퇴 (시간 선택)</option>
+            <option value="외출">외출 (시간 선택)</option>
+          </select>
+        </div>
+        <div class="form-group" id="pr-hours-group" style="display:none;">
+          <label class="form-label">시간 *</label>
+          <select class="form-select" id="pr-hours">
+            <option value="1">1시간</option>
+            <option value="2">2시간</option>
+            <option value="3">3시간</option>
+            <option value="4">4시간</option>
+            <option value="5">5시간</option>
+            <option value="6">6시간</option>
+            <option value="7">7시간</option>
+            <option value="8">8시간</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">사용일 *</label>
+          <input class="form-input" id="pr-date" type="date">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">사유</label>
+          <input class="form-input" id="pr-reason" placeholder="긴급 반차 등 사유 입력 (선택)">
+        </div>
+      </div>
+      <div class="form-actions" style="margin-top:16px;">
+        <button class="btn btn-ghost" onclick="document.getElementById('proxyRequestModal').classList.remove('open')">취소</button>
+        <button class="btn btn-primary" id="proxyReqSaveBtn" onclick="window._submitProxyRequest()">등록</button>
       </div>
     </div>
   </div>
