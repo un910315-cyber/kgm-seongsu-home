@@ -576,7 +576,6 @@
       <div class="stat-card blue"><div class="stat-label">수리 중</div><div class="stat-value" id="stat-repair">0</div><div class="stat-sub">작업 진행 중</div></div>
       <div class="stat-card green"><div class="stat-label">수리 완료</div><div class="stat-value" id="stat-done">0</div><div class="stat-sub">출고 대기</div></div>
       <div class="stat-card red"><div class="stat-label">오늘 입고</div><div class="stat-value" id="stat-today">0</div><div class="stat-sub">금일 접수</div></div>
-      <div class="stat-card gray"><div class="stat-label">미수리 출고</div><div class="stat-value" id="stat-norepair">0</div><div class="stat-sub">미수리 출고 누적</div></div>
     </div>
     <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
       <div class="section-title">📋 현황 목록</div>
@@ -625,7 +624,6 @@
         <option value="수리중">수리중</option>
         <option value="수리완료">수리완료</option>
         <option value="출고">출고</option>
-        <option value="미수리 출고">미수리 출고</option>
       </select>
       <button class="btn btn-primary" onclick="openModal()">+ 차량 등록</button>
     </div>
@@ -831,7 +829,6 @@
             <option value="수리중">수리중</option>
             <option value="수리완료">수리완료</option>
             <option value="출고">출고</option>
-            <option value="미수리 출고">미수리 출고</option>
           </select>
         </div>
         <div class="form-group">
@@ -981,10 +978,6 @@
         <button class="status-pick-btn" data-val="출고" onclick="saveStatus('출고')"
           style="padding:14px;border-radius:10px;border:2px solid rgba(124,130,150,0.3);background:rgba(124,130,150,0.1);color:var(--text-dim);font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:left;">
           ⚪ 출고 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">오늘 날짜 자동 입력</span>
-        </button>
-        <button class="status-pick-btn" data-val="미수리 출고" onclick="saveStatus('미수리 출고')"
-          style="padding:14px;border-radius:10px;border:2px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#f87171;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:left;">
-          🔴 미수리 출고 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">수리 안 하고 출고 (오늘 날짜 자동 입력)</span>
         </button>
       </div>
     </div>
@@ -1576,7 +1569,6 @@
     document.getElementById('stat-repair').textContent = list.filter(r=>r.status==='수리중').length;
     document.getElementById('stat-done').textContent = list.filter(r=>r.status==='수리완료').length;
     document.getElementById('stat-today').textContent = list.filter(r=>r.inDate===today).length;
-    document.getElementById('stat-norepair').textContent = list.filter(r=>r.status==='미수리 출고').length;
     renderOutSchedule();
 
     const dq = (document.getElementById('dashSearchInput')?.value||'').toLowerCase().trim();
