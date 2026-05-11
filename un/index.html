@@ -596,7 +596,7 @@
     <div class="section-header"><div class="section-title">✅ 수리 완료 — 출고 대기 중</div></div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>차량번호</th><th>고객명</th><th>연락처</th><th>위치</th><th>대물보험</th><th>자차보험</th><th>수리내용</th><th>수리비용</th><th>입고일</th><th>담당자</th><th>관리</th></tr></thead>
+        <thead><tr><th>차량번호</th><th>고객명</th><th>연락처</th><th>위치</th><th>대물보험</th><th>자차보험</th><th>수리내용</th><th>수리비용</th><th>입고일</th><th>주행거리</th><th>관리</th></tr></thead>
         <tbody id="complete-tbody"></tbody>
       </table>
     </div>
@@ -613,7 +613,7 @@
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>차량번호</th><th>고객명</th><th>연락처</th><th>대물보험</th><th>자차보험</th><th>수리내용</th><th>수리비용</th><th>입고일</th><th>출고일</th><th>담당자</th><th>관리</th></tr></thead>
+        <thead><tr><th>차량번호</th><th>고객명</th><th>연락처</th><th>대물보험</th><th>자차보험</th><th>수리내용</th><th>수리비용</th><th>입고일</th><th>출고일</th><th>주행거리</th><th>관리</th></tr></thead>
         <tbody id="out-tbody"></tbody>
       </table>
     </div>
@@ -798,8 +798,8 @@
           <input class="form-input" type="date" id="f-outdate">
         </div>
         <div class="form-group">
-          <label class="form-label">담당자</label>
-          <input class="form-input" id="f-worker" placeholder="담당 직원 이름">
+          <label class="form-label">주행거리 (km)</label>
+          <input class="form-input" id="f-km" placeholder="예: 120,000">
         </div>
         <div class="form-group full">
           <label class="form-label">수리 내용</label>
@@ -1625,7 +1625,7 @@
         <td style="color:var(--green);font-weight:700;">${fmtCost(r.cost)}</td>
         <td>${fmtFull(r.inDate)}</td>
         <td style="color:var(--accent);font-weight:600;">${fmtFull(r.outDate)}</td>
-        <td>${esc(r.worker)||'-'}</td>
+        <td>${esc(r.km)||'-'}</td>
         <td>
           <button class="btn btn-ghost btn-sm" onclick="window._openModal('${esc(r.id)}')">수정</button>
         </td>
@@ -1653,7 +1653,7 @@
         <td>${repairCell(r.repair)}</td>
         <td style="color:var(--green);font-weight:700;">${fmtCost(r.cost)}</td>
         <td>${fmt(r.inDate)}</td>
-        <td>${esc(r.worker)||'-'}</td>
+        <td>${esc(r.km)||'-'}</td>
         <td>
           <div style="display:flex;gap:5px;">
             <button class="btn btn-success btn-sm" onclick="window._markOut('${esc(r.id)}','${esc(r.carNum)}','${esc(r.name)}')">출고 처리</button>
@@ -1679,7 +1679,7 @@
       document.getElementById('f-outdate').value = r.outDate||'';
       document.getElementById('f-repair').value = r.repair||'';
       document.getElementById('f-cost').value = r.cost||'';
-      document.getElementById('f-worker').value = r.worker||'';
+      document.getElementById('f-km').value = r.km||'';
       document.getElementById('f-rent').value = r.rent||'';
       document.getElementById('f-ins-daemul').value = r.insDaemul||'';
       document.getElementById('f-ins-jacha').value = r.insJacha||'';
@@ -1687,7 +1687,7 @@
       document.querySelectorAll('input[name="carType"]').forEach(el => { el.checked = el.value === (r.carType||''); });
       document.getElementById('f-memo').value = r.memo||'';
     } else {
-      ['f-carnum','f-name','f-phone','f-outdate','f-repair','f-cost','f-worker','f-rent','f-ins-daemul','f-ins-jacha','f-memo'].forEach(id=>document.getElementById(id).value='');
+      ['f-carnum','f-name','f-phone','f-outdate','f-repair','f-cost','f-km','f-rent','f-ins-daemul','f-ins-jacha','f-memo'].forEach(id=>document.getElementById(id).value='');
       document.querySelectorAll('input[name="location"]').forEach(el => el.checked = false);
       document.querySelectorAll('input[name="carType"]').forEach(el => el.checked = false);
       document.getElementById('f-status').value = '입고';
@@ -1720,7 +1720,7 @@
         : document.getElementById('f-outdate').value||'',
       repair: document.getElementById('f-repair').value.trim(),
       cost: parseInt(document.getElementById('f-cost').value)||0,
-      worker: document.getElementById('f-worker').value.trim(),
+      km: document.getElementById('f-km').value.trim(),
       rent: document.getElementById('f-rent').value.trim(),
       insDaemul: document.getElementById('f-ins-daemul').value,
       insJacha: document.getElementById('f-ins-jacha').value,
@@ -1986,7 +1986,7 @@
         ${detailRow('📞 연락처', esc(r.phone)||'-')}
         ${detailRow('📅 입고일', esc(r.inDate)||'-')}
         ${detailRow('📅 출고(예정)일', esc(r.outDate)||'-')}
-        ${detailRow('👨‍🔧 담당자', esc(r.worker)||'-')}
+        ${detailRow('🛞 주행거리', (esc(r.km) ? esc(r.km)+' km' : '-'))}
         ${detailRow('🚖 렌트카', esc(r.rent)||'-')}
         ${detailRow('🚗 대물보험', esc(r.insDaemul)||'-')}
         ${detailRow('🚘 자차보험', esc(r.insJacha)||'-')}
