@@ -425,6 +425,55 @@
     .org-card-name{font-size:12px;}
   }
 
+  /* ─── 작업지시서 인쇄 도구 ─── */
+  .wo-modal-inner { display:flex; gap:0; max-width:1280px; width:96vw; max-height:92vh; background:#f5f5f7; color:#333; }
+  .wo-form-panel { width:340px; background:#fff; border-right:1px solid #e0e0e0; padding:14px; overflow-y:auto; flex-shrink:0; font-family:'Pretendard','Malgun Gothic',sans-serif; max-height:92vh; }
+  .wo-form-panel .wo-section { margin-bottom:14px; }
+  .wo-form-panel .wo-section-title { font-size:11px; font-weight:600; color:#f37021; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; border-bottom:1px solid #e0e0e0; padding-bottom:4px; }
+  .wo-form-panel .wo-field-row { display:grid; grid-template-columns:80px 1fr; gap:8px; align-items:center; margin-bottom:6px; }
+  .wo-form-panel .wo-field-row label { font-size:12px; color:#333; }
+  .wo-form-panel input[type=text], .wo-form-panel textarea { padding:6px 8px; font-size:12px; border:1px solid #e0e0e0; border-radius:4px; font-family:inherit; width:100%; background:#fff; color:#333; }
+  .wo-form-panel input[type=text]:focus, .wo-form-panel textarea:focus { outline:none; border-color:#f37021; }
+  .wo-form-panel textarea { resize:vertical; min-height:60px; }
+  .wo-date-group { display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; }
+  .wo-date-group input { text-align:center; }
+  .wo-mode-tabs { display:flex; gap:4px; margin-bottom:12px; background:#f0f0f0; padding:3px; border-radius:6px; }
+  .wo-mode-tabs button { flex:1; padding:6px 4px; background:transparent; color:#888; font-size:11px; border:none; border-radius:4px; cursor:pointer; font-weight:600; }
+  .wo-mode-tabs button.active { background:#fff; color:#1a1a1a; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
+  .wo-control-row { display:grid; grid-template-columns:90px 1fr 40px; gap:6px; align-items:center; margin-bottom:6px; }
+  .wo-control-row label { font-size:11px; color:#333; }
+  .wo-control-row input[type=range] { width:100%; }
+  .wo-control-row .wo-val { font-size:11px; color:#888; text-align:right; font-variant-numeric:tabular-nums; }
+  .wo-btn-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+  .wo-btn { padding:10px 12px; font-size:12px; font-weight:600; border:none; border-radius:4px; cursor:pointer; font-family:inherit; }
+  .wo-btn-outline { background:#fff; color:#333; border:1px solid #e0e0e0; }
+  .wo-btn-outline:hover { background:#f9f9f9; }
+  .wo-btn-primary { background:#f37021; color:#fff; }
+  .wo-btn-primary:hover { background:#e0631a; }
+  .wo-preview-container { flex:1; padding:20px; overflow:auto; background:#ddd; }
+  .wo-info-bar { background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; padding:8px 12px; border-radius:4px; font-size:11px; margin-bottom:12px; line-height:1.5; }
+  .wo-preview-wrap { display:flex; justify-content:center; align-items:flex-start; }
+  .wo-page { width:297mm; height:210mm; background-color:#fff; background-image:url('work-order-form.png'); background-size:100% 100%; background-repeat:no-repeat; position:relative; box-shadow:0 4px 20px rgba(0,0,0,0.15); transform-origin:top center; flex-shrink:0; }
+  .wo-page.print-mode { background-image:none; box-shadow:none; }
+  .wo-field { position:absolute; font-family:'Malgun Gothic','맑은 고딕',sans-serif; color:#000; line-height:1.2; white-space:pre-wrap; word-wrap:break-word; padding:0; user-select:none; }
+  .wo-page.adjust-mode .wo-field { border:1.5px dashed #f37021; background:rgba(243,112,33,0.08); cursor:move; min-height:4mm; }
+  .wo-page.adjust-mode .wo-field:hover { background:rgba(243,112,33,0.18); border-color:#d35400; }
+  .wo-page.adjust-mode .wo-field::before { content:attr(data-field-label); position:absolute; top:-14px; left:0; background:#f37021; color:#fff; font-size:9px; padding:1px 4px; border-radius:2px; font-family:'Malgun Gothic',sans-serif; white-space:nowrap; z-index:10; }
+  @media print {
+    body.printing-workorder > *:not(#workOrderModal) { display:none !important; }
+    body.printing-workorder { background:#fff !important; }
+    body.printing-workorder #workOrderModal { position:static !important; display:block !important; background:#fff !important; padding:0 !important; }
+    body.printing-workorder #workOrderModal .modal { max-width:none !important; max-height:none !important; border:none !important; box-shadow:none !important; background:#fff !important; border-radius:0 !important; }
+    body.printing-workorder #workOrderModal .modal-header, body.printing-workorder .wo-form-panel, body.printing-workorder .wo-info-bar { display:none !important; }
+    body.printing-workorder .wo-modal-inner { display:block !important; max-width:none !important; width:auto !important; max-height:none !important; background:#fff !important; }
+    body.printing-workorder .wo-preview-container { padding:0 !important; background:#fff !important; overflow:visible !important; }
+    body.printing-workorder .wo-preview-wrap { display:block !important; }
+    body.printing-workorder .wo-page { width:297mm !important; height:210mm !important; box-shadow:none !important; transform:none !important; margin:0 !important; page-break-after:avoid; }
+    body.printing-workorder .wo-page.adjust-mode .wo-field { border:none !important; background:transparent !important; }
+    body.printing-workorder .wo-page.adjust-mode .wo-field::before { display:none !important; }
+  }
+  @media print { @page { size:A4 landscape; margin:0; } }
+
 </style>
 </head>
 <body>
@@ -763,6 +812,10 @@
           <input class="form-input" id="f-carnum" placeholder="예) 12가 3456" style="font-family:'JetBrains Mono',monospace; text-transform:uppercase;">
         </div>
         <div class="form-group">
+          <label class="form-label">차명 (차종)</label>
+          <input class="form-input" id="f-carmodel" placeholder="예) 토레스">
+        </div>
+        <div class="form-group">
           <label class="form-label">차량 구분 *</label>
           <div style="display:flex;gap:8px;margin-top:2px;">
             <label class="loc-btn"><input type="radio" name="carType" value="KGM"><span>KGM</span></label>
@@ -848,6 +901,14 @@
           </select>
         </div>
         <div class="form-group">
+          <label class="form-label">대물 접수번호</label>
+          <input class="form-input" id="f-daemul-receipt" placeholder="접수번호">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">대물 담당자</label>
+          <input class="form-input" id="f-daemul-manager" placeholder="예: 송승인 010-4136-6226">
+        </div>
+        <div class="form-group">
           <label class="form-label">🚘 자차 보험사</label>
           <select class="form-select" id="f-ins-jacha">
             <option value="">-- 선택 (없으면 비워두세요) --</option>
@@ -867,13 +928,25 @@
             <option>기타</option>
           </select>
         </div>
+        <div class="form-group">
+          <label class="form-label">자차 접수번호</label>
+          <input class="form-input" id="f-jacha-receipt" placeholder="접수번호">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">자차 담당자</label>
+          <input class="form-input" id="f-jacha-manager" placeholder="예: 송승인 010-4136-6226">
+        </div>
         <div class="form-group full">
           <label class="form-label">🚖 렌트카 정보</label>
           <input class="form-input" id="f-rent" placeholder="렌트카 차량번호 또는 업체명 (없으면 비워두세요)">
         </div>
         <div class="form-group full">
+          <label class="form-label">고객 특별요청 / 비고</label>
+          <textarea class="form-textarea" id="f-customer-request" placeholder="고객 특별요청 또는 비고사항 (작업지시서에 인쇄됨)"></textarea>
+        </div>
+        <div class="form-group full">
           <label class="form-label">메모</label>
-          <input class="form-input" id="f-memo" placeholder="추가 메모">
+          <input class="form-input" id="f-memo" placeholder="추가 메모 (내부용)">
         </div>
       </div>
       <div class="form-actions">
@@ -1683,11 +1756,17 @@
       document.getElementById('f-rent').value = r.rent||'';
       document.getElementById('f-ins-daemul').value = r.insDaemul||'';
       document.getElementById('f-ins-jacha').value = r.insJacha||'';
+      document.getElementById('f-carmodel').value = r.carModel||'';
+      document.getElementById('f-daemul-receipt').value = r.daemulReceipt||'';
+      document.getElementById('f-daemul-manager').value = r.daemulManager||'';
+      document.getElementById('f-jacha-receipt').value = r.jachaReceipt||'';
+      document.getElementById('f-jacha-manager').value = r.jachaManager||'';
+      document.getElementById('f-customer-request').value = r.customerRequest||'';
       document.querySelectorAll('input[name="location"]').forEach(el => { el.checked = el.value === (r.location||''); });
       document.querySelectorAll('input[name="carType"]').forEach(el => { el.checked = el.value === (r.carType||''); });
       document.getElementById('f-memo').value = r.memo||'';
     } else {
-      ['f-carnum','f-name','f-phone','f-outdate','f-repair','f-cost','f-km','f-rent','f-ins-daemul','f-ins-jacha','f-memo'].forEach(id=>document.getElementById(id).value='');
+      ['f-carnum','f-name','f-phone','f-outdate','f-repair','f-cost','f-km','f-rent','f-ins-daemul','f-ins-jacha','f-memo','f-carmodel','f-daemul-receipt','f-daemul-manager','f-jacha-receipt','f-jacha-manager','f-customer-request'].forEach(id=>document.getElementById(id).value='');
       document.querySelectorAll('input[name="location"]').forEach(el => el.checked = false);
       document.querySelectorAll('input[name="carType"]').forEach(el => el.checked = false);
       document.getElementById('f-status').value = '입고';
@@ -1724,6 +1803,12 @@
       rent: document.getElementById('f-rent').value.trim(),
       insDaemul: document.getElementById('f-ins-daemul').value,
       insJacha: document.getElementById('f-ins-jacha').value,
+      carModel: document.getElementById('f-carmodel').value.trim(),
+      daemulReceipt: document.getElementById('f-daemul-receipt').value.trim(),
+      daemulManager: document.getElementById('f-daemul-manager').value.trim(),
+      jachaReceipt: document.getElementById('f-jacha-receipt').value.trim(),
+      jachaManager: document.getElementById('f-jacha-manager').value.trim(),
+      customerRequest: document.getElementById('f-customer-request').value.trim(),
       location: (document.querySelector('input[name="location"]:checked')||{}).value||'',
       carType: (document.querySelector('input[name="carType"]:checked')||{}).value||'',
       memo: document.getElementById('f-memo').value.trim(),
@@ -1996,6 +2081,9 @@
         <div style="font-size:13px;line-height:1.7;white-space:pre-wrap;">${esc(r.repair)||'-'}</div>
       </div>
       ${r.memo ? `<div style="margin-top:10px;padding:12px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);"><div style="font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:6px;">📝 메모</div><div style="font-size:13px;">${esc(r.memo)}</div></div>` : ''}
+      <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;">
+        <button class="btn btn-primary btn-sm" onclick="window._openWorkOrder('${esc(r.id)}')">🖨️ 작업지시서 인쇄</button>
+      </div>
     `;
     document.getElementById('detailModal').classList.add('open');
   };
@@ -4784,6 +4872,95 @@ function fmtDateVal(val) {
   </div>
 </div>
 
+<!-- 작업지시서 인쇄 모달 -->
+<div class="modal-overlay" id="workOrderModal">
+  <div class="modal" style="max-width:1280px;max-height:96vh;overflow:hidden;padding:0;background:#f5f5f7;">
+    <div class="modal-header" style="background:#fff;border-bottom:1px solid #e0e0e0;color:#333;padding:14px 20px;">
+      <div class="modal-title" style="color:#1a1a1a;font-weight:700;">📋 작업지시서 인쇄</div>
+      <button class="modal-close" onclick="window._closeWorkOrder()" style="color:#888;border-color:#ddd;background:#f5f5f7;">✕</button>
+    </div>
+    <div class="wo-modal-inner">
+      <div class="wo-form-panel">
+        <div class="wo-mode-tabs">
+          <button class="active" data-mode="preview" onclick="window._woSetMode('preview',this)">미리보기</button>
+          <button data-mode="adjust" onclick="window._woSetMode('adjust',this)">위치조정</button>
+          <button data-mode="test" onclick="window._woSetMode('test',this)">테스트인쇄</button>
+          <button data-mode="real" onclick="window._woSetMode('real',this)">실인쇄</button>
+        </div>
+
+        <div class="wo-section">
+          <div class="wo-section-title">날짜</div>
+          <div class="wo-field-row">
+            <label>입고일자</label>
+            <div class="wo-date-group">
+              <input type="text" id="wo-in-year" placeholder="년(26)" maxlength="2">
+              <input type="text" id="wo-in-month" placeholder="월" maxlength="2">
+              <input type="text" id="wo-in-day" placeholder="일" maxlength="2">
+            </div>
+          </div>
+        </div>
+
+        <div class="wo-section">
+          <div class="wo-section-title">차량 정보</div>
+          <div class="wo-field-row"><label>차량번호</label><input type="text" id="wo-carnum" placeholder="143바1300"></div>
+          <div class="wo-field-row"><label>차명(차종)</label><input type="text" id="wo-carmodel" placeholder="토레스"></div>
+          <div class="wo-field-row"><label>주행거리</label><input type="text" id="wo-km" placeholder="106,794"></div>
+          <div class="wo-field-row"><label>전화번호</label><input type="text" id="wo-phone" placeholder="010-9278-1699"></div>
+        </div>
+
+        <div class="wo-section">
+          <div class="wo-section-title">자차</div>
+          <div class="wo-field-row"><label>보험사</label><input type="text" id="wo-jacha-ins"></div>
+          <div class="wo-field-row"><label>접수번호</label><input type="text" id="wo-jacha-receipt"></div>
+          <div class="wo-field-row"><label>담당자</label><input type="text" id="wo-jacha-manager"></div>
+        </div>
+
+        <div class="wo-section">
+          <div class="wo-section-title">대물</div>
+          <div class="wo-field-row"><label>보험사</label><input type="text" id="wo-daemul-ins"></div>
+          <div class="wo-field-row"><label>접수번호</label><input type="text" id="wo-daemul-receipt"></div>
+          <div class="wo-field-row"><label>담당자</label><input type="text" id="wo-daemul-manager"></div>
+        </div>
+
+        <div class="wo-section">
+          <div class="wo-section-title">작업 내용</div>
+          <textarea id="wo-work-content" rows="6" placeholder="앞범퍼 교환/도장&#10;R/H 앞 휀더 (긁힘)/도장"></textarea>
+        </div>
+
+        <div class="wo-section">
+          <div class="wo-section-title">고객 특별요청 / 비고</div>
+          <textarea id="wo-customer-request" rows="3" placeholder="비고 및 특별요청"></textarea>
+        </div>
+
+        <div class="wo-section" style="border-top:1px solid #e0e0e0;padding-top:10px;">
+          <div class="wo-section-title">전역 설정</div>
+          <div class="wo-control-row"><label>X 오프셋</label><input type="range" id="wo-offset-x" min="-15" max="15" step="0.5" value="0"><span class="wo-val" id="wo-offset-x-val">0</span></div>
+          <div class="wo-control-row"><label>Y 오프셋</label><input type="range" id="wo-offset-y" min="-15" max="15" step="0.5" value="0"><span class="wo-val" id="wo-offset-y-val">0</span></div>
+          <div class="wo-control-row"><label>폰트 크기</label><input type="range" id="wo-font-size" min="7" max="14" step="0.5" value="13"><span class="wo-val" id="wo-font-size-val">13</span></div>
+          <div class="wo-control-row"><label>미리보기 배율</label><input type="range" id="wo-zoom" min="40" max="100" step="5" value="60"><span class="wo-val" id="wo-zoom-val">60%</span></div>
+        </div>
+
+        <div class="wo-btn-row">
+          <button class="wo-btn wo-btn-outline" onclick="window._woClearInputs()">🗑️ 내용지우기</button>
+          <button class="wo-btn wo-btn-outline" onclick="window._woResetPositions()">📐 위치초기화</button>
+        </div>
+        <div class="wo-btn-row">
+          <button class="wo-btn wo-btn-primary" style="grid-column:1/3" onclick="window._woPrint()">🖨️ 인쇄</button>
+        </div>
+      </div>
+
+      <div class="wo-preview-container">
+        <div class="wo-info-bar">
+          📋 <strong>4가지 모드</strong> · <b>미리보기</b>: 화면 확인 · <b>위치조정</b>: 필드 마우스 드래그 · <b>테스트인쇄</b>: 빈 종이에 양식+텍스트 함께 출력 · <b>실인쇄</b>: 양식지에 텍스트만
+        </div>
+        <div class="wo-preview-wrap">
+          <div class="wo-page" id="wo-page"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 게시판 + 회사 일정 -->
 <div id="page-board" class="page">
   <div class="main">
@@ -5590,6 +5767,253 @@ function eTst2(msg){
   var t=document.getElementById('eTst2');t.textContent=msg;t.classList.add('show');
   setTimeout(function(){t.classList.remove('show');},2500);
 }
+
+// ─── 작업지시서 인쇄 도구 ───
+(function(){
+  var WO_LS = 'un_workorder_v1';
+  var FIELDS = [
+    { id:'wo-in-year',          label:'입고-년',      x:60,    y:50,   w:11, align:'center' },
+    { id:'wo-in-month',         label:'입고-월',      x:71.5,  y:50.5, w:11, align:'center' },
+    { id:'wo-in-day',           label:'입고-일',      x:84.5,  y:50.5, w:11, align:'center' },
+    { id:'wo-carnum',           label:'차량번호',     x:243.5, y:23,   w:42 },
+    { id:'wo-carmodel',         label:'차명',         x:243.5, y:29.5, w:42 },
+    { id:'wo-km',               label:'주행거리',     x:242.5, y:37,   w:35, align:'right' },
+    { id:'wo-phone',            label:'전화번호',     x:242.5, y:43.5, w:42 },
+    { id:'wo-jacha-ins',        label:'자차 보험사',  x:242.5, y:65.5, w:35 },
+    { id:'wo-jacha-receipt',    label:'자차 접수번호',x:243,   y:72.5, w:42 },
+    { id:'wo-jacha-manager',    label:'자차 담당자',  x:243,   y:80,   w:42 },
+    { id:'wo-daemul-ins',       label:'대물 보험사',  x:243.5, y:86.5, w:35 },
+    { id:'wo-daemul-receipt',   label:'대물 접수번호',x:243.5, y:93.5, w:42 },
+    { id:'wo-daemul-manager',   label:'대물 담당자',  x:242.5, y:100,  w:42 },
+    { id:'wo-work-content',     label:'작업내용',     x:27,    y:71.5, w:96, h:95, multiline:true, lineHeight:7 },
+    { id:'wo-customer-request', label:'고객요청',     x:128,   y:74,   w:88, h:20, multiline:true, lineHeight:5 }
+  ];
+  var FIELD_INPUT_IDS = FIELDS.map(function(f){return f.id;});
+
+  var page = null;
+  var offsetX = 0, offsetY = 0, fontSize = 13, zoom = 60;
+  var currentMode = 'preview';
+  var userPositions = {};
+  var initialized = false;
+
+  function loadState(){
+    try {
+      var raw = localStorage.getItem(WO_LS);
+      if (!raw) return;
+      var data = JSON.parse(raw);
+      if (data.settings){
+        if (typeof data.settings.offsetX === 'number') offsetX = data.settings.offsetX;
+        if (typeof data.settings.offsetY === 'number') offsetY = data.settings.offsetY;
+        if (typeof data.settings.fontSize === 'number') fontSize = data.settings.fontSize;
+        if (typeof data.settings.zoom === 'number') zoom = data.settings.zoom;
+      }
+      if (data.positions) userPositions = data.positions;
+    } catch(e) { console.error('wo loadState', e); }
+  }
+  function saveState(){
+    try {
+      localStorage.setItem(WO_LS, JSON.stringify({
+        settings: { offsetX: offsetX, offsetY: offsetY, fontSize: fontSize, zoom: zoom },
+        positions: userPositions
+      }));
+    } catch(e) { console.error('wo saveState', e); }
+  }
+
+  function getEffectivePos(f){
+    var u = userPositions[f.id];
+    return {
+      x: ((u && typeof u.x === 'number') ? u.x : f.x) + offsetX,
+      y: ((u && typeof u.y === 'number') ? u.y : f.y) + offsetY
+    };
+  }
+
+  function createFields(){
+    page.innerHTML = '';
+    FIELDS.forEach(function(f){
+      var el = document.createElement('div');
+      el.className = 'wo-field';
+      el.id = 'wo-overlay-' + f.id;
+      el.dataset.fieldLabel = f.label;
+      el.dataset.fId = f.id;
+      page.appendChild(el);
+      makeDraggable(el, f);
+    });
+    updatePositions();
+  }
+
+  function updatePositions(){
+    FIELDS.forEach(function(f){
+      var el = document.getElementById('wo-overlay-' + f.id);
+      if (!el) return;
+      var pos = getEffectivePos(f);
+      el.style.left = pos.x + 'mm';
+      el.style.top = pos.y + 'mm';
+      el.style.width = f.w + 'mm';
+      if (f.h) el.style.minHeight = f.h + 'mm';
+      el.style.fontSize = fontSize + 'pt';
+      if (f.align) el.style.textAlign = f.align;
+      el.style.lineHeight = f.lineHeight ? (f.lineHeight + 'mm') : '1.2';
+    });
+  }
+
+  function updateContent(){
+    FIELDS.forEach(function(f){
+      var input = document.getElementById(f.id);
+      var overlay = document.getElementById('wo-overlay-' + f.id);
+      if (!input || !overlay) return;
+      overlay.textContent = input.value;
+    });
+  }
+
+  function updateZoom(){
+    if (!page) return;
+    page.style.transform = 'scale(' + (zoom/100) + ')';
+    var wrap = page.parentElement;
+    if (wrap) { wrap.style.minHeight = (210 * 3.78 * (zoom/100)) + 'px'; }
+  }
+
+  function makeDraggable(el, fieldDef){
+    var dragging = false, startMX, startMY, startFX, startFY;
+    el.addEventListener('mousedown', function(e){
+      if (currentMode !== 'adjust') return;
+      e.preventDefault();
+      dragging = true;
+      startMX = e.clientX; startMY = e.clientY;
+      var cur = userPositions[fieldDef.id] || { x: fieldDef.x, y: fieldDef.y };
+      startFX = cur.x; startFY = cur.y;
+      el.style.zIndex = 100;
+    });
+    document.addEventListener('mousemove', function(e){
+      if (!dragging) return;
+      var mmPerPx = 1 / (3.7795 * zoom/100);
+      var dx = (e.clientX - startMX) * mmPerPx;
+      var dy = (e.clientY - startMY) * mmPerPx;
+      userPositions[fieldDef.id] = {
+        x: Math.round((startFX + dx) * 2) / 2,
+        y: Math.round((startFY + dy) * 2) / 2
+      };
+      updatePositions();
+    });
+    document.addEventListener('mouseup', function(){
+      if (dragging){ dragging = false; el.style.zIndex = ''; saveState(); }
+    });
+  }
+
+  window._woSetMode = function(mode, btn){
+    currentMode = mode;
+    document.querySelectorAll('#workOrderModal .wo-mode-tabs button').forEach(function(b){ b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    page.classList.remove('print-mode','adjust-mode');
+    if (mode === 'real') page.classList.add('print-mode');
+    else if (mode === 'adjust') page.classList.add('adjust-mode');
+  };
+
+  window._woClearInputs = function(){
+    if (!confirm('모든 입력 내용을 지우시겠습니까? (위치 조정은 유지됩니다)')) return;
+    FIELD_INPUT_IDS.forEach(function(id){ var el = document.getElementById(id); if (el) el.value = ''; });
+    updateContent();
+  };
+
+  window._woResetPositions = function(){
+    if (!confirm('모든 필드 위치를 기본값으로 되돌리시겠습니까?')) return;
+    userPositions = {};
+    offsetX = 0; offsetY = 0;
+    var ox = document.getElementById('wo-offset-x'); if (ox){ ox.value = 0; }
+    var oy = document.getElementById('wo-offset-y'); if (oy){ oy.value = 0; }
+    document.getElementById('wo-offset-x-val').textContent = '0';
+    document.getElementById('wo-offset-y-val').textContent = '0';
+    updatePositions();
+    saveState();
+  };
+
+  window._woPrint = function(){
+    document.body.classList.add('printing-workorder');
+    setTimeout(function(){
+      window.print();
+      setTimeout(function(){ document.body.classList.remove('printing-workorder'); }, 200);
+    }, 50);
+  };
+
+  function setupSliders(){
+    var ox = document.getElementById('wo-offset-x');
+    var oy = document.getElementById('wo-offset-y');
+    var fs = document.getElementById('wo-font-size');
+    var zm = document.getElementById('wo-zoom');
+    ox.value = offsetX; document.getElementById('wo-offset-x-val').textContent = offsetX.toFixed(1);
+    oy.value = offsetY; document.getElementById('wo-offset-y-val').textContent = offsetY.toFixed(1);
+    fs.value = fontSize; document.getElementById('wo-font-size-val').textContent = fontSize.toFixed(1);
+    zm.value = zoom; document.getElementById('wo-zoom-val').textContent = zoom + '%';
+    ox.addEventListener('input', function(e){ offsetX = parseFloat(e.target.value); document.getElementById('wo-offset-x-val').textContent = offsetX.toFixed(1); updatePositions(); saveState(); });
+    oy.addEventListener('input', function(e){ offsetY = parseFloat(e.target.value); document.getElementById('wo-offset-y-val').textContent = offsetY.toFixed(1); updatePositions(); saveState(); });
+    fs.addEventListener('input', function(e){ fontSize = parseFloat(e.target.value); document.getElementById('wo-font-size-val').textContent = fontSize.toFixed(1); updatePositions(); saveState(); });
+    zm.addEventListener('input', function(e){ zoom = parseInt(e.target.value, 10); document.getElementById('wo-zoom-val').textContent = zoom + '%'; updateZoom(); saveState(); });
+  }
+
+  function setupInputs(){
+    FIELD_INPUT_IDS.forEach(function(id){
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', updateContent);
+    });
+  }
+
+  function init(){
+    if (initialized) return;
+    page = document.getElementById('wo-page');
+    if (!page) return;
+    loadState();
+    setupSliders();
+    setupInputs();
+    createFields();
+    updateContent();
+    updateZoom();
+    var overlay = document.getElementById('workOrderModal');
+    if (overlay) {
+      overlay.addEventListener('click', function(e){
+        if (e.target === overlay) window._closeWorkOrder();
+      });
+    }
+    initialized = true;
+  }
+
+  function splitDate(iso){
+    if (!iso) return { y:'', m:'', d:'' };
+    var parts = String(iso).split('-');
+    if (parts.length < 3) return { y:'', m:'', d:'' };
+    var yy = parts[0].slice(-2);
+    return { y: yy, m: parts[1], d: parts[2] };
+  }
+
+  window._openWorkOrder = function(recordId){
+    init();
+    var rec = (window.records || {})[recordId] || null;
+    if (rec){
+      var d = splitDate(rec.inDate);
+      var byId = function(id, v){ var el = document.getElementById(id); if (el) el.value = v || ''; };
+      byId('wo-in-year', d.y);
+      byId('wo-in-month', d.m);
+      byId('wo-in-day', d.d);
+      byId('wo-carnum', rec.carNum);
+      byId('wo-carmodel', rec.carModel);
+      byId('wo-km', rec.km);
+      byId('wo-phone', rec.phone);
+      byId('wo-jacha-ins', rec.insJacha);
+      byId('wo-jacha-receipt', rec.jachaReceipt);
+      byId('wo-jacha-manager', rec.jachaManager);
+      byId('wo-daemul-ins', rec.insDaemul);
+      byId('wo-daemul-receipt', rec.daemulReceipt);
+      byId('wo-daemul-manager', rec.daemulManager);
+      byId('wo-work-content', rec.repair);
+      byId('wo-customer-request', rec.customerRequest);
+      updateContent();
+    }
+    document.getElementById('workOrderModal').classList.add('open');
+  };
+
+  window._closeWorkOrder = function(){
+    document.getElementById('workOrderModal').classList.remove('open');
+  };
+})();
 
 </script>
 </body>
