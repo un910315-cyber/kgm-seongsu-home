@@ -835,10 +835,6 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">고객명 *</label>
-          <input class="form-input" id="f-name" placeholder="홍길동">
-        </div>
-        <div class="form-group">
           <label class="form-label">연락처</label>
           <input class="form-input" id="f-phone" placeholder="010-0000-0000" type="tel">
         </div>
@@ -1590,7 +1586,7 @@
 
     const show = list.filter(r => {
       if (r.status === '출고' || r.status === '미수리 출고') return false;
-      const mq = !dq || r.carNum.toLowerCase().includes(dq) || r.name.toLowerCase().includes(dq) || (r.phone||'').includes(dq) || (r.repair||'').toLowerCase().includes(dq);
+      const mq = !dq || r.carNum.toLowerCase().includes(dq) || (r.name||'').toLowerCase().includes(dq) || (r.phone||'').includes(dq) || (r.repair||'').toLowerCase().includes(dq);
       const ml = !dLoc || (r.location||'') === dLoc;
       const ms = !dSt || r.status === dSt;
       return mq && ml && ms;
@@ -1627,7 +1623,7 @@
     const q = (document.getElementById('searchInput')?.value||'').toLowerCase();
     const fs = document.getElementById('filterStatus')?.value||'';
     let data = getList().filter(r => {
-      const m = !q || r.carNum.toLowerCase().includes(q) || r.name.toLowerCase().includes(q) || (r.phone||'').includes(q);
+      const m = !q || r.carNum.toLowerCase().includes(q) || (r.name||'').toLowerCase().includes(q) || (r.phone||'').includes(q);
       return m && (!fs || r.status===fs);
     }).sort((a,b) => new Date(b.inDate)-new Date(a.inDate));
 
@@ -1663,7 +1659,7 @@
     const month = document.getElementById('filterOutMonth')?.value||'';
     let data = getList().filter(r => {
       if (r.status !== '출고') return false;
-      const mq = !q || r.carNum.toLowerCase().includes(q) || r.name.toLowerCase().includes(q);
+      const mq = !q || r.carNum.toLowerCase().includes(q) || (r.name||'').toLowerCase().includes(q);
       const mm = !month || (r.outDate||'').startsWith(month);
       return mq && mm;
     }).sort((a,b) => new Date(b.outDate) - new Date(a.outDate));
@@ -1732,7 +1728,6 @@
       const r = records[id];
       document.getElementById('f-carnum').value = r.carNum||'';
       document.getElementById('f-status').value = r.status||'입고';
-      document.getElementById('f-name').value = r.name||'';
       document.getElementById('f-phone').value = r.phone||'';
       document.getElementById('f-indate').value = r.inDate||'';
       document.getElementById('f-outdate').value = r.outDate||'';
@@ -1751,7 +1746,7 @@
       document.querySelectorAll('input[name="carType"]').forEach(el => { el.checked = el.value === (r.carType||''); });
       document.getElementById('f-memo').value = r.memo||'';
     } else {
-      ['f-carnum','f-name','f-phone','f-outdate','f-repair','f-cost','f-km','f-rent','f-ins-daemul','f-ins-jacha','f-memo','f-carmodel','f-daemul-receipt','f-daemul-manager','f-jacha-receipt','f-jacha-manager'].forEach(id=>document.getElementById(id).value='');
+      ['f-carnum','f-phone','f-outdate','f-repair','f-cost','f-km','f-rent','f-ins-daemul','f-ins-jacha','f-memo','f-carmodel','f-daemul-receipt','f-daemul-manager','f-jacha-receipt','f-jacha-manager'].forEach(id=>document.getElementById(id).value='');
       document.querySelectorAll('input[name="location"]').forEach(el => el.checked = false);
       document.querySelectorAll('input[name="carType"]').forEach(el => el.checked = false);
       document.getElementById('f-status').value = '입고';
@@ -1768,14 +1763,12 @@
   // 폼 데이터 수집 (공통)
   function collectFormData() {
     const carNum = document.getElementById('f-carnum').value.trim();
-    const name = document.getElementById('f-name').value.trim();
     const inDate = document.getElementById('f-indate').value;
     if (!carNum) { showNotif('차량번호를 입력해주세요', true); return null; }
-    if (!name) { showNotif('고객명을 입력해주세요', true); return null; }
     if (!inDate) { showNotif('입고일을 입력해주세요', true); return null; }
     const status = document.getElementById('f-status').value;
     return {
-      carNum, name,
+      carNum,
       phone: document.getElementById('f-phone').value.trim(),
       status,
       inDate,
