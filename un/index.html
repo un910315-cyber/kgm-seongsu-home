@@ -606,7 +606,7 @@
     <div id="dashSearchResult" style="display:none;margin-bottom:8px;font-size:12px;color:var(--text-dim);"></div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>차량번호</th><th>고객명</th><th>연락처</th><th>위치</th><th>상태</th><th>대물보험</th><th>자차보험</th><th>수리내용</th><th>렌트카</th><th>입고일</th><th>출고예정</th><th>견적</th></tr></thead>
+        <thead><tr><th>차량번호</th><th>고객명</th><th>연락처</th><th>위치</th><th>상태</th><th>대물보험</th><th>자차보험</th><th>수리내용</th><th>렌트카</th><th>입고일</th><th>출고예정</th><th>관리</th></tr></thead>
         <tbody id="dashboard-tbody"></tbody>
       </table>
     </div>
@@ -1614,7 +1614,7 @@
         <td>${r.rent ? `<span style="background:rgba(251,146,60,0.12);color:#fb923c;padding:2px 8px;border-radius:5px;font-size:12px;font-weight:600;">🚖 ${esc(r.rent)}</span>` : '-'}</td>
         <td>${fmt(r.inDate)}</td>
         <td>${fmt(r.outDate)}</td>
-        <td><div style="display:flex;gap:4px;flex-wrap:wrap;">${r.estimateId ? `<button class="btn btn-sm" style="background:rgba(139,92,246,0.12);color:var(--accent);border:1px solid rgba(139,92,246,0.3);font-size:11px;white-space:nowrap;" onclick="showEstimatePopup('${esc(r.estimateId)}')">📋 견적서</button>` : `<button class="btn btn-sm" style="background:rgba(139,92,246,0.08);color:var(--text-dim);border:1px dashed rgba(139,92,246,0.2);font-size:11px;white-space:nowrap;" onclick="goEstimateForRecord('${esc(r.id)}')">🔧 견적작성</button>`}</div></td>
+        <td><button class="btn btn-ghost btn-sm" onclick="window._openModal('${esc(r.id)}')">수정</button></td>
       </tr>`).join('');
   }
 
