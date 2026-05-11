@@ -2059,7 +2059,7 @@
       </div>
       ${r.memo ? `<div style="margin-top:10px;padding:12px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);"><div style="font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:6px;">📝 메모</div><div style="font-size:13px;">${esc(r.memo)}</div></div>` : ''}
       <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;">
-        <button class="btn btn-primary btn-sm" onclick="window._openWorkOrder('${esc(r.id)}')">🖨️ 작업지시서 인쇄</button>
+        <button class="btn btn-primary btn-sm" onclick="window._openWorkOrder('${esc(id)}')">🖨️ 작업지시서 인쇄</button>
       </div>
     `;
     document.getElementById('detailModal').classList.add('open');
