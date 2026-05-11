@@ -880,25 +880,30 @@
             <label class="loc-btn"><input type="radio" name="location" value="지하"><span>지하</span></label>
           </div>
         </div>
+        <datalist id="ins-suggestions">
+          <option value="삼성화재"></option>
+          <option value="현대해상"></option>
+          <option value="KB손해보험"></option>
+          <option value="DB손해보험"></option>
+          <option value="메리츠화재"></option>
+          <option value="한화손해보험"></option>
+          <option value="롯데손해보험"></option>
+          <option value="MG손해보험"></option>
+          <option value="흥국화재"></option>
+          <option value="농협손해보험"></option>
+          <option value="캐롯손해보험"></option>
+          <option value="카카오페이손해보험"></option>
+          <option value="하나손해보험"></option>
+          <option value="AXA손해보험"></option>
+          <option value="AIG손해보험"></option>
+          <option value="처브라이프"></option>
+          <option value="화물공제"></option>
+          <option value="택시공제"></option>
+          <option value="버스공제"></option>
+        </datalist>
         <div class="form-group">
           <label class="form-label">🚗 대물 보험사</label>
-          <select class="form-select" id="f-ins-daemul">
-            <option value="">-- 선택 (없으면 비워두세요) --</option>
-            <optgroup label="대형 손해보험사">
-              <option>삼성화재</option><option>현대해상</option><option>KB손해보험</option>
-              <option>DB손해보험</option><option>메리츠화재</option>
-            </optgroup>
-            <optgroup label="중소형 손해보험사">
-              <option>한화손해보험</option><option>롯데손해보험</option><option>MG손해보험</option>
-              <option>흥국화재</option><option>농협손해보험</option>
-            </optgroup>
-            <optgroup label="온라인 전용">
-              <option>캐롯손해보험</option><option>카카오페이손해보험</option>
-              <option>하나손해보험</option><option>AXA손해보험</option>
-            </optgroup>
-            <optgroup label="외국계"><option>AIG손해보험</option><option>처브라이프</option></optgroup>
-            <option>기타</option>
-          </select>
+          <input class="form-input" id="f-ins-daemul" list="ins-suggestions" placeholder="목록에서 선택하거나 직접 입력">
         </div>
         <div class="form-group">
           <label class="form-label">대물 접수번호</label>
@@ -910,23 +915,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">🚘 자차 보험사</label>
-          <select class="form-select" id="f-ins-jacha">
-            <option value="">-- 선택 (없으면 비워두세요) --</option>
-            <optgroup label="대형 손해보험사">
-              <option>삼성화재</option><option>현대해상</option><option>KB손해보험</option>
-              <option>DB손해보험</option><option>메리츠화재</option>
-            </optgroup>
-            <optgroup label="중소형 손해보험사">
-              <option>한화손해보험</option><option>롯데손해보험</option><option>MG손해보험</option>
-              <option>흥국화재</option><option>농협손해보험</option>
-            </optgroup>
-            <optgroup label="온라인 전용">
-              <option>캐롯손해보험</option><option>카카오페이손해보험</option>
-              <option>하나손해보험</option><option>AXA손해보험</option>
-            </optgroup>
-            <optgroup label="외국계"><option>AIG손해보험</option><option>처브라이프</option></optgroup>
-            <option>기타</option>
-          </select>
+          <input class="form-input" id="f-ins-jacha" list="ins-suggestions" placeholder="목록에서 선택하거나 직접 입력">
         </div>
         <div class="form-group">
           <label class="form-label">자차 접수번호</label>
@@ -941,12 +930,8 @@
           <input class="form-input" id="f-rent" placeholder="렌트카 차량번호 또는 업체명 (없으면 비워두세요)">
         </div>
         <div class="form-group full">
-          <label class="form-label">고객 특별요청 / 비고</label>
-          <textarea class="form-textarea" id="f-customer-request" placeholder="고객 특별요청 또는 비고사항 (작업지시서에 인쇄됨)"></textarea>
-        </div>
-        <div class="form-group full">
-          <label class="form-label">메모</label>
-          <input class="form-input" id="f-memo" placeholder="추가 메모 (내부용)">
+          <label class="form-label">메모 / 고객 특별요청</label>
+          <textarea class="form-textarea" id="f-memo" placeholder="여기 입력한 내용이 작업지시서 인쇄 시 '고객 특별요청 / 비고' 란에 자동 채워집니다"></textarea>
         </div>
       </div>
       <div class="form-actions">
@@ -1421,6 +1406,7 @@
 
   let records = {};
   let editingId = null;
+  window._getRecord = function(id){ return records[id]; };
 
   // 실시간 데이터 수신
   onValue(recordsRef, (snapshot) => {
@@ -1761,12 +1747,11 @@
       document.getElementById('f-daemul-manager').value = r.daemulManager||'';
       document.getElementById('f-jacha-receipt').value = r.jachaReceipt||'';
       document.getElementById('f-jacha-manager').value = r.jachaManager||'';
-      document.getElementById('f-customer-request').value = r.customerRequest||'';
       document.querySelectorAll('input[name="location"]').forEach(el => { el.checked = el.value === (r.location||''); });
       document.querySelectorAll('input[name="carType"]').forEach(el => { el.checked = el.value === (r.carType||''); });
       document.getElementById('f-memo').value = r.memo||'';
     } else {
-      ['f-carnum','f-name','f-phone','f-outdate','f-repair','f-cost','f-km','f-rent','f-ins-daemul','f-ins-jacha','f-memo','f-carmodel','f-daemul-receipt','f-daemul-manager','f-jacha-receipt','f-jacha-manager','f-customer-request'].forEach(id=>document.getElementById(id).value='');
+      ['f-carnum','f-name','f-phone','f-outdate','f-repair','f-cost','f-km','f-rent','f-ins-daemul','f-ins-jacha','f-memo','f-carmodel','f-daemul-receipt','f-daemul-manager','f-jacha-receipt','f-jacha-manager'].forEach(id=>document.getElementById(id).value='');
       document.querySelectorAll('input[name="location"]').forEach(el => el.checked = false);
       document.querySelectorAll('input[name="carType"]').forEach(el => el.checked = false);
       document.getElementById('f-status').value = '입고';
@@ -1801,14 +1786,13 @@
       cost: parseInt(document.getElementById('f-cost').value)||0,
       km: document.getElementById('f-km').value.trim(),
       rent: document.getElementById('f-rent').value.trim(),
-      insDaemul: document.getElementById('f-ins-daemul').value,
-      insJacha: document.getElementById('f-ins-jacha').value,
+      insDaemul: document.getElementById('f-ins-daemul').value.trim(),
+      insJacha: document.getElementById('f-ins-jacha').value.trim(),
       carModel: document.getElementById('f-carmodel').value.trim(),
       daemulReceipt: document.getElementById('f-daemul-receipt').value.trim(),
       daemulManager: document.getElementById('f-daemul-manager').value.trim(),
       jachaReceipt: document.getElementById('f-jacha-receipt').value.trim(),
       jachaManager: document.getElementById('f-jacha-manager').value.trim(),
-      customerRequest: document.getElementById('f-customer-request').value.trim(),
       location: (document.querySelector('input[name="location"]:checked')||{}).value||'',
       carType: (document.querySelector('input[name="carType"]:checked')||{}).value||'',
       memo: document.getElementById('f-memo').value.trim(),
@@ -5986,7 +5970,7 @@ function eTst2(msg){
 
   window._openWorkOrder = function(recordId){
     init();
-    var rec = (window.records || {})[recordId] || null;
+    var rec = (typeof window._getRecord === 'function') ? window._getRecord(recordId) : null;
     if (rec){
       var d = splitDate(rec.inDate);
       var byId = function(id, v){ var el = document.getElementById(id); if (el) el.value = v || ''; };
@@ -6004,7 +5988,7 @@ function eTst2(msg){
       byId('wo-daemul-receipt', rec.daemulReceipt);
       byId('wo-daemul-manager', rec.daemulManager);
       byId('wo-work-content', rec.repair);
-      byId('wo-customer-request', rec.customerRequest);
+      byId('wo-customer-request', rec.memo);
       updateContent();
     }
     document.getElementById('workOrderModal').classList.add('open');
