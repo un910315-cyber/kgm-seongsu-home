@@ -495,6 +495,7 @@
   <div class="nav-tab" onclick="switchPage('leave')" id="tab-leave">📅 연차관리</div>
   <div class="nav-tab" onclick="switchPage('board')" id="tab-board">📝 게시판 · 일정</div>
   <div class="nav-tab" onclick="switchPage('estimate')">🔧 견적 도우미</div>
+  <div class="nav-tab" onclick="switchPage('insurance')" id="tab-insurance">📞 보험사 연락처</div>
   <div class="nav-tab" onclick="switchPage('usermgmt')" id="tab-usermgmt" style="display:none">👤 사용자 관리</div>
 </div>
 
@@ -1049,8 +1050,8 @@
 
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
-    admin: ['dashboard','list','complete','out','stats','migyeol','leave','board','estimate','usermgmt'],
-    staff: ['dashboard','complete','leave','board','estimate'],
+    admin: ['dashboard','list','complete','out','stats','migyeol','leave','board','estimate','insurance','usermgmt'],
+    staff: ['dashboard','complete','leave','board','estimate','insurance'],
     viewer: ['dashboard','complete','leave','board']
   };
 
@@ -2522,6 +2523,187 @@
     } catch(e) { showNotif('\uc0ad\uc81c \uc2e4\ud328: ' + e.message, true); }
   };
 
+  // ---- INSURANCE CONTACTS ----
+  const insuranceRef = ref(db, 'insuranceContacts');
+  let insuranceContacts = {};
+  let editingInsuranceId = null;
+
+  onValue(insuranceRef, function(snap){
+    insuranceContacts = snap.val() || {};
+    try { window._renderInsurance && window._renderInsurance(); } catch(e) { console.error(e); }
+  });
+
+  function _telLink(num) {
+    if (!num) return '';
+    var digits = String(num).replace(/[^0-9+]/g, '');
+    return digits;
+  }
+
+  window._renderInsurance = function() {
+    var listEl = document.getElementById('insurance-list');
+    var emptyEl = document.getElementById('insurance-empty');
+    if (!listEl) return;
+    var isAdmin = window._userRole === 'admin';
+    // admin \uc804\uc6a9 \ubc84\ud2bc \ub178\ucd9c
+    document.querySelectorAll('.ins-admin-only').forEach(function(el){ el.style.display = isAdmin ? '' : 'none'; });
+
+    var entries = Object.entries(insuranceContacts).filter(function(e){ return e[1]; });
+    entries.sort(function(a, b){
+      var oa = (a[1].order != null) ? a[1].order : 9999;
+      var ob = (b[1].order != null) ? b[1].order : 9999;
+      if (oa !== ob) return oa - ob;
+      return (a[1].company || '').localeCompare(b[1].company || '', 'ko');
+    });
+    if (!entries.length) {
+      listEl.innerHTML = '';
+      if (emptyEl) emptyEl.style.display = '';
+      return;
+    }
+    if (emptyEl) emptyEl.style.display = 'none';
+
+    var html = '';
+    entries.forEach(function(en){
+      var id = en[0], c = en[1];
+      var dom = c.domestic || {};
+      var fgn = c.foreign || {};
+      html += '<div class="ins-card" data-id="'+esc(id)+'" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;">';
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">';
+      html += '<div style="font-size:16px;font-weight:800;letter-spacing:0.3px;">'+esc(c.company || '(\uc774\ub984 \uc5c6\uc74c)')+'</div>';
+      if (isAdmin) {
+        html += '<div class="ins-admin-only" style="display:flex;gap:4px;">';
+        html += '<button class="btn btn-ghost btn-sm" onclick="window._editInsurance(\''+esc(id)+'\')">\uc218\uc815</button>';
+        html += '<button class="btn btn-ghost btn-sm" onclick="window._deleteInsurance(\''+esc(id)+'\')">\uc0ad\uc81c</button>';
+        html += '</div>';
+      }
+      html += '</div>';
+
+      html += '<div class="ins-domestic" style="background:var(--surface2);border-radius:8px;padding:12px;border-left:3px solid var(--accent);">';
+      html += '<div style="font-size:11px;font-weight:700;color:var(--text-dim);letter-spacing:1px;margin-bottom:8px;">\ud83d\ude97 \uad6d\uc0b0\ucc28 \ub2f4\ub2f9</div>';
+      html += _renderInsContactBlock(dom);
+      html += '</div>';
+
+      html += '<div class="ins-foreign" style="background:var(--surface2);border-radius:8px;padding:12px;border-left:3px solid var(--blue);">';
+      html += '<div style="font-size:11px;font-weight:700;color:var(--text-dim);letter-spacing:1px;margin-bottom:8px;">\ud83c\udf0d \uc678\uc81c\ucc28 \ub2f4\ub2f9</div>';
+      html += _renderInsContactBlock(fgn);
+      html += '</div>';
+      html += '</div>';
+    });
+    listEl.innerHTML = html;
+    // 현재 필터 상태 재적용
+    var page = document.getElementById('page-insurance');
+    var view = (page && page.getAttribute('data-filter')) || 'all';
+    if (view !== 'all') window._setInsuranceFilter(view);
+  };
+
+  function _renderInsContactBlock(c) {
+    if (!c || (!c.name && !c.phone && !c.fax)) {
+      return '<div style="font-size:12px;color:var(--text-dim);">\u2014 \ubbf8\ub4f1\ub85d \u2014</div>';
+    }
+    var html = '';
+    if (c.name) html += '<div style="font-size:14px;font-weight:600;margin-bottom:6px;">'+esc(c.name)+'</div>';
+    if (c.phone) {
+      html += '<div style="font-size:13px;margin-bottom:4px;">'
+        + '<a href="tel:'+esc(_telLink(c.phone))+'" style="color:var(--text);text-decoration:none;display:inline-flex;align-items:center;gap:6px;">'
+        + '<span style="color:var(--text-dim);">\ud83d\udcde</span>'
+        + '<span style="font-family:\'JetBrains Mono\',monospace;">'+esc(c.phone)+'</span>'
+        + '</a></div>';
+    }
+    if (c.fax) {
+      html += '<div style="font-size:12px;color:var(--text-dim);display:inline-flex;align-items:center;gap:6px;">'
+        + '<span>\ud83d\udce0</span>'
+        + '<span style="font-family:\'JetBrains Mono\',monospace;">'+esc(c.fax)+'</span>'
+        + '</div>';
+    }
+    return html;
+  }
+
+  window._setInsuranceFilter = function(view) {
+    var page = document.getElementById('page-insurance');
+    if (page) page.setAttribute('data-filter', view);
+    ['all','domestic','foreign'].forEach(function(v){
+      var btn = document.getElementById('if-'+v);
+      if (btn) btn.classList.toggle('active', v === view);
+    });
+    // \uce74\ub4dc \ub0b4\ubd80 \uc139\uc158 \ud1a0\uae00
+    document.querySelectorAll('#page-insurance .ins-card').forEach(function(card){
+      var d = card.querySelector('.ins-domestic');
+      var f = card.querySelector('.ins-foreign');
+      if (d) d.style.display = (view === 'foreign') ? 'none' : '';
+      if (f) f.style.display = (view === 'domestic') ? 'none' : '';
+    });
+  };
+
+  window._openInsuranceModal = function() {
+    if (window._userRole !== 'admin') return;
+    editingInsuranceId = null;
+    document.getElementById('insuranceModalTitle').textContent = '\ubcf4\ud5d8\uc0ac \ucd94\uac00';
+    ['ins-company','ins-dom-name','ins-dom-phone','ins-dom-fax','ins-for-name','ins-for-phone','ins-for-fax'].forEach(function(k){
+      var el = document.getElementById(k); if (el) el.value = '';
+    });
+    document.getElementById('insuranceModal').classList.add('open');
+  };
+
+  window._editInsurance = function(id) {
+    if (window._userRole !== 'admin') return;
+    var c = insuranceContacts[id]; if (!c) return;
+    editingInsuranceId = id;
+    document.getElementById('insuranceModalTitle').textContent = '\ubcf4\ud5d8\uc0ac \uc218\uc815';
+    document.getElementById('ins-company').value = c.company || '';
+    var d = c.domestic || {}, f = c.foreign || {};
+    document.getElementById('ins-dom-name').value = d.name || '';
+    document.getElementById('ins-dom-phone').value = d.phone || '';
+    document.getElementById('ins-dom-fax').value = d.fax || '';
+    document.getElementById('ins-for-name').value = f.name || '';
+    document.getElementById('ins-for-phone').value = f.phone || '';
+    document.getElementById('ins-for-fax').value = f.fax || '';
+    document.getElementById('insuranceModal').classList.add('open');
+  };
+
+  window._saveInsurance = async function() {
+    var company = document.getElementById('ins-company').value.trim();
+    if (!company) { showNotif('\ubcf4\ud5d8\uc0ac\uba85\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694', true); return; }
+    var data = {
+      company: company,
+      domestic: {
+        name: document.getElementById('ins-dom-name').value.trim(),
+        phone: document.getElementById('ins-dom-phone').value.trim(),
+        fax: document.getElementById('ins-dom-fax').value.trim()
+      },
+      foreign: {
+        name: document.getElementById('ins-for-name').value.trim(),
+        phone: document.getElementById('ins-for-phone').value.trim(),
+        fax: document.getElementById('ins-for-fax').value.trim()
+      },
+      updatedAt: new Date().toISOString()
+    };
+    var btn = document.getElementById('insuranceSaveBtn');
+    btn.disabled = true; btn.textContent = '\uc800\uc7a5 \uc911...';
+    try {
+      if (editingInsuranceId) {
+        await update(ref(db, 'insuranceContacts/' + editingInsuranceId), data);
+        showNotif('\ubcf4\ud5d8\uc0ac\uac00 \uc218\uc815\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
+      } else {
+        data.createdAt = new Date().toISOString();
+        data.createdBy = window._userEmail || '';
+        await push(insuranceRef, data);
+        showNotif('\ubcf4\ud5d8\uc0ac\uac00 \ub4f1\ub85d\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
+      }
+      document.getElementById('insuranceModal').classList.remove('open');
+    } catch(e) { showNotif('\uc800\uc7a5 \uc2e4\ud328: ' + e.message, true); }
+    btn.disabled = false; btn.textContent = '\uc800\uc7a5';
+  };
+
+  window._deleteInsurance = async function(id) {
+    if (window._userRole !== 'admin') return;
+    var c = insuranceContacts[id];
+    var name = (c && c.company) ? c.company : '';
+    if (!confirm((name ? '[' + name + '] ' : '') + '\uc774 \ubcf4\ud5d8\uc0ac\ub97c \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?')) return;
+    try {
+      await remove(ref(db, 'insuranceContacts/' + id));
+      showNotif('\uc0ad\uc81c\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
+    } catch(e) { showNotif('\uc0ad\uc81c \uc2e4\ud328: ' + e.message, true); }
+  };
+
   window._openDateDetail = function(dateStr) {
     var titleEl = document.getElementById('dateDetailTitle');
     var contentEl = document.getElementById('dateDetailContent');
@@ -3559,6 +3741,7 @@
       if (name==='usermgmt') { if(window.loadUserMgmt) window.loadUserMgmt(); if(window._renderOrgChart) window._renderOrgChart(); }
       if (name==='leave' && window._renderLeave) window._renderLeave();
       if (name==='board') { if(window._renderBoard) window._renderBoard(); if(window._renderCalendar) window._renderCalendar(); }
+      if (name==='insurance' && window._renderInsurance) window._renderInsurance();
     } catch(e) {
       alert('switchPage 에러: ' + e.message);
     }
@@ -3589,6 +3772,10 @@
   });
   document.getElementById('insDetailModal').addEventListener('click', function(e) {
     if (e.target === this) closeInsDetail();
+  });
+  var _insMo = document.getElementById('insuranceModal');
+  if (_insMo) _insMo.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
   });
 </script>
 
@@ -4561,6 +4748,42 @@ function fmtDateVal(val) {
   </div>
 </div>
 
+<!-- 보험사 연락처 추가/수정 모달 -->
+<div class="modal-overlay" id="insuranceModal">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-header">
+      <div class="modal-title" id="insuranceModalTitle">보험사 추가</div>
+      <button class="modal-close" onclick="document.getElementById('insuranceModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;">
+      <div class="form-group" style="margin-bottom:16px;">
+        <label class="form-label">보험사명 *</label>
+        <input class="form-input" id="ins-company" placeholder="예: 삼성화재">
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:1px;margin-bottom:10px;">🚗 국산차 담당</div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">담당자 이름</label><input class="form-input" id="ins-dom-name" placeholder="이름"></div>
+          <div class="form-group"><label class="form-label">전화번호</label><input class="form-input" id="ins-dom-phone" placeholder="010-0000-0000"></div>
+          <div class="form-group full"><label class="form-label">팩스번호</label><input class="form-input" id="ins-dom-fax" placeholder="02-0000-0000"></div>
+        </div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:1px;margin-bottom:10px;">🌍 외제차 담당</div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">담당자 이름</label><input class="form-input" id="ins-for-name" placeholder="이름"></div>
+          <div class="form-group"><label class="form-label">전화번호</label><input class="form-input" id="ins-for-phone" placeholder="010-0000-0000"></div>
+          <div class="form-group full"><label class="form-label">팩스번호</label><input class="form-input" id="ins-for-fax" placeholder="02-0000-0000"></div>
+        </div>
+      </div>
+      <div class="form-actions" style="margin-top:18px;display:flex;justify-content:flex-end;gap:8px;">
+        <button class="btn btn-ghost" onclick="document.getElementById('insuranceModal').classList.remove('open')">취소</button>
+        <button class="btn btn-primary" id="insuranceSaveBtn" onclick="window._saveInsurance()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 게시판 + 회사 일정 -->
 <div id="page-board" class="page">
   <div class="main">
@@ -4610,6 +4833,25 @@ function fmtDateVal(val) {
       <div id="board-list"></div>
       <div id="board-empty" class="empty" style="display:none;"><div class="empty-icon">📝</div><div>작성된 메모가 없습니다</div></div>
     </div>
+  </div>
+</div>
+
+<!-- 보험사 연락처 -->
+<div id="page-insurance" class="page" data-filter="all">
+  <div class="main">
+    <div class="section-header">
+      <div class="section-title">📞 보험사 연락처</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <div class="cal-toggle" id="insurance-filter">
+          <button id="if-all" class="active" onclick="window._setInsuranceFilter('all')">전체</button>
+          <button id="if-domestic" onclick="window._setInsuranceFilter('domestic')">🚗 국산차</button>
+          <button id="if-foreign" onclick="window._setInsuranceFilter('foreign')">🌍 외제차</button>
+        </div>
+        <button class="btn btn-primary btn-sm ins-admin-only" onclick="window._openInsuranceModal()" style="display:none;">➕ 보험사 추가</button>
+      </div>
+    </div>
+    <div id="insurance-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;"></div>
+    <div id="insurance-empty" class="empty" style="display:none;"><div class="empty-icon">📞</div><div>등록된 보험사가 없습니다</div></div>
   </div>
 </div>
 
