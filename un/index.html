@@ -837,11 +837,11 @@
         </div>
         <div class="form-group">
           <label class="form-label">입고일 *</label>
-          <input class="form-input" type="date" id="f-indate">
+          <input class="form-input" type="date" id="f-indate" onclick="this.showPicker&&this.showPicker()" style="cursor:pointer;">
         </div>
         <div class="form-group">
           <label class="form-label">출고 예정일</label>
-          <input class="form-input" type="date" id="f-outdate">
+          <input class="form-input" type="date" id="f-outdate" onclick="this.showPicker&&this.showPicker()" style="cursor:pointer;">
         </div>
         <div class="form-group">
           <label class="form-label">주행거리 (km)</label>
@@ -3880,9 +3880,8 @@
   setInterval(updateDate, 60000);
 
   // CLOSE MODAL ON OVERLAY CLICK
-  document.getElementById('formModal').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
-  });
+  // formModal은 백드롭 클릭으로 닫지 않음 — 입력 중 실수로 작업 날아가는 사고 방지.
+  // 닫으려면 ✕ 버튼 또는 취소 버튼 사용.
   document.getElementById('locPickerModal').addEventListener('click', function(e) {
     if (e.target === this) this.classList.remove('open');
   });
