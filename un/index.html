@@ -1074,6 +1074,7 @@
   import { getDatabase, ref, onValue, push, update, remove, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getFirestore, collection, doc, setDoc, getDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject, listAll } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDkXYh2P-EJPf2A_jwq2Kk2gDs0ZFdMP2M",
@@ -1091,6 +1092,14 @@
   const fsd = getFirestore(app);
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
+  const storage = getStorage(app);
+  // Storage 헬퍼 전역 노출 (사진 업로드/조회/삭제 로직에서 사용)
+  window._storage = storage;
+  window._sRef = sRef;
+  window._uploadBytes = uploadBytes;
+  window._getDownloadURL = getDownloadURL;
+  window._deleteObject = deleteObject;
+  window._listAll = listAll;
 
   // HTML escape (XSS 방지)
   function esc(str) {
@@ -1814,6 +1823,20 @@
 
   window._delete = async function(id, carNum, name) {
     if (!confirm(`${carNum} (${name}) 차량을 삭제하시겠습니까?`)) return;
+    // Storage 사진도 best-effort로 정리 (실패해도 DB 삭제는 진행)
+    try {
+      var rec = records[id];
+      var stages = (rec && rec.photos) ? Object.keys(rec.photos) : [];
+      for (var i = 0; i < stages.length; i++) {
+        var arr = rec.photos[stages[i]] || [];
+        for (var j = 0; j < arr.length; j++) {
+          if (arr[j] && arr[j].path) {
+            try { await window._deleteObject(window._sRef(window._storage, arr[j].path)); }
+            catch(e) { console.warn('storage cleanup failed:', arr[j].path, e); }
+          }
+        }
+      }
+    } catch(e) { console.warn('photo cleanup error (proceeding):', e); }
     try {
       await remove(ref(db, `records/${id}`));
       showNotif('삭제되었습니다');
@@ -2054,12 +2077,23 @@
         <div style="font-size:13px;line-height:1.7;white-space:pre-wrap;">${esc(r.repair)||'-'}</div>
       </div>
       ${r.memo ? `<div style="margin-top:10px;padding:12px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);"><div style="font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:6px;">📝 메모</div><div style="font-size:13px;">${esc(r.memo)}</div></div>` : ''}
-      <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;">
+      <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+        ${window._userRole === 'admin' ? `
+          <button class="btn btn-ghost btn-sm" onclick="window._openPhotoModal('${esc(id)}','intake')">📷 입고사진 ${photoCountBadge(r,'intake')}</button>
+          <button class="btn btn-ghost btn-sm" onclick="window._openPhotoModal('${esc(id)}','outbound')">📷 출고사진 ${photoCountBadge(r,'outbound')}</button>
+        ` : ''}
         <button class="btn btn-primary btn-sm" onclick="window._openWorkOrder('${esc(id)}')">🖨️ 작업지시서 인쇄</button>
       </div>
     `;
     document.getElementById('detailModal').classList.add('open');
   };
+
+  // 사진 개수 배지 (입고/출고 버튼 옆에 작게 표시)
+  function photoCountBadge(r, stage) {
+    var arr = (r && r.photos && r.photos[stage]) || [];
+    if (!arr.length) return '';
+    return '<span style="background:rgba(139,92,246,0.18);color:var(--accent);padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;margin-left:4px;">' + arr.length + '</span>';
+  }
 
   function detailRow(label, val) {
     return `
@@ -3902,6 +3936,10 @@
   if (_insMo) _insMo.addEventListener('click', function(e) {
     if (e.target === this) this.classList.remove('open');
   });
+  var _photoMo = document.getElementById('photoModal');
+  if (_photoMo) _photoMo.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -4905,6 +4943,40 @@ function fmtDateVal(val) {
       </div>
     </div>
   </div>
+</div>
+
+<!-- 차량 사진 모달 -->
+<div class="modal-overlay" id="photoModal">
+  <div class="modal" style="max-width:880px;max-height:92vh;display:flex;flex-direction:column;">
+    <div class="modal-header">
+      <div class="modal-title" id="photoModalTitle">📷 차량 사진</div>
+      <button class="modal-close" onclick="document.getElementById('photoModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;overflow-y:auto;">
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <input type="file" id="photoCamera" accept="image/*" capture="environment" multiple style="display:none" onchange="window._handlePhotoFiles(this.files)">
+        <input type="file" id="photoPicker" accept="image/*" multiple style="display:none" onchange="window._handlePhotoFiles(this.files)">
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('photoCamera').click()" style="flex:1;min-width:130px;">📷 촬영하기</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('photoPicker').click()" style="flex:1;min-width:130px;">📁 파일 선택</button>
+      </div>
+      <div id="photoProgress" style="display:none;font-size:12px;color:var(--accent);margin-bottom:10px;padding:8px 12px;background:rgba(139,92,246,0.08);border-radius:6px;"></div>
+      <div id="photoGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;"></div>
+      <div id="photoEmpty" style="text-align:center;padding:40px 0;color:var(--text-dim);font-size:13px;display:none;">아직 등록된 사진이 없습니다</div>
+    </div>
+  </div>
+</div>
+
+<!-- 사진 라이트박스 (전체화면 보기) -->
+<div id="photoLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:300;align-items:center;justify-content:center;flex-direction:column;">
+  <div style="position:absolute;top:14px;right:14px;display:flex;gap:8px;z-index:2;">
+    <button class="btn btn-ghost btn-sm" onclick="window._lightboxDownload()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);">⬇️ 다운로드</button>
+    <button class="btn btn-ghost btn-sm" onclick="window._lightboxDelete()" style="background:rgba(239,68,68,0.2);color:#fff;border:1px solid rgba(239,68,68,0.4);">🗑️ 삭제</button>
+    <button class="btn btn-ghost btn-sm" onclick="window._closeLightbox()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);">✕ 닫기</button>
+  </div>
+  <button onclick="window._lightboxNav(-1)" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer;">‹</button>
+  <button onclick="window._lightboxNav(1)" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer;">›</button>
+  <img id="lightboxImg" style="max-width:92vw;max-height:80vh;object-fit:contain;border-radius:4px;" alt="">
+  <div id="lightboxCounter" style="position:absolute;bottom:18px;color:#aaa;font-size:13px;font-family:'JetBrains Mono',monospace;"></div>
 </div>
 
 <!-- 작업지시서 인쇄 모달 -->
@@ -6052,6 +6124,205 @@ function eTst2(msg){
   window._closeWorkOrder = function(){
     document.getElementById('workOrderModal').classList.remove('open');
   };
+})();
+
+// ─── 차량 사진 업로드/조회/삭제 (admin 전용) ───
+(function(){
+  var STAGE_LABEL = { intake: '입고', outbound: '출고' };
+  var currentRecordId = null;
+  var currentStage = 'intake';
+  var lightboxList = [];
+  var lightboxIdx = 0;
+
+  // long edge 1600px / quality 0.8 클라이언트 압축
+  function compressImage(file, maxEdge, quality) {
+    return new Promise(function(resolve, reject){
+      var img = new Image();
+      var url = URL.createObjectURL(file);
+      img.onload = function(){
+        URL.revokeObjectURL(url);
+        var w = img.naturalWidth, h = img.naturalHeight;
+        var scale = Math.min(1, maxEdge / Math.max(w, h));
+        var cw = Math.round(w * scale), ch = Math.round(h * scale);
+        var canvas = document.createElement('canvas');
+        canvas.width = cw; canvas.height = ch;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, cw, ch);
+        canvas.toBlob(function(blob){
+          if (!blob) return reject(new Error('compress failed'));
+          resolve(blob);
+        }, 'image/jpeg', quality);
+      };
+      img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error('image load failed')); };
+      img.src = url;
+    });
+  }
+
+  function safeCarKey(carNum) {
+    return encodeURIComponent(String(carNum || 'unknown').replace(/\s+/g,''));
+  }
+
+  function getRecord() {
+    return currentRecordId && window._getRecord ? window._getRecord(currentRecordId) : null;
+  }
+  function getPhotoArr(stage) {
+    var r = getRecord();
+    return (r && r.photos && r.photos[stage]) || [];
+  }
+
+  window._openPhotoModal = function(recordId, stage) {
+    if (window._userRole !== 'admin') return;
+    currentRecordId = recordId;
+    currentStage = stage || 'intake';
+    var r = getRecord();
+    if (!r) return;
+    document.getElementById('photoModalTitle').textContent = '📷 ' + STAGE_LABEL[currentStage] + '사진 — ' + (r.carNum || '');
+    document.getElementById('photoProgress').style.display = 'none';
+    document.getElementById('photoProgress').textContent = '';
+    window._renderPhotoGrid();
+    document.getElementById('photoModal').classList.add('open');
+  };
+
+  window._renderPhotoGrid = function() {
+    var gridEl = document.getElementById('photoGrid');
+    var emptyEl = document.getElementById('photoEmpty');
+    if (!gridEl) return;
+    var arr = getPhotoArr(currentStage);
+    if (!arr.length) {
+      gridEl.innerHTML = '';
+      if (emptyEl) emptyEl.style.display = '';
+      return;
+    }
+    if (emptyEl) emptyEl.style.display = 'none';
+    gridEl.innerHTML = arr.map(function(p, idx){
+      return '<div class="photo-thumb" data-idx="'+idx+'" onclick="window._openLightbox('+idx+')" style="position:relative;aspect-ratio:1/1;background:var(--bg);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;">'
+        + '<img src="'+esc(p.url||'')+'" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;">'
+        + '</div>';
+    }).join('');
+  };
+
+  window._handlePhotoFiles = async function(fileList) {
+    if (window._userRole !== 'admin') return;
+    if (!fileList || !fileList.length) return;
+    var r = getRecord();
+    if (!r) return;
+    var carKey = safeCarKey(r.carNum);
+    var progEl = document.getElementById('photoProgress');
+    progEl.style.display = '';
+    var total = fileList.length, done = 0, fail = 0;
+    var newMeta = [];
+    for (var i = 0; i < total; i++) {
+      var file = fileList[i];
+      progEl.textContent = '업로드 중... (' + (i+1) + '/' + total + ') ' + file.name;
+      try {
+        var blob = await compressImage(file, 1600, 0.8);
+        var ts = Date.now();
+        var rand = Math.random().toString(36).slice(2, 8);
+        var path = 'vehicles/' + carKey + '/' + currentStage + '/' + ts + '_' + rand + '.jpg';
+        var sref = window._sRef(window._storage, path);
+        await window._uploadBytes(sref, blob, { contentType: 'image/jpeg' });
+        var url = await window._getDownloadURL(sref);
+        newMeta.push({ url: url, path: path, uploadedAt: ts, size: blob.size });
+        done++;
+      } catch(e) {
+        console.error('upload failed', file.name, e);
+        fail++;
+      }
+    }
+    if (newMeta.length) {
+      var existing = getPhotoArr(currentStage);
+      var merged = existing.concat(newMeta);
+      try {
+        await window._fbUpdate(
+          window._fbRef(window._fbDb, 'records/' + currentRecordId + '/photos'),
+          { [currentStage]: merged }
+        );
+        window._renderPhotoGrid();
+      } catch(e) {
+        showNotif('DB 저장 실패: ' + e.message, true);
+      }
+    }
+    progEl.textContent = '완료 — 성공 ' + done + '장' + (fail ? ', 실패 ' + fail + '장' : '');
+    setTimeout(function(){ progEl.style.display = 'none'; }, 2500);
+    document.getElementById('photoCamera').value = '';
+    document.getElementById('photoPicker').value = '';
+  };
+
+  window._openLightbox = function(idx) {
+    lightboxList = getPhotoArr(currentStage);
+    if (!lightboxList.length) return;
+    lightboxIdx = Math.max(0, Math.min(idx, lightboxList.length - 1));
+    var lb = document.getElementById('photoLightbox');
+    lb.style.display = 'flex';
+    _updateLightbox();
+  };
+
+  function _updateLightbox() {
+    var item = lightboxList[lightboxIdx];
+    if (!item) return;
+    document.getElementById('lightboxImg').src = item.url || '';
+    document.getElementById('lightboxCounter').textContent = (lightboxIdx + 1) + ' / ' + lightboxList.length;
+  }
+
+  window._closeLightbox = function() {
+    document.getElementById('photoLightbox').style.display = 'none';
+  };
+
+  window._lightboxNav = function(delta) {
+    if (!lightboxList.length) return;
+    lightboxIdx = (lightboxIdx + delta + lightboxList.length) % lightboxList.length;
+    _updateLightbox();
+  };
+
+  window._lightboxDownload = function() {
+    var item = lightboxList[lightboxIdx];
+    if (!item) return;
+    var r = getRecord();
+    var fileName = (r && r.carNum ? r.carNum : 'vehicle') + '_' + currentStage + '_' + (lightboxIdx + 1) + '.jpg';
+    var a = document.createElement('a');
+    a.href = item.url;
+    a.download = fileName;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  window._lightboxDelete = async function() {
+    if (window._userRole !== 'admin') return;
+    var item = lightboxList[lightboxIdx];
+    if (!item) return;
+    if (!confirm('이 사진을 삭제하시겠습니까?')) return;
+    // Storage 삭제 (best-effort)
+    if (item.path) {
+      try { await window._deleteObject(window._sRef(window._storage, item.path)); }
+      catch(e) { console.warn('storage delete failed (proceeding):', e); }
+    }
+    // DB에서 제거
+    var existing = getPhotoArr(currentStage);
+    var newArr = existing.filter(function(p){ return p.path !== item.path; });
+    try {
+      await window._fbUpdate(
+        window._fbRef(window._fbDb, 'records/' + currentRecordId + '/photos'),
+        { [currentStage]: newArr }
+      );
+      lightboxList = newArr;
+      if (!lightboxList.length) window._closeLightbox();
+      else { if (lightboxIdx >= lightboxList.length) lightboxIdx = lightboxList.length - 1; _updateLightbox(); }
+      window._renderPhotoGrid();
+      showNotif('삭제되었습니다');
+    } catch(e) { showNotif('DB 갱신 실패: ' + e.message, true); }
+  };
+
+  // 키보드 단축키: ESC 닫기, 좌우 화살표 탐색
+  document.addEventListener('keydown', function(e) {
+    var lb = document.getElementById('photoLightbox');
+    if (!lb || lb.style.display === 'none') return;
+    if (e.key === 'Escape') window._closeLightbox();
+    else if (e.key === 'ArrowLeft') window._lightboxNav(-1);
+    else if (e.key === 'ArrowRight') window._lightboxNav(1);
+  });
 })();
 
 // ─── 대시보드 출고예정 사이드바 드래그 (PC 마우스 전용, localStorage 저장) ───
