@@ -1108,6 +1108,14 @@
   }
   window.esc = esc;
 
+  // 전화번호 → tel: 링크 셀 (테이블 표시 + 클릭 다이얼)
+  function phoneCell(phone) {
+    if (!phone) return '-';
+    var digits = String(phone).replace(/[^0-9+]/g, '');
+    if (!digits) return esc(phone);
+    return '<a href="tel:' + esc(digits) + '" onclick="event.stopPropagation();" style="color:var(--text);text-decoration:none;" title="전화 걸기">📞 ' + esc(phone) + '</a>';
+  }
+
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
     admin: ['dashboard','list','complete','out','stats','migyeol','leave','board','estimate','insurance','usermgmt'],
@@ -1610,7 +1618,7 @@
       <tr>
         <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">🔍 ${esc(r.carNum)}</span></td>
         <td>${esc(r.carModel)||'-'}</td>
-        <td>${esc(r.phone)||'-'}</td>
+        <td>${phoneCell(r.phone)}</td>
         <td>${locationQuickCell(r.id, r.location, r.status)}</td>
         <td>${statusQuickCell(r.id, r.status)}</td>
         <td>${insBadge(r.insDaemul,'대물')}</td>
@@ -1640,7 +1648,7 @@
       <tr>
         <td><span class="car-num">${esc(r.carNum)}</span></td>
         <td>${esc(r.name)}</td>
-        <td>${esc(r.phone)||'-'}</td>
+        <td>${phoneCell(r.phone)}</td>
         <td>${locationBadge(r.location, r.status)}</td>
         <td>${insBadge(r.insDaemul,'대물')}</td>
         <td>${insBadge(r.insJacha,'자차')}</td>
@@ -1678,7 +1686,7 @@
       <tr>
         <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">🔍 ${esc(r.carNum)}</span></td>
         <td>${esc(r.name)}</td>
-        <td>${esc(r.phone)||'-'}</td>
+        <td>${phoneCell(r.phone)}</td>
         <td>${insBadge(r.insDaemul,'대물')}</td>
         <td>${insBadge(r.insJacha,'자차')}</td>
         <td>${repairCell(r.repair)}</td>
@@ -1706,7 +1714,7 @@
       <tr>
         <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">🔍 ${esc(r.carNum)}</span></td>
         <td>${esc(r.name)}</td>
-        <td>${esc(r.phone)||'-'}</td>
+        <td>${phoneCell(r.phone)}</td>
         <td>${locationQuickCell(r.id, r.location, r.status)}</td>
         <td>${insBadge(r.insDaemul,'대물')}</td>
         <td>${insBadge(r.insJacha,'자차')}</td>
@@ -3943,6 +3951,7 @@
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 
 // ── 서브 탭 전환 ──────────────────────────────────────
@@ -4956,8 +4965,9 @@ function fmtDateVal(val) {
       <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
         <input type="file" id="photoCamera" accept="image/*" capture="environment" multiple style="display:none" onchange="window._handlePhotoFiles(this.files)">
         <input type="file" id="photoPicker" accept="image/*" multiple style="display:none" onchange="window._handlePhotoFiles(this.files)">
-        <button class="btn btn-primary btn-sm" onclick="document.getElementById('photoCamera').click()" style="flex:1;min-width:130px;">📷 촬영하기</button>
-        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('photoPicker').click()" style="flex:1;min-width:130px;">📁 파일 선택</button>
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('photoCamera').click()" style="flex:1;min-width:120px;">📷 촬영하기</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('photoPicker').click()" style="flex:1;min-width:120px;">📁 파일 선택</button>
+        <button class="btn btn-ghost btn-sm" id="photoDownloadAllBtn" onclick="window._downloadAllPhotos()" style="flex:1;min-width:120px;">📦 전체 다운로드</button>
       </div>
       <div id="photoProgress" style="display:none;font-size:12px;color:var(--accent);margin-bottom:10px;padding:8px 12px;background:rgba(139,92,246,0.08);border-radius:6px;"></div>
       <div id="photoGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;"></div>
@@ -6186,8 +6196,10 @@ function eTst2(msg){
   window._renderPhotoGrid = function() {
     var gridEl = document.getElementById('photoGrid');
     var emptyEl = document.getElementById('photoEmpty');
+    var dlBtn = document.getElementById('photoDownloadAllBtn');
     if (!gridEl) return;
     var arr = getPhotoArr(currentStage);
+    if (dlBtn) dlBtn.disabled = !arr.length;
     if (!arr.length) {
       gridEl.innerHTML = '';
       if (emptyEl) emptyEl.style.display = '';
@@ -6199,6 +6211,55 @@ function eTst2(msg){
         + '<img src="'+esc(p.url||'')+'" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;">'
         + '</div>';
     }).join('');
+  };
+
+  window._downloadAllPhotos = async function() {
+    if (window._userRole !== 'admin') return;
+    var arr = getPhotoArr(currentStage);
+    if (!arr.length) { showNotif('다운로드할 사진이 없습니다', true); return; }
+    if (typeof JSZip === 'undefined') { showNotif('ZIP 라이브러리 로딩 실패', true); return; }
+    var r = getRecord();
+    var carNum = (r && r.carNum) ? r.carNum : 'vehicle';
+    var progEl = document.getElementById('photoProgress');
+    progEl.style.display = '';
+    var zip = new JSZip();
+    var done = 0, fail = 0;
+    for (var i = 0; i < arr.length; i++) {
+      var p = arr[i];
+      progEl.textContent = 'ZIP 만드는 중... (' + (i+1) + '/' + arr.length + ')';
+      try {
+        var resp = await fetch(p.url);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        var blob = await resp.blob();
+        var fname = carNum + '_' + currentStage + '_' + String(i+1).padStart(2,'0') + '.jpg';
+        zip.file(fname, blob);
+        done++;
+      } catch(e) {
+        console.error('fetch failed for', p.url, e);
+        fail++;
+      }
+    }
+    if (!done) {
+      progEl.textContent = '다운로드 실패 — 사진을 가져올 수 없습니다';
+      setTimeout(function(){ progEl.style.display = 'none'; }, 3000);
+      return;
+    }
+    progEl.textContent = 'ZIP 생성 중...';
+    try {
+      var zipBlob = await zip.generateAsync({ type: 'blob' });
+      var url = URL.createObjectURL(zipBlob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = carNum + '_' + currentStage + '_사진.zip';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+      progEl.textContent = '완료 — ' + done + '장 다운로드' + (fail ? ' (' + fail + '장 실패)' : '');
+    } catch(e) {
+      progEl.textContent = 'ZIP 생성 실패: ' + e.message;
+    }
+    setTimeout(function(){ progEl.style.display = 'none'; }, 2500);
   };
 
   window._handlePhotoFiles = async function(fileList) {
