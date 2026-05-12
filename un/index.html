@@ -4963,9 +4963,8 @@ function fmtDateVal(val) {
     </div>
     <div class="modal-body" style="padding:20px 24px;overflow-y:auto;">
       <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-        <input type="file" id="photoCamera" accept="image/*" capture="environment" multiple style="display:none" onchange="window._handlePhotoFiles(this.files)">
         <input type="file" id="photoPicker" accept="image/*" multiple style="display:none" onchange="window._handlePhotoFiles(this.files)">
-        <button class="btn btn-primary btn-sm" onclick="document.getElementById('photoCamera').click()" style="flex:1;min-width:120px;">📷 촬영하기</button>
+        <button class="btn btn-primary btn-sm" onclick="window._openCameraModal()" style="flex:1;min-width:120px;">📷 촬영하기</button>
         <button class="btn btn-ghost btn-sm" onclick="document.getElementById('photoPicker').click()" style="flex:1;min-width:120px;">📁 파일 선택</button>
         <button class="btn btn-ghost btn-sm" id="photoDownloadAllBtn" onclick="window._downloadAllPhotos()" style="flex:1;min-width:120px;">📦 전체 다운로드</button>
       </div>
@@ -4987,6 +4986,32 @@ function fmtDateVal(val) {
   <button onclick="window._lightboxNav(1)" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer;">›</button>
   <img id="lightboxImg" style="max-width:92vw;max-height:80vh;object-fit:contain;border-radius:4px;" alt="">
   <div id="lightboxCounter" style="position:absolute;bottom:18px;color:#aaa;font-size:13px;font-family:'JetBrains Mono',monospace;"></div>
+</div>
+
+<!-- 카메라 모달 (연속 촬영용 인-앱 카메라) -->
+<div id="cameraModal" style="display:none;position:fixed;inset:0;background:#000;z-index:310;flex-direction:column;">
+  <!-- 상단 바: 차량 정보 + 닫기 -->
+  <div style="position:absolute;top:0;left:0;right:0;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,rgba(0,0,0,0.7),transparent);z-index:2;">
+    <div id="camTitle" style="color:#fff;font-size:14px;font-weight:700;"></div>
+    <button onclick="window._closeCameraModal()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);width:38px;height:38px;border-radius:50%;font-size:16px;cursor:pointer;">✕</button>
+  </div>
+
+  <!-- 카메라 미리보기 -->
+  <video id="camVideo" autoplay playsinline muted style="flex:1;width:100%;height:100%;object-fit:cover;background:#000;"></video>
+  <canvas id="camCanvas" style="display:none;"></canvas>
+  <div id="camError" style="display:none;position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);text-align:center;color:#fff;font-size:14px;padding:20px;line-height:1.6;"></div>
+
+  <!-- 하단 컨트롤 -->
+  <div style="position:absolute;bottom:0;left:0;right:0;padding:18px 16px 28px;background:linear-gradient(0deg,rgba(0,0,0,0.85),transparent);z-index:2;">
+    <!-- 찍은 사진 미리보기 스트립 -->
+    <div id="camPending" style="display:none;overflow-x:auto;white-space:nowrap;padding:0 4px 12px;-webkit-overflow-scrolling:touch;"></div>
+    <!-- 캡쳐 + 업로드 버튼 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div id="camCount" style="color:#fff;font-size:13px;min-width:60px;text-align:center;font-family:'JetBrains Mono',monospace;">0장</div>
+      <button id="camShutter" onclick="window._cameraCapture()" style="width:72px;height:72px;border-radius:50%;background:#fff;border:5px solid rgba(255,255,255,0.4);cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.5);font-size:0;" aria-label="촬영"></button>
+      <button id="camDone" onclick="window._cameraDone()" disabled style="background:var(--accent);color:#fff;border:none;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-width:80px;opacity:0.4;">업로드 0</button>
+    </div>
+  </div>
 </div>
 
 <!-- 작업지시서 인쇄 모달 -->
@@ -6305,8 +6330,129 @@ function eTst2(msg){
     }
     progEl.textContent = '완료 — 성공 ' + done + '장' + (fail ? ', 실패 ' + fail + '장' : '');
     setTimeout(function(){ progEl.style.display = 'none'; }, 2500);
-    document.getElementById('photoCamera').value = '';
-    document.getElementById('photoPicker').value = '';
+    var pc = document.getElementById('photoCamera'); if (pc) pc.value = '';
+    var pp = document.getElementById('photoPicker'); if (pp) pp.value = '';
+  };
+
+  // ── 인-앱 카메라 (연속 촬영) ──
+  var camStream = null;
+  var camPendingBlobs = []; // [{ blob, thumbUrl }]
+
+  function _camUpdateUI() {
+    var n = camPendingBlobs.length;
+    var countEl = document.getElementById('camCount');
+    var doneBtn = document.getElementById('camDone');
+    var pendingEl = document.getElementById('camPending');
+    if (countEl) countEl.textContent = n + '장';
+    if (doneBtn) {
+      doneBtn.textContent = '업로드 ' + n;
+      doneBtn.disabled = (n === 0);
+      doneBtn.style.opacity = (n === 0) ? '0.4' : '1';
+    }
+    if (pendingEl) {
+      if (!n) {
+        pendingEl.style.display = 'none';
+        pendingEl.innerHTML = '';
+      } else {
+        pendingEl.style.display = '';
+        pendingEl.innerHTML = camPendingBlobs.map(function(item, idx){
+          return '<div style="display:inline-block;position:relative;width:64px;height:64px;margin-right:6px;border-radius:6px;overflow:hidden;border:2px solid rgba(255,255,255,0.4);vertical-align:middle;">'
+            + '<img src="'+esc(item.thumbUrl)+'" style="width:100%;height:100%;object-fit:cover;">'
+            + '<button onclick="window._camRemovePending('+idx+')" style="position:absolute;top:0;right:0;background:rgba(0,0,0,0.7);color:#fff;border:none;width:20px;height:20px;font-size:11px;cursor:pointer;border-radius:0 0 0 6px;">✕</button>'
+            + '</div>';
+        }).join('');
+      }
+    }
+  }
+
+  window._camRemovePending = function(idx) {
+    var item = camPendingBlobs[idx];
+    if (item && item.thumbUrl) try { URL.revokeObjectURL(item.thumbUrl); } catch(e){}
+    camPendingBlobs.splice(idx, 1);
+    _camUpdateUI();
+  };
+
+  window._openCameraModal = async function() {
+    if (window._userRole !== 'admin') return;
+    var r = getRecord();
+    if (!r) return;
+    document.getElementById('camTitle').textContent = '📷 ' + STAGE_LABEL[currentStage] + '사진 — ' + (r.carNum || '');
+    var modal = document.getElementById('cameraModal');
+    var video = document.getElementById('camVideo');
+    var errEl = document.getElementById('camError');
+    errEl.style.display = 'none';
+    modal.style.display = 'flex';
+    camPendingBlobs = [];
+    _camUpdateUI();
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      errEl.textContent = '이 브라우저는 카메라를 지원하지 않습니다.';
+      errEl.style.display = '';
+      return;
+    }
+    try {
+      camStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        audio: false
+      });
+      video.srcObject = camStream;
+    } catch(e) {
+      console.error('camera error', e);
+      errEl.innerHTML = '카메라 접근 실패: ' + esc(e.message || e.name) + '<br><br>브라우저 주소창의 카메라 권한을 허용으로 변경해주세요.';
+      errEl.style.display = '';
+    }
+  };
+
+  function _stopCamera() {
+    if (camStream) {
+      try { camStream.getTracks().forEach(function(t){ t.stop(); }); } catch(e){}
+      camStream = null;
+    }
+    var video = document.getElementById('camVideo');
+    if (video) video.srcObject = null;
+  }
+
+  window._closeCameraModal = function() {
+    if (camPendingBlobs.length && !confirm('찍은 사진 ' + camPendingBlobs.length + '장이 업로드되지 않았습니다. 정말 닫으시겠습니까?')) return;
+    camPendingBlobs.forEach(function(item){ if (item.thumbUrl) try { URL.revokeObjectURL(item.thumbUrl); } catch(e){} });
+    camPendingBlobs = [];
+    _stopCamera();
+    document.getElementById('cameraModal').style.display = 'none';
+  };
+
+  window._cameraCapture = function() {
+    var video = document.getElementById('camVideo');
+    var canvas = document.getElementById('camCanvas');
+    if (!video || !video.videoWidth) { showNotif('카메라 준비 중입니다', true); return; }
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob(function(blob){
+      if (!blob) { showNotif('캡쳐 실패', true); return; }
+      var thumbUrl = URL.createObjectURL(blob);
+      camPendingBlobs.push({ blob: blob, thumbUrl: thumbUrl });
+      _camUpdateUI();
+      // 셔터 시각 피드백
+      var btn = document.getElementById('camShutter');
+      if (btn) { btn.style.transform = 'scale(0.92)'; setTimeout(function(){ btn.style.transform = ''; }, 100); }
+    }, 'image/jpeg', 0.92);
+  };
+
+  window._cameraDone = async function() {
+    if (!camPendingBlobs.length) return;
+    var blobs = camPendingBlobs.slice();
+    // 카메라는 닫고 사진 모달에서 업로드 진행 (진행률 표시 활용)
+    camPendingBlobs.forEach(function(item){ if (item.thumbUrl) try { URL.revokeObjectURL(item.thumbUrl); } catch(e){} });
+    camPendingBlobs = [];
+    _stopCamera();
+    document.getElementById('cameraModal').style.display = 'none';
+    // _handlePhotoFiles는 File 객체를 받지만 Blob도 동일하게 동작 (compressImage가 URL.createObjectURL로 처리)
+    // 각 Blob에 name 부여 (압축 전 진행률 표기용)
+    var fileLike = blobs.map(function(item, i){
+      try { return new File([item.blob], 'capture_' + (i+1) + '.jpg', { type: 'image/jpeg' }); }
+      catch(e) { return item.blob; }
+    });
+    await window._handlePhotoFiles(fileLike);
   };
 
   window._openLightbox = function(idx) {
