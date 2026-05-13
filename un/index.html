@@ -182,6 +182,22 @@
   .dash-out-toggle-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text-dim); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; gap: 5px; }
   .dash-out-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
   .dash-out-toggle-btn.active { background: rgba(139,92,246,.15); color: var(--accent); border-color: rgba(139,92,246,.4); }
+  /* 예약차 사이드 (우측, 좌측 출고예정과 동일 디자인) */
+  .dash-res-side { position: fixed; right: 16px; top: 130px; width: 240px; max-height: calc(100vh - 150px); overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; z-index: 60; }
+  .dash-res-side.hidden { display: none !important; }
+  .dash-res-side h4 { font-size: 11px; color: var(--text-dim); margin: 0 0 8px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+  .dash-res-side h4 .cnt { background: var(--surface2); color: var(--text); padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 700; letter-spacing: 0; }
+  .dash-res-side .item { padding: 9px 10px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); margin-bottom: 6px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .dash-res-side .item:hover { border-color: rgba(245,166,35,.5); background: rgba(245,166,35,.05); }
+  .dash-res-side .item:last-child { margin-bottom: 0; }
+  .dash-res-side .item .car { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--accent); }
+  .dash-res-side .item .meta { font-size: 11px; color: var(--text-dim); margin-top: 3px; line-height: 1.4; }
+  .dash-res-side .item .meta .nm { color: var(--text); font-weight: 600; }
+  .dash-res-side .empty-mini { font-size: 11px; color: var(--text-dim); padding: 6px 4px; text-align: center; }
+  .dash-res-add { width: 100%; background: var(--accent); color: #000; border: none; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
+  .dash-res-add:hover { opacity: 0.9; }
+  .dash-res-side.dragging { opacity: 0.9; cursor: move; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+  @media (max-width: 1500px) { .dash-res-side { display: none; } }
   .dash-out-side h4 { font-size: 11px; color: var(--text-dim); margin: 0 0 8px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
   .dash-out-side h4 .cnt { background: var(--surface2); color: var(--text); padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 700; letter-spacing: 0; }
   .dash-out-side .group { margin-bottom: 14px; }
@@ -570,6 +586,15 @@
       <div id="outSideNext"></div>
     </div>
   </aside>
+
+  <!-- 예약차 사이드바 (우측, 사용자 직접 등록) -->
+  <aside class="dash-res-side hidden" id="dashResSide">
+    <div class="dash-out-drag" id="dashResDrag" title="드래그해서 위치 이동">⋮⋮ 드래그 ⋮⋮<button class="dash-out-close" onclick="window._toggleDashResSide(false)" title="닫기">✕</button></div>
+    <h4>📋 예약차 <span class="cnt" id="resSideCnt">0</span></h4>
+    <button class="dash-res-add" onclick="window._openResModal()">➕ 예약차 등록</button>
+    <div id="resSideList"></div>
+  </aside>
+
   <div class="main">
     <!-- 접근 요청 알림 (관리자만) -->
     <div id="accessRequests" style="display:none;margin-bottom:16px;padding:14px 18px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.25);border-radius:12px;">
@@ -591,6 +616,7 @@
       <div class="section-title">📋 현황 목록</div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
         <button id="dashOutToggleBtn" class="dash-out-toggle-btn" onclick="window._toggleDashOutSide()" title="이번주/다음주 출고 예정 사이드바 열기/닫기">📅 출고일정</button>
+        <button id="dashResToggleBtn" class="dash-out-toggle-btn" onclick="window._toggleDashResSide()" title="예약차 사이드바 열기/닫기">📋 예약차</button>
         <input class="form-input" id="dashSearchInput" type="text" placeholder="차량번호 / 고객명 / 연락처 검색" oninput="renderDashboard()" style="width:260px;padding:8px 12px;font-size:13px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);">
         <select class="form-input" id="dashFilterLoc" onchange="renderDashboard()" style="width:100px;padding:8px 10px;font-size:13px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);">
           <option value="">전체 위치</option>
@@ -4965,6 +4991,53 @@ function fmtDateVal(val) {
   </div>
 </div>
 
+<!-- 예약차 등록/수정 모달 (records와 완전 분리된 reservations 컬렉션) -->
+<div class="modal-overlay" id="resModal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <div class="modal-title" id="resModalTitle">📋 예약차 등록</div>
+      <button class="modal-close" onclick="document.getElementById('resModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;">
+      <div style="font-size:11px;color:var(--text-dim);line-height:1.6;margin-bottom:14px;background:var(--surface2);padding:10px 12px;border-radius:8px;border:1px solid var(--border);">
+        💡 예약차는 입출고 데이터와 완전히 분리됩니다.<br>
+        대시보드/입출고목록/월별통계 등에 영향 없음. 실제 입고되면 따로 차량 등록하세요.
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">차량번호</label>
+          <input class="form-input" id="res-carnum" placeholder="예) 12가 3456" style="font-family:'JetBrains Mono',monospace;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">차종</label>
+          <input class="form-input" id="res-carmodel" placeholder="예: 토레스">
+        </div>
+        <div class="form-group">
+          <label class="form-label">고객명</label>
+          <input class="form-input" id="res-name" placeholder="홍길동">
+        </div>
+        <div class="form-group">
+          <label class="form-label">연락처</label>
+          <input class="form-input" id="res-phone" placeholder="010-0000-0000" type="tel">
+        </div>
+        <div class="form-group">
+          <label class="form-label">예약일</label>
+          <input class="form-input" type="date" id="res-date" onclick="this.showPicker&&this.showPicker()" style="cursor:pointer;">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">메모 / 수리 내용</label>
+          <textarea class="form-textarea" id="res-memo" placeholder="수리 내용, 특이사항 등"></textarea>
+        </div>
+      </div>
+      <div class="form-actions" style="margin-top:16px;display:flex;justify-content:flex-end;gap:8px;">
+        <button class="btn btn-danger btn-sm" id="resDeleteBtn" onclick="window._deleteRes()" style="display:none;margin-right:auto;">삭제</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('resModal').classList.remove('open')">취소</button>
+        <button class="btn btn-primary" id="resSaveBtn" onclick="window._saveRes()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 차량 사진 모달 -->
 <div class="modal-overlay" id="photoModal">
   <div class="modal" style="max-width:880px;max-height:92vh;display:flex;flex-direction:column;">
@@ -6624,6 +6697,215 @@ function eTst2(msg){
   window.addEventListener('resize', function(){
     var rect = aside.getBoundingClientRect();
     applyPos(rect.left, rect.top);
+  });
+})();
+
+// ─── 예약차 사이드바 (Firebase RTDB reservations 경로) ───
+(function(){
+  var aside = document.getElementById('dashResSide');
+  var handle = document.getElementById('dashResDrag');
+  if (!aside || !handle) return;
+  var LS_KEY = 'un_reservations_pos_v1';
+  var LS_VIS = 'un_reservations_visible_v1';
+  var reservations = {};
+  var editingResId = null;
+
+  function clamp(val, lo, hi) { return Math.max(lo, Math.min(val, hi)); }
+  function applyPos(left, top) {
+    var w = aside.offsetWidth || 240;
+    var maxX = window.innerWidth - w;
+    var maxY = window.innerHeight - 40;
+    aside.style.left = clamp(left, 0, Math.max(0, maxX)) + 'px';
+    aside.style.top = clamp(top, 0, Math.max(0, maxY)) + 'px';
+    aside.style.right = 'auto';
+    aside.style.bottom = 'auto';
+  }
+
+  try {
+    var vis = localStorage.getItem(LS_VIS);
+    if (vis === '1') aside.classList.remove('hidden');
+    else aside.classList.add('hidden');
+  } catch(e) { aside.classList.add('hidden'); }
+  syncToggleBtn();
+
+  function syncToggleBtn() {
+    var btn = document.getElementById('dashResToggleBtn');
+    if (btn) btn.classList.toggle('active', !aside.classList.contains('hidden'));
+  }
+
+  window._toggleDashResSide = function(forceState) {
+    var willShow = (typeof forceState === 'boolean') ? forceState : aside.classList.contains('hidden');
+    aside.classList.toggle('hidden', !willShow);
+    try { localStorage.setItem(LS_VIS, willShow ? '1' : '0'); } catch(e){}
+    syncToggleBtn();
+  };
+
+  try {
+    var raw = localStorage.getItem(LS_KEY);
+    if (raw) {
+      var p = JSON.parse(raw);
+      if (typeof p.left === 'number' && typeof p.top === 'number') applyPos(p.left, p.top);
+    }
+  } catch(e){}
+
+  // Firebase RTDB 구독 (window._fbDb, window._fbRef은 module script에서 노출됨)
+  function startRes() {
+    if (!window._fbDb || !window._fbRef) { setTimeout(startRes, 300); return; }
+    var resRef = window._fbRef(window._fbDb, 'reservations');
+    // onValue가 module에서 import됐는데 다른 script에서는 접근 불가 — 새로 등록 필요
+    // 대신 module이 expose한 db로 onValue를 동적 import
+    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js').then(function(mod){
+      mod.onValue(resRef, function(snap){
+        reservations = snap.val() || {};
+        renderResList();
+      });
+    });
+  }
+  startRes();
+
+  function renderResList() {
+    var listEl = document.getElementById('resSideList');
+    var cntEl = document.getElementById('resSideCnt');
+    if (!listEl) return;
+    var entries = Object.entries(reservations).filter(function(e){ return e[1]; });
+    // 예약일 빠른 순
+    entries.sort(function(a,b){ return (a[1].reserveDate||'').localeCompare(b[1].reserveDate||''); });
+    if (cntEl) cntEl.textContent = entries.length;
+    if (!entries.length) {
+      listEl.innerHTML = '<div class="empty-mini">등록된 예약차가 없습니다</div>';
+      return;
+    }
+    listEl.innerHTML = entries.map(function(en){
+      var id = en[0], r = en[1];
+      var carLabel = (r.carNum && r.carModel) ? (esc(r.carNum) + ' · ' + esc(r.carModel))
+                   : (r.carNum ? esc(r.carNum) : (r.carModel ? esc(r.carModel) : '(차량 미입력)'));
+      var phone = r.phone ? '<a href="tel:'+esc(String(r.phone).replace(/[^0-9+]/g,''))+'" onclick="event.stopPropagation();" style="color:var(--text);text-decoration:none;">📞 '+esc(r.phone)+'</a>' : '';
+      var dateLine = r.reserveDate ? ('<span style="color:var(--accent);">📅 '+esc(r.reserveDate)+'</span>') : '';
+      var meta = [
+        r.name ? '<span class="nm">'+esc(r.name)+'</span>' : '',
+        phone,
+        dateLine
+      ].filter(Boolean).join(' &nbsp; ');
+      var memo = r.memo ? '<div style="font-size:11px;color:var(--text-dim);margin-top:4px;white-space:pre-wrap;line-height:1.4;">'+esc(r.memo)+'</div>' : '';
+      return '<div class="item" onclick="window._editRes(\''+esc(id)+'\')">'
+        + '<div class="car">'+carLabel+'</div>'
+        + (meta ? '<div class="meta">'+meta+'</div>' : '')
+        + memo
+        + '</div>';
+    }).join('');
+  }
+
+  function resetForm() {
+    editingResId = null;
+    document.getElementById('resModalTitle').textContent = '📋 예약차 등록';
+    document.getElementById('resDeleteBtn').style.display = 'none';
+    ['res-carnum','res-carmodel','res-name','res-phone','res-memo'].forEach(function(k){
+      var el = document.getElementById(k); if (el) el.value = '';
+    });
+    document.getElementById('res-date').value = '';
+  }
+
+  window._openResModal = function() {
+    resetForm();
+    document.getElementById('resModal').classList.add('open');
+  };
+
+  window._editRes = function(id) {
+    var r = reservations[id]; if (!r) return;
+    editingResId = id;
+    document.getElementById('resModalTitle').textContent = '📋 예약차 수정';
+    document.getElementById('resDeleteBtn').style.display = '';
+    document.getElementById('res-carnum').value = r.carNum || '';
+    document.getElementById('res-carmodel').value = r.carModel || '';
+    document.getElementById('res-name').value = r.name || '';
+    document.getElementById('res-phone').value = r.phone || '';
+    document.getElementById('res-date').value = r.reserveDate || '';
+    document.getElementById('res-memo').value = r.memo || '';
+    document.getElementById('resModal').classList.add('open');
+  };
+
+  window._saveRes = async function() {
+    var data = {
+      carNum: document.getElementById('res-carnum').value.trim(),
+      carModel: document.getElementById('res-carmodel').value.trim(),
+      name: document.getElementById('res-name').value.trim(),
+      phone: document.getElementById('res-phone').value.trim(),
+      reserveDate: document.getElementById('res-date').value || '',
+      memo: document.getElementById('res-memo').value.trim(),
+      updatedAt: new Date().toISOString(),
+      updatedBy: window._userEmail || ''
+    };
+    if (!data.carNum && !data.carModel && !data.name && !data.phone && !data.memo) {
+      if (typeof showNotif === 'function') showNotif('최소 한 항목 이상 입력해주세요', true);
+      return;
+    }
+    var btn = document.getElementById('resSaveBtn');
+    btn.disabled = true; btn.textContent = '저장 중...';
+    try {
+      var mod = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+      if (editingResId) {
+        await mod.update(window._fbRef(window._fbDb, 'reservations/' + editingResId), data);
+        if (typeof showNotif === 'function') showNotif('예약차 정보가 수정되었습니다');
+      } else {
+        data.createdAt = new Date().toISOString();
+        data.createdBy = window._userEmail || '';
+        await mod.push(window._fbRef(window._fbDb, 'reservations'), data);
+        if (typeof showNotif === 'function') showNotif('예약차가 등록되었습니다');
+      }
+      document.getElementById('resModal').classList.remove('open');
+    } catch(e) {
+      if (typeof showNotif === 'function') showNotif('저장 실패: ' + e.message, true);
+      else alert('저장 실패: ' + e.message);
+    }
+    btn.disabled = false; btn.textContent = '저장';
+  };
+
+  window._deleteRes = async function() {
+    if (!editingResId) return;
+    if (!confirm('이 예약차를 삭제하시겠습니까?')) return;
+    try {
+      var mod = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+      await mod.remove(window._fbRef(window._fbDb, 'reservations/' + editingResId));
+      if (typeof showNotif === 'function') showNotif('삭제되었습니다');
+      document.getElementById('resModal').classList.remove('open');
+    } catch(e) {
+      if (typeof showNotif === 'function') showNotif('삭제 실패: ' + e.message, true);
+    }
+  };
+
+  var dragging = false, sx = 0, sy = 0, sLeft = 0, sTop = 0;
+  handle.addEventListener('mousedown', function(e){
+    if (e.button !== 0) return;
+    if (e.target && e.target.classList && e.target.classList.contains('dash-out-close')) return;
+    e.preventDefault();
+    dragging = true;
+    sx = e.clientX; sy = e.clientY;
+    var rect = aside.getBoundingClientRect();
+    sLeft = rect.left; sTop = rect.top;
+    aside.classList.add('dragging');
+    document.body.style.userSelect = 'none';
+  });
+  document.addEventListener('mousemove', function(e){
+    if (!dragging) return;
+    applyPos(sLeft + (e.clientX - sx), sTop + (e.clientY - sy));
+  });
+  document.addEventListener('mouseup', function(){
+    if (!dragging) return;
+    dragging = false;
+    aside.classList.remove('dragging');
+    document.body.style.userSelect = '';
+    var rect = aside.getBoundingClientRect();
+    try { localStorage.setItem(LS_KEY, JSON.stringify({ left: rect.left, top: rect.top })); } catch(e){}
+  });
+  window.addEventListener('resize', function(){
+    var rect = aside.getBoundingClientRect();
+    applyPos(rect.left, rect.top);
+  });
+
+  // 모달 백드롭 닫기
+  var resModal = document.getElementById('resModal');
+  if (resModal) resModal.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
   });
 })();
 
