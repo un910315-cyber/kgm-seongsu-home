@@ -172,10 +172,16 @@
   .section-title { font-size: 15px; font-weight: 700; }
 
   /* DASHBOARD 좌측 출고 일정 사이드바 */
-  .dash-out-side { position: fixed; left: 16px; top: 130px; width: 220px; max-height: calc(100vh - 150px); overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; z-index: 5; }
-  .dash-out-drag { cursor: move; user-select: none; font-size: 10px; color: var(--text-dim); padding: 4px 0; margin: -6px -4px 10px -4px; border-bottom: 1px dashed var(--border); text-align: center; letter-spacing: 2px; font-weight: 600; transition: color .15s, background .15s; }
+  .dash-out-side { position: fixed; left: 16px; top: 130px; width: 220px; max-height: calc(100vh - 150px); overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; z-index: 60; }
+  .dash-out-side.hidden { display: none !important; }
+  .dash-out-drag { cursor: move; user-select: none; font-size: 11px; color: var(--text-dim); padding: 6px 0; margin: -8px -6px 10px -6px; border-bottom: 1px dashed var(--border); text-align: center; letter-spacing: 1.5px; font-weight: 700; transition: color .15s, background .15s; position: relative; }
   .dash-out-drag:hover { color: var(--accent); background: rgba(139,92,246,.06); }
-  .dash-out-side.dragging { opacity: 0.85; cursor: move; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+  .dash-out-close { position: absolute; top: 2px; right: 4px; width: 22px; height: 22px; border-radius: 5px; background: var(--surface2); border: 1px solid var(--border); color: var(--text-dim); font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; padding: 0; }
+  .dash-out-close:hover { color: var(--red); border-color: var(--red); }
+  .dash-out-side.dragging { opacity: 0.9; cursor: move; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+  .dash-out-toggle-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text-dim); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; gap: 5px; }
+  .dash-out-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .dash-out-toggle-btn.active { background: rgba(139,92,246,.15); color: var(--accent); border-color: rgba(139,92,246,.4); }
   .dash-out-side h4 { font-size: 11px; color: var(--text-dim); margin: 0 0 8px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
   .dash-out-side h4 .cnt { background: var(--surface2); color: var(--text); padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 700; letter-spacing: 0; }
   .dash-out-side .group { margin-bottom: 14px; }
@@ -553,8 +559,8 @@
 
 <!-- DASHBOARD -->
 <div id="page-dashboard" class="page active">
-  <aside class="dash-out-side" id="dashOutSide">
-    <div class="dash-out-drag" id="dashOutDrag" title="드래그해서 위치 이동">⋮⋮ 드래그 ⋮⋮</div>
+  <aside class="dash-out-side hidden" id="dashOutSide">
+    <div class="dash-out-drag" id="dashOutDrag" title="드래그해서 위치 이동">⋮⋮ 드래그 ⋮⋮<button class="dash-out-close" onclick="window._toggleDashOutSide(false)" title="닫기">✕</button></div>
     <div class="group">
       <h4>📅 이번주 출고 <span class="cnt" id="outSideThisCnt">0</span></h4>
       <div id="outSideThis"></div>
@@ -583,7 +589,8 @@
     </div>
     <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
       <div class="section-title">📋 현황 목록</div>
-      <div style="display:flex;gap:8px;align-items:center;">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button id="dashOutToggleBtn" class="dash-out-toggle-btn" onclick="window._toggleDashOutSide()" title="이번주/다음주 출고 예정 사이드바 열기/닫기">📅 출고일정</button>
         <input class="form-input" id="dashSearchInput" type="text" placeholder="차량번호 / 고객명 / 연락처 검색" oninput="renderDashboard()" style="width:260px;padding:8px 12px;font-size:13px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);">
         <select class="form-input" id="dashFilterLoc" onchange="renderDashboard()" style="width:100px;padding:8px 10px;font-size:13px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);">
           <option value="">전체 위치</option>
@@ -633,7 +640,7 @@
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>차량번호</th><th>고객명</th><th>연락처</th><th>위치</th><th>대물보험</th><th>자차보험</th><th>수리내용</th><th>입고일</th><th>출고예정</th><th>비용</th><th>상태</th><th>관리</th></tr></thead>
+        <thead><tr><th>차량번호</th><th>차종</th><th>연락처</th><th>위치</th><th>대물보험</th><th>자차보험</th><th>수리내용</th><th>입고일</th><th>출고예정</th><th>비용</th><th>상태</th><th>관리</th></tr></thead>
         <tbody id="list-tbody"></tbody>
       </table>
     </div>
@@ -1647,7 +1654,7 @@
     tbody.innerHTML = data.map(r => `
       <tr>
         <td><span class="car-num">${esc(r.carNum)}</span></td>
-        <td>${esc(r.name)}</td>
+        <td>${esc(r.carModel)||'-'}</td>
         <td>${phoneCell(r.phone)}</td>
         <td>${locationBadge(r.location, r.status)}</td>
         <td>${insBadge(r.insDaemul,'대물')}</td>
@@ -6532,12 +6539,13 @@ function eTst2(msg){
   });
 })();
 
-// ─── 대시보드 출고예정 사이드바 드래그 (PC 마우스 전용, localStorage 저장) ───
+// ─── 대시보드 출고예정 사이드바 토글 + 드래그 (PC 마우스 전용, localStorage 저장) ───
 (function(){
   var aside = document.getElementById('dashOutSide');
   var handle = document.getElementById('dashOutDrag');
   if (!aside || !handle) return;
   var LS_KEY = 'un_outSchedule_pos_v1';
+  var LS_VIS = 'un_outSchedule_visible_v1';
 
   function clamp(val, lo, hi) { return Math.max(lo, Math.min(val, hi)); }
 
@@ -6550,6 +6558,26 @@ function eTst2(msg){
     aside.style.right = 'auto';
     aside.style.bottom = 'auto';
   }
+
+  // 표시 상태 복원 (기본: 숨김)
+  try {
+    var vis = localStorage.getItem(LS_VIS);
+    if (vis === '1') aside.classList.remove('hidden');
+    else aside.classList.add('hidden');
+  } catch(e) { aside.classList.add('hidden'); }
+  syncToggleBtn();
+
+  function syncToggleBtn() {
+    var btn = document.getElementById('dashOutToggleBtn');
+    if (btn) btn.classList.toggle('active', !aside.classList.contains('hidden'));
+  }
+
+  window._toggleDashOutSide = function(forceState) {
+    var willShow = (typeof forceState === 'boolean') ? forceState : aside.classList.contains('hidden');
+    aside.classList.toggle('hidden', !willShow);
+    try { localStorage.setItem(LS_VIS, willShow ? '1' : '0'); } catch(e){}
+    syncToggleBtn();
+  };
 
   // 저장된 위치 복원
   try {
@@ -6564,6 +6592,7 @@ function eTst2(msg){
 
   handle.addEventListener('mousedown', function(e){
     if (e.button !== 0) return; // 좌클릭만
+    if (e.target && e.target.classList && e.target.classList.contains('dash-out-close')) return; // ✕ 버튼은 드래그 X
     e.preventDefault();
     dragging = true;
     sx = e.clientX; sy = e.clientY;
