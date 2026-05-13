@@ -654,7 +654,7 @@
     <div class="section-header"><div class="section-title">✅ 수리 완료 — 출고 대기 중</div></div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>차량번호</th><th>고객명</th><th>연락처</th><th>위치</th><th>대물보험</th><th>자차보험</th><th>수리내용</th><th>수리비용</th><th>입고일</th><th>주행거리</th><th>관리</th></tr></thead>
+        <thead><tr><th>차량번호</th><th>차종</th><th>연락처</th><th>위치</th><th>대물보험</th><th>자차보험</th><th>수리내용</th><th>수리비용</th><th>입고일</th><th>주행거리</th><th>관리</th></tr></thead>
         <tbody id="complete-tbody"></tbody>
       </table>
     </div>
@@ -671,7 +671,7 @@
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>차량번호</th><th>고객명</th><th>연락처</th><th>대물보험</th><th>자차보험</th><th>수리내용</th><th>수리비용</th><th>입고일</th><th>출고일</th><th>주행거리</th><th>관리</th></tr></thead>
+        <thead><tr><th>차량번호</th><th>차종</th><th>연락처</th><th>대물보험</th><th>자차보험</th><th>수리내용</th><th>수리비용</th><th>입고일</th><th>출고일</th><th>주행거리</th><th>관리</th></tr></thead>
         <tbody id="out-tbody"></tbody>
       </table>
     </div>
@@ -1692,7 +1692,7 @@
     tbody.innerHTML = data.map(r => `
       <tr>
         <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">🔍 ${esc(r.carNum)}</span></td>
-        <td>${esc(r.name)}</td>
+        <td>${esc(r.carModel)||'-'}</td>
         <td>${phoneCell(r.phone)}</td>
         <td>${insBadge(r.insDaemul,'대물')}</td>
         <td>${insBadge(r.insJacha,'자차')}</td>
@@ -1720,7 +1720,7 @@
     tbody.innerHTML = data.map(r => `
       <tr>
         <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">🔍 ${esc(r.carNum)}</span></td>
-        <td>${esc(r.name)}</td>
+        <td>${esc(r.carModel)||'-'}</td>
         <td>${phoneCell(r.phone)}</td>
         <td>${locationQuickCell(r.id, r.location, r.status)}</td>
         <td>${insBadge(r.insDaemul,'대물')}</td>
