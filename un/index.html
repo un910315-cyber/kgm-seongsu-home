@@ -1837,7 +1837,9 @@
   };
 
   window._delete = async function(id, carNum, name) {
-    if (!confirm(`${carNum} (${name}) 차량을 삭제하시겠습니까?`)) return;
+    var rec = records[id];
+    var subtitle = name || (rec && rec.carModel) || '';
+    if (!confirm(`${carNum}${subtitle ? ' (' + subtitle + ')' : ''} 차량을 삭제하시겠습니까?`)) return;
     // Storage 사진도 best-effort로 정리 (실패해도 DB 삭제는 진행)
     try {
       var rec = records[id];
@@ -1859,7 +1861,9 @@
   };
 
   window._markOut = async function(id, carNum, name) {
-    if (!confirm(`${carNum} (${name}) 차량을 출고 처리하시겠습니까?`)) return;
+    var rec = records[id];
+    var subtitle = name || (rec && rec.carModel) || '';
+    if (!confirm(`${carNum}${subtitle ? ' (' + subtitle + ')' : ''} 차량을 출고 처리하시겠습니까?`)) return;
     try {
       await update(ref(db, `records/${id}`), {
         status: '출고',
