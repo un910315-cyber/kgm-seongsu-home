@@ -172,7 +172,11 @@
   .section-title { font-size: 15px; font-weight: 700; }
 
   /* DASHBOARD 좌측 출고 일정 사이드바 */
-  .dash-out-side { position: fixed; left: 16px; top: 130px; width: 220px; max-height: calc(100vh - 150px); overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; z-index: 60; }
+  .dash-out-side { position: fixed; left: 16px; top: 130px; width: clamp(240px, 18vw, 380px); max-height: calc(100vh - 145px); overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; z-index: 60; }
+  .dash-out-side h4 { font-size: 12px; }
+  .dash-out-side .item { padding: 10px 12px; }
+  .dash-out-side .item .car { font-size: 14px; }
+  .dash-out-side .item .meta { font-size: 12px; margin-top: 4px; }
   .dash-out-side.hidden { display: none !important; }
   .dash-out-drag { cursor: move; user-select: none; font-size: 11px; color: var(--text-dim); padding: 6px 0; margin: -8px -6px 10px -6px; border-bottom: 1px dashed var(--border); text-align: center; letter-spacing: 1.5px; font-weight: 700; transition: color .15s, background .15s; position: relative; }
   .dash-out-drag:hover { color: var(--accent); background: rgba(139,92,246,.06); }
@@ -183,15 +187,15 @@
   .dash-out-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
   .dash-out-toggle-btn.active { background: rgba(139,92,246,.15); color: var(--accent); border-color: rgba(139,92,246,.4); }
   /* 예약차 사이드 (우측, 좌측 출고예정과 동일 디자인) */
-  .dash-res-side { position: fixed; right: 16px; top: 130px; width: 240px; max-height: calc(100vh - 150px); overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; z-index: 60; }
+  .dash-res-side { position: fixed; right: 16px; top: 130px; width: clamp(240px, 18vw, 380px); max-height: calc(100vh - 145px); overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; z-index: 60; }
   .dash-res-side.hidden { display: none !important; }
-  .dash-res-side h4 { font-size: 11px; color: var(--text-dim); margin: 0 0 8px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+  .dash-res-side h4 { font-size: 12px; color: var(--text-dim); margin: 0 0 8px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
   .dash-res-side h4 .cnt { background: var(--surface2); color: var(--text); padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 700; letter-spacing: 0; }
-  .dash-res-side .item { padding: 9px 10px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); margin-bottom: 6px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .dash-res-side .item { padding: 10px 12px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); margin-bottom: 6px; cursor: pointer; transition: border-color .15s, background .15s; }
   .dash-res-side .item:hover { border-color: rgba(245,166,35,.5); background: rgba(245,166,35,.05); }
   .dash-res-side .item:last-child { margin-bottom: 0; }
-  .dash-res-side .item .car { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--accent); }
-  .dash-res-side .item .meta { font-size: 11px; color: var(--text-dim); margin-top: 3px; line-height: 1.4; }
+  .dash-res-side .item .car { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; color: var(--accent); }
+  .dash-res-side .item .meta { font-size: 12px; color: var(--text-dim); margin-top: 4px; line-height: 1.4; }
   .dash-res-side .item .meta .nm { color: var(--text); font-weight: 600; }
   .dash-res-side .empty-mini { font-size: 11px; color: var(--text-dim); padding: 6px 4px; text-align: center; }
   .dash-res-add { width: 100%; background: var(--accent); color: #000; border: none; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; margin-bottom: 10px; }
