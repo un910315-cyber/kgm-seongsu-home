@@ -1607,7 +1607,7 @@
     const thisWk = list.filter(r => inRange(r.outDate, tw)).sort((a,b)=> new Date(a.outDate)-new Date(b.outDate));
     const nextWk = list.filter(r => inRange(r.outDate, nw)).sort((a,b)=> new Date(a.outDate)-new Date(b.outDate));
     const dayLabel = (d) => { const x = new Date(d); const wk = ['일','월','화','수','목','금','토'][x.getDay()]; return `${x.getMonth()+1}/${x.getDate()}(${wk})`; };
-    const itemHtml = (r) => `<div class="item" onclick="openDetailModal('${esc(r.id)}')" title="클릭하여 상세보기"><div class="car">${esc(r.carNum)}</div><div class="meta"><span class="nm">${esc(r.name)||'-'}</span><span>${dayLabel(r.outDate)}</span></div></div>`;
+    const itemHtml = (r) => `<div class="item" onclick="openDetailModal('${esc(r.id)}')" title="클릭하여 상세보기"><div class="car">${esc(r.carNum)}${r.carModel ? ` <span style="font-size:11px;color:var(--text-dim);font-weight:500;">${esc(r.carModel)}</span>` : ''}</div><div class="meta"><span class="nm">${esc(r.name)||'-'}</span><span>${dayLabel(r.outDate)}</span></div></div>`;
     const tEl = document.getElementById('outSideThis');
     const nEl = document.getElementById('outSideNext');
     if (tEl) tEl.innerHTML = thisWk.length ? thisWk.map(itemHtml).join('') : `<div class="empty-mini">예정 없음</div>`;
@@ -2112,6 +2112,7 @@
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+        ${detailRow('🚙 차종', esc(r.carModel)||'-')}
         ${detailRow('👤 고객명', esc(r.name))}
         ${detailRow('📞 연락처', esc(r.phone)||'-')}
         ${detailRow('📅 입고일', esc(r.inDate)||'-')}
