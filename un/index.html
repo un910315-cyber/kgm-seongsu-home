@@ -896,7 +896,7 @@
           <label class="form-label">수리 비용 (원)</label>
           <input class="form-input" id="f-cost" type="number" placeholder="0" min="0">
         </div>
-        <div class="form-group">
+        <div class="form-group" id="saveAndEstimateGroup">
           <label class="form-label">🔧 견적도우미</label>
           <button class="btn" id="saveAndEstimateBtn" onclick="saveAndGoEstimate()" style="width:100%;background:rgba(139,92,246,0.15);color:var(--accent);border:1px solid rgba(139,92,246,0.3);font-weight:700;padding:10px;border-radius:8px;cursor:pointer;font-size:13px;">🔧 저장 후 견적도우미</button>
         </div>
@@ -1225,6 +1225,9 @@
           tab.style.display = allowedMenus.includes(page) ? '' : 'none';
         }
       });
+      // 견적 권한 없는 역할(viewer)은 등록 모달의 "저장 후 견적도우미" 버튼 숨김
+      const saveAndEstimateGroup = document.getElementById('saveAndEstimateGroup');
+      if (saveAndEstimateGroup) saveAndEstimateGroup.style.display = allowedMenus.includes('estimate') ? '' : 'none';
 
       // 헤더에 사용자 정보 표시 (중복 방지)
       const headerRight = document.querySelector('.header-right');
