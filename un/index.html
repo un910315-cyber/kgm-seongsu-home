@@ -5058,7 +5058,8 @@ function fmtDateVal(val) {
     <div class="modal-body" style="padding:20px 24px;overflow-y:auto;">
       <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
         <input type="file" id="photoPicker" accept="image/*" multiple style="display:none" onchange="window._handlePhotoFiles(this.files)">
-        <button class="btn btn-primary btn-sm" onclick="window._openCameraModal()" style="flex:1;min-width:120px;">📷 촬영하기</button>
+        <input type="file" id="photoCamera" accept="image/*" capture="environment" style="display:none" onchange="window._handlePhotoFiles(this.files)">
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('photoCamera').click()" style="flex:1;min-width:120px;">📷 촬영하기</button>
         <button class="btn btn-ghost btn-sm" onclick="document.getElementById('photoPicker').click()" style="flex:1;min-width:120px;">📁 파일 선택</button>
         <button class="btn btn-ghost btn-sm" id="photoDownloadAllBtn" onclick="window._downloadAllPhotos()" style="flex:1;min-width:120px;">📦 전체 다운로드</button>
       </div>
