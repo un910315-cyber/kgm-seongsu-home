@@ -2133,10 +2133,8 @@
       </div>
       ${r.memo ? `<div style="margin-top:10px;padding:12px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);"><div style="font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:6px;">📝 메모</div><div style="font-size:13px;">${esc(r.memo)}</div></div>` : ''}
       <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
-        ${window._userRole === 'admin' ? `
-          <button class="btn btn-ghost btn-sm" onclick="window._openPhotoModal('${esc(id)}','intake')">📷 입고사진 ${photoCountBadge(r,'intake')}</button>
-          <button class="btn btn-ghost btn-sm" onclick="window._openPhotoModal('${esc(id)}','outbound')">📷 출고사진 ${photoCountBadge(r,'outbound')}</button>
-        ` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="window._openPhotoModal('${esc(id)}','intake')">📷 입고사진 ${photoCountBadge(r,'intake')}</button>
+        <button class="btn btn-ghost btn-sm" onclick="window._openPhotoModal('${esc(id)}','outbound')">📷 출고사진 ${photoCountBadge(r,'outbound')}</button>
         <button class="btn btn-primary btn-sm" onclick="window._openWorkOrder('${esc(id)}')">🖨️ 작업지시서 인쇄</button>
       </div>
     `;
@@ -5059,8 +5057,8 @@ function fmtDateVal(val) {
       <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
         <input type="file" id="photoPicker" accept="image/*" multiple style="display:none" onchange="window._handlePhotoFiles(this.files)">
         <input type="file" id="photoCamera" accept="image/*" capture="environment" style="display:none" onchange="window._handlePhotoFiles(this.files)">
-        <button class="btn btn-primary btn-sm" onclick="document.getElementById('photoCamera').click()" style="flex:1;min-width:120px;">📷 촬영하기</button>
-        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('photoPicker').click()" style="flex:1;min-width:120px;">📁 파일 선택</button>
+        <button class="btn btn-primary btn-sm" id="photoCaptureBtn" onclick="document.getElementById('photoCamera').click()" style="flex:1;min-width:120px;">📷 촬영하기</button>
+        <button class="btn btn-ghost btn-sm" id="photoPickBtn" onclick="document.getElementById('photoPicker').click()" style="flex:1;min-width:120px;">📁 파일 선택</button>
         <button class="btn btn-ghost btn-sm" id="photoDownloadAllBtn" onclick="window._downloadAllPhotos()" style="flex:1;min-width:120px;">📦 전체 다운로드</button>
       </div>
       <div id="photoProgress" style="display:none;font-size:12px;color:var(--accent);margin-bottom:10px;padding:8px 12px;background:rgba(139,92,246,0.08);border-radius:6px;"></div>
@@ -5074,7 +5072,7 @@ function fmtDateVal(val) {
 <div id="photoLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:300;align-items:center;justify-content:center;flex-direction:column;">
   <div style="position:absolute;top:14px;right:14px;display:flex;gap:8px;z-index:2;">
     <button class="btn btn-ghost btn-sm" onclick="window._lightboxDownload()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);">⬇️ 다운로드</button>
-    <button class="btn btn-ghost btn-sm" onclick="window._lightboxDelete()" style="background:rgba(239,68,68,0.2);color:#fff;border:1px solid rgba(239,68,68,0.4);">🗑️ 삭제</button>
+    <button class="btn btn-ghost btn-sm" id="lightboxDeleteBtn" onclick="window._lightboxDelete()" style="background:rgba(239,68,68,0.2);color:#fff;border:1px solid rgba(239,68,68,0.4);">🗑️ 삭제</button>
     <button class="btn btn-ghost btn-sm" onclick="window._closeLightbox()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);">✕ 닫기</button>
   </div>
   <button onclick="window._lightboxNav(-1)" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer;">‹</button>
@@ -6301,7 +6299,6 @@ function eTst2(msg){
   }
 
   window._openPhotoModal = function(recordId, stage) {
-    if (window._userRole !== 'admin') return;
     currentRecordId = recordId;
     currentStage = stage || 'intake';
     var r = getRecord();
@@ -6309,6 +6306,13 @@ function eTst2(msg){
     document.getElementById('photoModalTitle').textContent = '📷 ' + STAGE_LABEL[currentStage] + '사진 — ' + (r.carNum || '');
     document.getElementById('photoProgress').style.display = 'none';
     document.getElementById('photoProgress').textContent = '';
+    var isAdmin = (window._userRole === 'admin');
+    var capBtn = document.getElementById('photoCaptureBtn');
+    var pickBtn = document.getElementById('photoPickBtn');
+    var delBtn = document.getElementById('lightboxDeleteBtn');
+    if (capBtn) capBtn.style.display = isAdmin ? '' : 'none';
+    if (pickBtn) pickBtn.style.display = isAdmin ? '' : 'none';
+    if (delBtn) delBtn.style.display = isAdmin ? '' : 'none';
     window._renderPhotoGrid();
     document.getElementById('photoModal').classList.add('open');
   };
