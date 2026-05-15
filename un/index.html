@@ -6580,19 +6580,36 @@ function eTst2(msg){
     _updateLightbox();
   };
 
-  window._lightboxDownload = function() {
+  window._lightboxDownload = async function() {
     var item = lightboxList[lightboxIdx];
     if (!item) return;
     var r = getRecord();
     var fileName = (r && r.carNum ? r.carNum : 'vehicle') + '_' + currentStage + '_' + (lightboxIdx + 1) + '.jpg';
-    var a = document.createElement('a');
-    a.href = item.url;
-    a.download = fileName;
-    a.target = '_blank';
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    // 우선 fetch+blob로 진짜 파일 다운로드 시도 (CORS 통과 필요)
+    try {
+      var resp = await fetch(item.url);
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      var blob = await resp.blob();
+      var blobUrl = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(blobUrl); }, 1000);
+      return;
+    } catch(e) {
+      console.warn('lightbox fetch fallback:', e);
+    }
+    // 폴백: cross-origin이라 다운로드 안 되면 새 탭에서 열기 (사용자가 직접 저장)
+    var a2 = document.createElement('a');
+    a2.href = item.url;
+    a2.target = '_blank';
+    a2.rel = 'noopener';
+    document.body.appendChild(a2);
+    a2.click();
+    document.body.removeChild(a2);
   };
 
   window._lightboxDelete = async function() {
