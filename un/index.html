@@ -71,6 +71,10 @@
 
   /* MAIN */
   .main { padding: 20px; max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
+  /* 대시보드는 컬럼이 많은 현황 목록을 담아 더 넓은 max-width로 조정 (양옆 fixed 사이드바와는 z-index로 겹쳐도 시각적으로만 가림) */
+  #page-dashboard > .main { max-width: 1500px; }
+  #page-dashboard table { min-width: 1200px; } /* 한 화면에 12컬럼이 다 들어가도록 최소 너비 보장 */
+  #page-dashboard th, #page-dashboard td { padding-left: 10px; padding-right: 10px; } /* 패딩 살짝 축소 */
 
   /* STATS */
   .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
@@ -112,6 +116,11 @@
 
   /* TABLE */
   .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow-x: auto; overflow-y: visible; }
+  /* 가로 스크롤바를 항상 보이도록 (짤려보이는 인상 줄이기) */
+  .table-wrap::-webkit-scrollbar { height: 10px; }
+  .table-wrap::-webkit-scrollbar-track { background: var(--surface2); border-radius: 0 0 16px 16px; }
+  .table-wrap::-webkit-scrollbar-thumb { background: rgba(139,92,246,.4); border-radius: 6px; }
+  .table-wrap::-webkit-scrollbar-thumb:hover { background: rgba(139,92,246,.6); }
   table { width: 100%; border-collapse: collapse; min-width: 700px; }
   thead tr { background: var(--surface2); border-bottom: 1px solid var(--border); }
   th { padding: 11px 14px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-dim); font-weight: 600; white-space: nowrap; }
