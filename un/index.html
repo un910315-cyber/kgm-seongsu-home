@@ -618,7 +618,6 @@
   <div class="nav-tab" onclick="switchPage('board')" id="tab-board">📝 게시판 · 일정</div>
   <div class="nav-tab" onclick="switchPage('estimate')">🔧 견적 도우미</div>
   <div class="nav-tab" onclick="switchPage('insurance')" id="tab-insurance">📞 보험사 연락처</div>
-  <div class="nav-tab" onclick="switchPage('blacklist')" id="tab-blacklist" style="display:none">🚫 블랙리스트</div>
   <div class="nav-tab" onclick="switchPage('usermgmt')" id="tab-usermgmt" style="display:none">👤 사용자 관리</div>
 </div>
 
@@ -743,6 +742,7 @@
     <div class="toolbar">
       <input class="search-box" type="text" id="searchOutInput" placeholder="🔍  차량번호, 고객명 검색..." oninput="renderOut()">
       <input class="filter-select" type="month" id="filterOutMonth" onchange="renderOut()" style="padding:9px 12px;">
+      <button id="blacklistEntryBtn" class="btn btn-sm" style="display:none;background:rgba(232,68,42,0.12);color:#e8442a;border:1px solid rgba(232,68,42,0.35);padding:8px 12px;font-size:12px;font-weight:600;margin-left:auto;" onclick="switchPage('blacklist')" title="블랙 고객 관리 (관리자 전용)">🚫 블랙 관리</button>
     </div>
     <div class="table-wrap">
       <table>
@@ -1210,10 +1210,11 @@
 
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
-    admin: ['dashboard','list','complete','out','stats','migyeol','leave','board','estimate','insurance','blacklist','usermgmt'],
+    admin: ['dashboard','list','complete','out','stats','migyeol','leave','board','estimate','insurance','usermgmt'],
     staff: ['dashboard','complete','leave','board','estimate','insurance'],
     viewer: ['dashboard','complete','leave','board']
   };
+  // 'blacklist' 페이지는 ROLE_MENUS에 포함하지 않음 — 출고완료 페이지의 작은 버튼으로만 진입 (admin 전용 가드)
 
   // Google 로그인 — 팝업 방식 (모바일 포함)
   window.authGoogleLogin = async function(){
@@ -1372,8 +1373,9 @@
       if(lvTab) lvTab.style.display='';
       var bdTab=document.getElementById('tab-board');
       if(bdTab) bdTab.style.display='';
-      var blTab=document.getElementById('tab-blacklist');
-      if(blTab) blTab.style.display='';
+      // 출고완료 페이지 안의 블랙리스트 진입 버튼 표시
+      var blBtn=document.getElementById('blacklistEntryBtn');
+      if(blBtn) blBtn.style.display='';
     }
     // 권한이 결정된 후 연차 화면을 한 번 더 그려서 admin/비admin 분기를 정확히 반영
     if(window._renderLeave) try{ window._renderLeave(); }catch(e){ console.error(e); }
