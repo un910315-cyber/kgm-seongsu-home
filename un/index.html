@@ -2,8 +2,17 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>KGM Seongsu — 입출고 관리</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KGM 성수">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -42,8 +51,14 @@
   /* HEADER */
   .header {
     background: rgba(10,10,10,.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(139,92,246,.15);
-    padding: 0 24px; display: flex; align-items: center; justify-content: space-between;
-    height: 90px; position: sticky; top: 0; z-index: 100;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-right: max(24px, env(safe-area-inset-right, 0px));
+    padding-bottom: 0;
+    padding-left: max(24px, env(safe-area-inset-left, 0px));
+    display: flex; align-items: center; justify-content: space-between;
+    min-height: calc(90px + env(safe-area-inset-top, 0px));
+    height: auto; box-sizing: border-box;
+    position: sticky; top: 0; z-index: 100;
     box-shadow: 0 4px 30px rgba(0,0,0,.5);
   }
   .header-logo { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
@@ -410,7 +425,7 @@
     .esum-hdr{font-size:11px!important}
     .esum-total{font-size:16px!important}
     /* 헤더 */
-    .header{height:60px!important;padding:0 10px!important}
+    .header{min-height:calc(60px + env(safe-area-inset-top, 0px))!important;height:auto!important;padding-top:env(safe-area-inset-top, 0px)!important;padding-right:max(10px, env(safe-area-inset-right, 0px))!important;padding-bottom:0!important;padding-left:max(10px, env(safe-area-inset-left, 0px))!important}
     .logo-grad{height:38px!important}
     .logo-text{font-size:16px!important;letter-spacing:1px!important}
     .logo-sub{display:none!important}
@@ -6954,6 +6969,13 @@ function eTst2(msg){
   });
 })();
 
+// PWA 서비스워커 등록 (/un/ 범위만)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('sw.js', { scope: './' })
+      .catch(function(err) { console.warn('SW 등록 실패:', err); });
+  });
+}
 </script>
 </body>
 </html>
