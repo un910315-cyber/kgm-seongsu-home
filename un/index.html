@@ -618,6 +618,7 @@
   <div class="nav-tab" onclick="switchPage('board')" id="tab-board">📝 게시판 · 일정</div>
   <div class="nav-tab" onclick="switchPage('estimate')">🔧 견적 도우미</div>
   <div class="nav-tab" onclick="switchPage('insurance')" id="tab-insurance">📞 보험사 연락처</div>
+  <div class="nav-tab" onclick="switchPage('blacklist')" id="tab-blacklist" style="display:none">🚫 블랙리스트</div>
   <div class="nav-tab" onclick="switchPage('usermgmt')" id="tab-usermgmt" style="display:none">👤 사용자 관리</div>
 </div>
 
@@ -889,10 +890,12 @@
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
+      <!-- 블랙 차량 경고 (차량번호 입력 시 자동 표시) -->
+      <div id="blacklistWarning" style="display:none;margin-bottom:14px;padding:12px 14px;background:rgba(232,68,42,.10);border:1px solid rgba(232,68,42,.45);border-left:3px solid #e8442a;border-radius:6px;color:#fafafa;font-size:13px;line-height:1.6;"></div>
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">차량번호 *</label>
-          <input class="form-input" id="f-carnum" placeholder="예) 12가 3456" style="font-family:'JetBrains Mono',monospace; text-transform:uppercase;">
+          <input class="form-input" id="f-carnum" placeholder="예) 12가 3456" style="font-family:'JetBrains Mono',monospace; text-transform:uppercase;" onblur="window._checkBlacklistWarning && window._checkBlacklistWarning()">
         </div>
         <div class="form-group">
           <label class="form-label">차명 (차종)</label>
@@ -1207,7 +1210,7 @@
 
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
-    admin: ['dashboard','list','complete','out','stats','migyeol','leave','board','estimate','insurance','usermgmt'],
+    admin: ['dashboard','list','complete','out','stats','migyeol','leave','board','estimate','insurance','blacklist','usermgmt'],
     staff: ['dashboard','complete','leave','board','estimate','insurance'],
     viewer: ['dashboard','complete','leave','board']
   };
@@ -1369,6 +1372,8 @@
       if(lvTab) lvTab.style.display='';
       var bdTab=document.getElementById('tab-board');
       if(bdTab) bdTab.style.display='';
+      var blTab=document.getElementById('tab-blacklist');
+      if(blTab) blTab.style.display='';
     }
     // 권한이 결정된 후 연차 화면을 한 번 더 그려서 admin/비admin 분기를 정확히 반영
     if(window._renderLeave) try{ window._renderLeave(); }catch(e){ console.error(e); }
@@ -1505,10 +1510,32 @@
   window._fbDb=db; window._fbRef=ref; window._fbUpdate=update;
   (async()=>{const ms=await window.fsLoadMp();if(ms.length){let lc=[];try{lc=JSON.parse(localStorage.getItem("kgm_custom")||"[]");}catch{}const mg=[...ms,...lc.filter(l=>!ms.some(c=>c.label===l.label))];localStorage.setItem("kgm_custom",JSON.stringify(mg));}})();
   const recordsRef = ref(db, 'records');
+  const blacklistRef = ref(db, 'blacklist');
 
   let records = {};
+  let blacklistMap = {}; // { carNumKey: { carNum, name, phone, reason, severity, addedAt, addedBy } }
   let editingId = null;
   window._getRecord = function(id){ return records[id]; };
+
+  // 차량번호 정규화: 공백 제거, 대문자 (DB 키로도 사용)
+  function normalizeCarNum(s) { return String(s||'').replace(/\s+/g,'').toUpperCase(); }
+  window._getBlacklistEntry = function(carNum) {
+    return blacklistMap[normalizeCarNum(carNum)] || null;
+  };
+  window._isAdmin = function() {
+    return (window._userRole === 'admin') || (window.currentUser && window.currentUser.role === 'admin');
+  };
+
+  // 블랙리스트 실시간 구독
+  onValue(blacklistRef, (snapshot) => {
+    blacklistMap = snapshot.val() || {};
+    // 현재 열려있는 입출고 폼이 있으면 경고 다시 평가
+    if (typeof window._checkBlacklistWarning === 'function') {
+      const inp = document.getElementById('f-carnum');
+      if (inp && inp.value) window._checkBlacklistWarning();
+    }
+    if (typeof window._renderBlacklist === 'function') window._renderBlacklist();
+  }, (err) => { console.warn('blacklist subscribe', err); });
 
   // 실시간 데이터 수신
   onValue(recordsRef, (snapshot) => {
@@ -1815,8 +1842,9 @@
         <td>${fmt(r.inDate)}</td>
         <td>${esc(r.km)||'-'}</td>
         <td>
-          <div style="display:flex;gap:5px;">
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
             <button class="btn btn-success btn-sm" onclick="window._markOut('${esc(r.id)}','${esc(r.carNum)}','${esc(r.name)}')">출고 처리</button>
+            ${window._isAdmin && window._isAdmin() ? `<button class="btn btn-sm" style="background:rgba(232,68,42,0.18);color:#e8442a;border:1px solid rgba(232,68,42,0.4);font-weight:700;" onclick="window._openBlacklistRegModal('${esc(r.id)}','${esc(r.carNum)}','${esc(r.name||'')}','${esc(r.phone||'')}')">🚫 블랙+출고</button>` : ''}
             <button class="btn btn-ghost btn-sm" onclick="window._openModal('${esc(r.id)}')">수정</button>
           </div>
         </td>
@@ -1858,11 +1886,42 @@
       document.getElementById('f-indate').value = new Date().toISOString().split('T')[0];
     }
     document.getElementById('formModal').classList.add('open');
+    // 블랙 경고 평가 (수정 모드면 기존 차량번호로 즉시, 신규면 비워둠)
+    setTimeout(function() { if (window._checkBlacklistWarning) window._checkBlacklistWarning(); }, 0);
   };
 
   window.closeModal = function() {
     document.getElementById('formModal').classList.remove('open');
     editingId = null;
+    var w = document.getElementById('blacklistWarning');
+    if (w) { w.style.display = 'none'; w.innerHTML = ''; }
+  };
+
+  // 블랙리스트 경고 박스 평가
+  window._checkBlacklistWarning = function() {
+    var inp = document.getElementById('f-carnum');
+    var box = document.getElementById('blacklistWarning');
+    if (!inp || !box) return;
+    var val = inp.value.trim();
+    if (!val) { box.style.display = 'none'; box.innerHTML = ''; return; }
+    var entry = window._getBlacklistEntry(val);
+    if (!entry) { box.style.display = 'none'; box.innerHTML = ''; return; }
+    var sev = entry.severity || 'medium';
+    var sevColor = sev === 'high' ? '#e8442a' : sev === 'low' ? '#fbbf24' : '#ef4444';
+    var sevLabel = sev === 'high' ? '🔴 높음' : sev === 'low' ? '🟡 낮음' : '🟠 중간';
+    var pastCount = 0;
+    var nv = normalizeCarNum(val);
+    Object.values(records).forEach(function(r){ if (r && normalizeCarNum(r.carNum||'') === nv) pastCount++; });
+    var addedDate = entry.addedAt ? String(entry.addedAt).slice(0,10) : '-';
+    box.innerHTML = ''
+      + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
+      +   '<span style="font-size:18px;">🚫</span>'
+      +   '<span style="font-weight:800;color:#e8442a;font-size:14px;">블랙 등록 차량입니다</span>'
+      +   '<span style="margin-left:auto;font-size:11px;padding:2px 8px;border-radius:4px;background:rgba(232,68,42,.2);color:'+sevColor+';font-weight:700;">'+sevLabel+'</span>'
+      + '</div>'
+      + '<div style="font-size:12px;color:rgba(250,250,250,.85);margin-bottom:4px;"><b>사유:</b> ' + esc(entry.reason||'(미입력)') + '</div>'
+      + '<div style="font-size:11px;color:rgba(250,250,250,.55);">등록일 ' + esc(addedDate) + ' · 등록자 ' + esc(entry.addedBy||'-') + ' · 과거 입고 ' + pastCount + '건</div>';
+    box.style.display = 'block';
   };
 
   // 폼 데이터 수집 (공통)
@@ -1957,6 +2016,136 @@
       });
       showNotif(`${carNum} 출고 처리 완료! ✅`);
     } catch(e) { showNotif('처리 실패', true); }
+  };
+
+  // ── 블랙리스트 등록 후 출고 ──
+  let _blacklistRegTarget = null;
+  window._openBlacklistRegModal = function(id, carNum, name, phone) {
+    if (!window._isAdmin()) { showNotif('관리자 권한이 필요합니다', true); return; }
+    _blacklistRegTarget = { id: id, carNum: carNum, name: name||'', phone: phone||'' };
+    document.getElementById('bl-carnum').value = carNum;
+    document.getElementById('bl-name').value = name || '(미입력)';
+    document.getElementById('bl-severity').value = 'medium';
+    document.getElementById('bl-reason').value = '';
+    document.getElementById('blacklistRegModal').classList.add('open');
+    setTimeout(function(){ document.getElementById('bl-reason').focus(); }, 50);
+  };
+
+  window._confirmBlacklistAndOut = async function() {
+    if (!_blacklistRegTarget) return;
+    if (!window._isAdmin()) { showNotif('관리자 권한이 필요합니다', true); return; }
+    var reason = document.getElementById('bl-reason').value.trim();
+    if (!reason) { showNotif('사유를 입력해주세요', true); return; }
+    if (reason.length > 500) { showNotif('사유가 너무 깁니다 (500자 이내)', true); return; }
+    var severity = document.getElementById('bl-severity').value;
+    if (['high','medium','low'].indexOf(severity) < 0) severity = 'medium';
+    var t = _blacklistRegTarget;
+    var key = normalizeCarNum(t.carNum);
+    if (!key) { showNotif('차량번호가 없습니다', true); return; }
+    try {
+      await update(ref(db, 'blacklist/' + key), {
+        carNum: t.carNum,
+        name: t.name,
+        phone: t.phone,
+        reason: reason,
+        severity: severity,
+        addedAt: new Date().toISOString(),
+        addedBy: (window.currentUser && window.currentUser.email) || (window._userEmail || '-')
+      });
+      // 동시 출고 처리
+      await update(ref(db, 'records/' + t.id), {
+        status: '출고',
+        outDate: new Date().toISOString().split('T')[0],
+        updatedAt: new Date().toISOString()
+      });
+      document.getElementById('blacklistRegModal').classList.remove('open');
+      _blacklistRegTarget = null;
+      showNotif('🚫 블랙 등록 + 출고 완료');
+    } catch(e) {
+      console.error('blacklist+out failed', e);
+      showNotif('처리 실패: ' + (e.message||e), true);
+    }
+  };
+
+  // ── 블랙리스트 페이지 렌더 ──
+  window._renderBlacklist = function() {
+    var body = document.getElementById('blacklistBody');
+    var empty = document.getElementById('blacklist-empty');
+    if (!body) return;
+    var q = (document.getElementById('searchBlacklist')?.value || '').trim().toLowerCase();
+    var entries = Object.entries(blacklistMap || {})
+      .map(function(kv){ return Object.assign({_key: kv[0]}, kv[1] || {}); })
+      .filter(function(e){
+        if (!q) return true;
+        return (e.carNum||'').toLowerCase().includes(q)
+          || (e.name||'').toLowerCase().includes(q)
+          || (e.reason||'').toLowerCase().includes(q);
+      })
+      .sort(function(a,b){ return (b.addedAt||'').localeCompare(a.addedAt||''); });
+
+    if (!entries.length) {
+      body.innerHTML = '';
+      empty.style.display = '';
+      return;
+    }
+    empty.style.display = 'none';
+    body.innerHTML = entries.map(function(e){
+      var sev = e.severity || 'medium';
+      var sevColor = sev === 'high' ? '#e8442a' : sev === 'low' ? '#fbbf24' : '#ef4444';
+      var sevLabel = sev === 'high' ? '🔴 높음' : sev === 'low' ? '🟡 낮음' : '🟠 중간';
+      var addedDate = e.addedAt ? String(e.addedAt).slice(0,10) : '-';
+      var nv = normalizeCarNum(e.carNum||'');
+      var pastCount = 0;
+      Object.values(records).forEach(function(r){ if (r && normalizeCarNum(r.carNum||'') === nv) pastCount++; });
+      return '<tr>'
+        + '<td><span class="car-num" style="color:#e8442a;">' + esc(e.carNum||'-') + '</span></td>'
+        + '<td>' + esc(e.name||'-') + '</td>'
+        + '<td>' + esc(e.phone||'-') + '</td>'
+        + '<td><span style="padding:2px 8px;border-radius:4px;background:rgba(232,68,42,.18);color:' + sevColor + ';font-weight:700;font-size:11px;">' + sevLabel + '</span></td>'
+        + '<td style="max-width:280px;white-space:normal;word-break:keep-all;">' + esc(e.reason||'-') + '</td>'
+        + '<td>' + esc(addedDate) + '</td>'
+        + '<td style="font-size:11px;color:var(--text-dim);">' + esc(e.addedBy||'-') + '</td>'
+        + '<td style="text-align:center;">' + pastCount + '건</td>'
+        + '<td>'
+        +   '<div style="display:flex;gap:5px;">'
+        +     '<button class="btn btn-ghost btn-sm" onclick="window._editBlacklistEntry(\'' + esc(e._key) + '\')">수정</button>'
+        +     '<button class="btn btn-sm" style="background:rgba(232,68,42,0.18);color:#e8442a;border:1px solid rgba(232,68,42,0.4);" onclick="window._removeBlacklistEntry(\'' + esc(e._key) + '\',\'' + esc(e.carNum||'') + '\')">해제</button>'
+        +   '</div>'
+        + '</td>'
+        + '</tr>';
+    }).join('');
+  };
+
+  window._removeBlacklistEntry = async function(key, carNum) {
+    if (!window._isAdmin()) { showNotif('관리자 권한이 필요합니다', true); return; }
+    if (!confirm((carNum||key) + ' 블랙 등록을 해제할까요?')) return;
+    try {
+      await update(ref(db, 'blacklist'), { [key]: null });
+      showNotif('블랙 해제 완료');
+    } catch(e) { showNotif('해제 실패: ' + (e.message||e), true); }
+  };
+
+  window._editBlacklistEntry = async function(key) {
+    if (!window._isAdmin()) { showNotif('관리자 권한이 필요합니다', true); return; }
+    var entry = blacklistMap[key];
+    if (!entry) return;
+    var newReason = prompt('새 사유 (최대 500자):', entry.reason || '');
+    if (newReason === null) return;
+    newReason = String(newReason).trim().slice(0, 500);
+    if (!newReason) { showNotif('사유는 비어둘 수 없습니다', true); return; }
+    var newSeverity = prompt('심각도 (high / medium / low):', entry.severity || 'medium');
+    if (newSeverity === null) return;
+    newSeverity = String(newSeverity).trim().toLowerCase();
+    if (['high','medium','low'].indexOf(newSeverity) < 0) newSeverity = 'medium';
+    try {
+      await update(ref(db, 'blacklist/' + key), {
+        reason: newReason,
+        severity: newSeverity,
+        updatedAt: new Date().toISOString(),
+        updatedBy: (window.currentUser && window.currentUser.email) || (window._userEmail || '-')
+      });
+      showNotif('수정 완료');
+    } catch(e) { showNotif('수정 실패: ' + (e.message||e), true); }
   };
 
   // ---- STATS ----
@@ -4004,6 +4193,7 @@
       if (name==='leave' && window._renderLeave) window._renderLeave();
       if (name==='board') { if(window._renderBoard) window._renderBoard(); if(window._renderCalendar) window._renderCalendar(); }
       if (name==='insurance' && window._renderInsurance) window._renderInsurance();
+      if (name==='blacklist' && window._renderBlacklist) window._renderBlacklist();
     } catch(e) {
       alert('switchPage 에러: ' + e.message);
     }
@@ -5317,6 +5507,68 @@ function fmtDateVal(val) {
     <div id="insurance-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;"></div>
     <div id="insurance-empty" class="empty" style="display:none;"><div class="empty-icon">📞</div><div>등록된 보험사가 없습니다</div></div>
     <div id="insurance-noresult" class="empty" style="display:none;"><div class="empty-icon">🔎</div><div>검색 결과가 없습니다</div></div>
+  </div>
+</div>
+
+<!-- 블랙리스트 (관리자 전용) -->
+<div id="page-blacklist" class="page">
+  <div class="main">
+    <div class="section-header">
+      <div class="section-title">🚫 블랙리스트</div>
+      <div style="font-size:11px;color:var(--text-dim);">악성·미납·요주의 고객 차량 관리 — 관리자 전용</div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <input class="search-box" type="text" id="searchBlacklist" placeholder="🔍  차량번호 / 고객명 / 사유 검색..." oninput="window._renderBlacklist&&window._renderBlacklist()" style="width:100%;max-width:400px;">
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>차량번호</th><th>고객명</th><th>연락처</th><th>심각도</th><th>사유</th><th>등록일</th><th>등록자</th><th>과거이력</th><th>관리</th></tr></thead>
+        <tbody id="blacklistBody"></tbody>
+      </table>
+    </div>
+    <div id="blacklist-empty" class="empty" style="display:none;"><div class="empty-icon">✅</div><div>등록된 블랙 차량이 없습니다</div></div>
+  </div>
+</div>
+
+<!-- 블랙 등록 모달 -->
+<div class="modal-overlay" id="blacklistRegModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-title">🚫 블랙 등록 후 출고</div>
+      <button class="modal-close" onclick="document.getElementById('blacklistRegModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:rgba(232,68,42,.08);border-left:3px solid #e8442a;padding:10px 12px;border-radius:4px;margin-bottom:14px;font-size:12px;color:rgba(250,250,250,.85);">
+        이 고객은 향후 입고 시 자동으로 경고가 표시됩니다.<br>
+        <span style="opacity:0.7;">차량번호 기준 매칭. 다른 차량이면 별개 등록 필요.</span>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">차량번호</label>
+          <input class="form-input" id="bl-carnum" readonly style="font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.05);">
+        </div>
+        <div class="form-group">
+          <label class="form-label">고객명</label>
+          <input class="form-input" id="bl-name" readonly style="background:rgba(255,255,255,.05);">
+        </div>
+        <div class="form-group">
+          <label class="form-label">심각도</label>
+          <select class="form-select" id="bl-severity">
+            <option value="high">🔴 높음 (재입고 거절 권고)</option>
+            <option value="medium" selected>🟠 중간 (신중 응대)</option>
+            <option value="low">🟡 낮음 (단순 참고)</option>
+          </select>
+        </div>
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label">사유 *</label>
+          <textarea class="form-input" id="bl-reason" rows="3" placeholder="예) 수리비 미납, 폭언/위협, 작업 후 무리한 클레임 등" style="resize:vertical;"></textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">
+        <button class="btn btn-ghost" onclick="document.getElementById('blacklistRegModal').classList.remove('open')">취소</button>
+        <button class="btn btn-sm" style="background:#e8442a;color:#fff;border:none;padding:8px 16px;font-weight:700;" onclick="window._confirmBlacklistAndOut&&window._confirmBlacklistAndOut()">블랙 등록 + 출고 처리</button>
+      </div>
+    </div>
   </div>
 </div>
 
