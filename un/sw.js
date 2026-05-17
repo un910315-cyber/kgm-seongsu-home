@@ -1,7 +1,7 @@
 // KGM 성수 내부 페이지 — Service Worker
 // 앱 셸(HTML/manifest/icons)만 캐시. Firebase·외부 CDN은 자체 캐시·재시도.
 
-const CACHE_VERSION = 'v4-2026-05-17-blacklist-discreet';
+const CACHE_VERSION = 'v5-2026-05-17-blacklist-alerts';
 const CACHE_NAME = `kgm-seongsu-un-${CACHE_VERSION}`;
 
 const APP_SHELL = [
