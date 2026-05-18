@@ -171,31 +171,47 @@
       </div>
 
       <div class="daily-sales-section">
-        <!-- 일일 매출 + 보증금 위젯 (NEW) -->
+        <!-- 일일 매출 + 보증금 위젯 (대표 보고용 — 큰 숫자 + 14일 추이 차트) -->
         <div class="chart-card widget-card">
           <div class="chart-header" style="justify-content:space-between;">
             <div style="display:flex;align-items:baseline;gap:10px;">
-              <div class="chart-title">오늘 매출 · 이달 보증금</div>
+              <div class="chart-title">매출 보고</div>
               <div class="chart-subtitle" id="daily-sales-date">—</div>
             </div>
+            <a href="#" onclick="switchPage('sales');return false;" style="color:#c4b5fd;text-decoration:none;font-size:11px;font-weight:600;">입력 →</a>
           </div>
-          <div class="sales-rows readonly">
-            <div class="sales-row">
-              <div class="sales-label" style="--cat-color:#fb923c;"><span class="sales-dot"></span>부품 (오늘)</div>
-              <div class="sales-value-big" id="daily-parts-value">₩0</div>
+
+          <!-- 부품 매출 -->
+          <div class="daily-stat-row" style="--row-color:#fb923c;">
+            <div class="dsr-top">
+              <div class="dsr-label"><span class="dsr-dot"></span>부품 (오늘)</div>
+              <div class="dsr-trend" id="daily-parts-trend"></div>
             </div>
-            <div class="sales-row">
-              <div class="sales-label" style="--cat-color:#34d399;"><span class="sales-dot"></span>기능 (오늘)</div>
-              <div class="sales-value-big" id="daily-function-value">₩0</div>
-            </div>
-            <div class="sales-row" style="border-top:1px solid rgba(255,255,255,.08);margin-top:6px;padding-top:14px;">
-              <div class="sales-label" style="--cat-color:#fbbf24;"><span class="sales-dot"></span>이달 보증금</div>
-              <div class="sales-value-big" id="monthly-deposit-value">₩0</div>
-            </div>
+            <div class="dsr-value" id="daily-parts-value">₩0</div>
+            <div class="dsr-spark-wrap"><div id="daily-parts-spark" class="dsr-spark"></div></div>
+            <div class="dsr-meta">최근 14일</div>
           </div>
-          <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center;">
-            <div style="font-size:11px;color:var(--text-dim);" id="daily-sales-meta">담당자가 매출 보고 탭에서 입력</div>
-            <a href="#" onclick="switchPage('sales');return false;" style="color:#c4b5fd;text-decoration:none;font-size:11px;font-weight:600;">매출 보고 →</a>
+
+          <!-- 기능 매출 -->
+          <div class="daily-stat-row" style="--row-color:#34d399;">
+            <div class="dsr-top">
+              <div class="dsr-label"><span class="dsr-dot"></span>기능 (오늘)</div>
+              <div class="dsr-trend" id="daily-function-trend"></div>
+            </div>
+            <div class="dsr-value" id="daily-function-value">₩0</div>
+            <div class="dsr-spark-wrap"><div id="daily-function-spark" class="dsr-spark"></div></div>
+            <div class="dsr-meta">최근 14일</div>
+          </div>
+
+          <!-- 이달 보증금 -->
+          <div class="daily-stat-row deposit-row" style="--row-color:#fbbf24;">
+            <div class="dsr-top">
+              <div class="dsr-label"><span class="dsr-dot"></span>이달 보증금</div>
+              <div class="dsr-trend" id="deposit-status"></div>
+            </div>
+            <div class="dsr-value" id="monthly-deposit-value">₩0</div>
+            <div class="dsr-spark-wrap"><div id="deposit-spark" class="dsr-spark"></div></div>
+            <div class="dsr-meta">최근 6개월</div>
           </div>
         </div>
       </div>

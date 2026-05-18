@@ -507,6 +507,67 @@
   function _fmtKRW(n) {
     return '₩' + (Number(n)||0).toLocaleString('ko-KR');
   }
+  // 14일치 일자별 값 추출 (오래된 → 최신)
+  function _last14Days() {
+    const days = [];
+    const today = new Date();
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      days.push(ds);
+    }
+    return days;
+  }
+  // 최근 6개월 키 (오래된 → 최신)
+  function _last6Months() {
+    const months = [];
+    const today = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      months.push(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'));
+    }
+    return months;
+  }
+  // 스파크라인 SVG (라인 + 그라데이션 영역 + 마지막 포인트)
+  function _renderSpark(elId, values, color) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const W = 280, H = 36, padX = 2, padY = 4;
+    const innerW = W - padX*2, innerH = H - padY*2;
+    const maxV = Math.max(1, ...values);
+    const n = values.length;
+    const pts = values.map((v, i) => {
+      const x = padX + (n === 1 ? innerW/2 : (i/(n-1)) * innerW);
+      const y = padY + innerH - (v / maxV) * innerH;
+      return [x, y];
+    });
+    const linePath = 'M ' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' L ');
+    const areaPath = linePath + ' L ' + (padX + innerW).toFixed(1) + ' ' + (padY + innerH) + ' L ' + padX + ' ' + (padY + innerH) + ' Z';
+    const lastPt = pts[pts.length - 1];
+    const gradId = 'spark-grad-' + elId;
+    el.innerHTML =
+      `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">` +
+      `<defs><linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">` +
+        `<stop offset="0%" stop-color="${color}" stop-opacity="0.35"/>` +
+        `<stop offset="100%" stop-color="${color}" stop-opacity="0"/>` +
+      `</linearGradient></defs>` +
+      `<path d="${areaPath}" fill="url(#${gradId})"/>` +
+      `<path d="${linePath}" stroke="${color}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` +
+      `<circle cx="${lastPt[0].toFixed(1)}" cy="${lastPt[1].toFixed(1)}" r="3" fill="${color}" stroke="#1a1c20" stroke-width="2"/>` +
+      `</svg>`;
+  }
+  // 추세 계산: 오늘 vs 어제 비교
+  function _trendLabel(today, yesterday) {
+    if (yesterday === 0 && today === 0) return { cls: 'flat', text: '데이터 없음' };
+    if (yesterday === 0) return { cls: 'up', text: '신규' };
+    const diff = today - yesterday;
+    const pct = Math.round((diff / yesterday) * 100);
+    if (pct === 0) return { cls: 'flat', text: '어제 동일' };
+    if (pct > 0) return { cls: 'up', text: '↑ 어제 +' + pct + '%' };
+    return { cls: 'down', text: '↓ 어제 ' + pct + '%' };
+  }
+
   function renderSalesWidget() {
     const today = _todayStr();
     const mo = _thisMonthStr();
@@ -518,19 +579,54 @@
     // 대시보드 오늘 매출 위젯
     const dateEl = document.getElementById('daily-sales-date');
     if (dateEl) dateEl.textContent = dateLabel + ' 기준';
+
+    // 14일 데이터 추출
+    const days14 = _last14Days();
+    const yesterdayKey = days14[days14.length - 2];
+    const yesterdayData = salesDailyMap[yesterdayKey] || {};
+
+    const CAT_COLORS = { parts: '#fb923c', function: '#34d399' };
     SALES_CATS.forEach(cat => {
       const v = Number(todayData[cat]) || 0;
+      const yv = Number(yesterdayData[cat]) || 0;
       const valEl = document.getElementById('daily-' + cat + '-value');
       if (valEl) {
         valEl.textContent = _fmtKRW(v);
         valEl.classList.toggle('zero', v === 0);
       }
+      // 추세
+      const trendEl = document.getElementById('daily-' + cat + '-trend');
+      if (trendEl) {
+        const t = _trendLabel(v, yv);
+        trendEl.textContent = t.text;
+        trendEl.className = 'dsr-trend ' + t.cls;
+      }
+      // 14일 스파크라인
+      const series = days14.map(d => Number((salesDailyMap[d] || {})[cat]) || 0);
+      _renderSpark('daily-' + cat + '-spark', series, CAT_COLORS[cat]);
     });
+
+    // 보증금
     const depEl = document.getElementById('monthly-deposit-value');
     if (depEl) {
       depEl.textContent = _fmtKRW(depositVal);
       depEl.classList.toggle('zero', depositVal === 0);
     }
+    // 보증금 상태 라벨
+    const depStatusEl = document.getElementById('deposit-status');
+    if (depStatusEl) {
+      if (depositVal > 0) {
+        depStatusEl.textContent = monthLabel + ' 보고 완료';
+        depStatusEl.className = 'dsr-trend up';
+      } else {
+        depStatusEl.textContent = '미입력';
+        depStatusEl.className = 'dsr-trend flat';
+      }
+    }
+    // 보증금 6개월 스파크라인
+    const months6 = _last6Months();
+    const depSeries = months6.map(m => Number(depositMap[m]) || 0);
+    _renderSpark('deposit-spark', depSeries, '#fbbf24');
 
     // 매출 보고 페이지 — 저장된 값 표시
     const dailyReportDate = document.getElementById('daily-report-date');

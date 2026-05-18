@@ -885,6 +885,59 @@
     color: #fff; text-align: right;
   }
   .sales-value-big.zero { color: #4a4d54; font-weight: 500; }
+
+  /* 19. 대시보드 일일 매출 보고 행 — 큰 숫자 + 스파크라인 + 추세 */
+  .daily-stat-row {
+    padding: 12px 14px;
+    background: rgba(255,255,255,.02);
+    border: 1px solid rgba(255,255,255,.06);
+    border-left: 3px solid var(--row-color, #6b7280);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .daily-stat-row:last-child { margin-bottom: 0; }
+  .dsr-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .dsr-label {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 700; color: #c1c5cc;
+    text-transform: none;
+  }
+  .dsr-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--row-color, #6b7280);
+    display: inline-block;
+  }
+  .dsr-trend {
+    font-size: 11px; font-weight: 700;
+    padding: 2px 8px; border-radius: 999px;
+    background: rgba(255,255,255,.05);
+    color: #c1c5cc;
+  }
+  .dsr-trend.up   { background: rgba(105,219,124,.18); color: #69db7c; }
+  .dsr-trend.down { background: rgba(255,135,135,.18); color: #ff8787; }
+  .dsr-trend.flat { background: rgba(255,255,255,.06); color: #a0a4ac; }
+  .dsr-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px; font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+    margin-top: 4px;
+  }
+  .dsr-spark-wrap { margin-top: 4px; }
+  .dsr-spark { width: 100%; height: 36px; }
+  .dsr-spark svg { width: 100%; height: 36px; display: block; }
+  .dsr-meta {
+    font-size: 10px; color: #6e7280;
+    letter-spacing: 0.3px;
+    text-align: right;
+  }
+  .daily-stat-row.deposit-row {
+    background: linear-gradient(135deg, rgba(251,191,36,.06) 0%, rgba(255,255,255,.02) 100%);
+  }
   @media (max-width: 480px) {
     .sales-row { grid-template-columns: 60px 1fr auto; }
     .sales-value { grid-column: 2 / span 2; text-align: right; padding-top: 2px; font-size: 12px; }
