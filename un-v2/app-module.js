@@ -354,9 +354,11 @@
   (async()=>{const ms=await window.fsLoadMp();if(ms.length){let lc=[];try{lc=JSON.parse(localStorage.getItem("kgm_custom")||"[]");}catch{}const mg=[...ms,...lc.filter(l=>!ms.some(c=>c.label===l.label))];localStorage.setItem("kgm_custom",JSON.stringify(mg));}})();
   const recordsRef = ref(db, 'records');
   const blacklistRef = ref(db, 'blacklist');
+  const kgmDailyRef = ref(db, 'kgmDailyCount');  // { 'YYYY-MM-DD': number }
 
   let records = {};
-  let blacklistMap = {}; // { carNumKey: { carNum, name, phone, reason, severity, addedAt, addedBy } }
+  let blacklistMap = {};
+  let kgmDailyMap = {};  // { 'YYYY-MM-DD': count }
   let editingId = null;
   window._getRecord = function(id){ return records[id]; };
 
@@ -456,6 +458,50 @@
     showNotif('❌ Firebase 연결 실패. databaseURL을 확인해주세요.', true);
     console.error(error);
   });
+
+  // KGM 일일 카운트 실시간 수신
+  onValue(kgmDailyRef, (snap) => {
+    const val = snap.val() || {};
+    // 숫자만 보관 (잘못된 값 거름)
+    kgmDailyMap = {};
+    Object.entries(val).forEach(([k, v]) => {
+      const n = Number(v);
+      if (Number.isFinite(n) && n >= 0) kgmDailyMap[k] = n;
+    });
+    // 대시보드만 다시 그림 (다른 페이지 영향 없음)
+    if (typeof renderDashboard === 'function') { try { renderDashboard(); } catch(e){} }
+  }, (err) => { console.warn('kgmDaily subscribe', err); });
+
+  // ── KGM 일일 카운트 조작 함수 ──
+  function kgmTodayStr() { return new Date().toISOString().split('T')[0]; }
+  async function _kgmSetToday(newVal) {
+    const day = kgmTodayStr();
+    const n = Math.max(0, Math.min(999, Math.floor(Number(newVal) || 0)));
+    try {
+      await update(ref(db, 'kgmDailyCount'), { [day]: n });
+      // showNotif는 너무 자주 뜨면 시끄러우니 생략
+    } catch(e) {
+      console.error('kgmDaily save fail', e);
+      showNotif('저장 실패: ' + (e.message || e), true);
+    }
+  }
+  window._kgmDailyInc = function() {
+    const cur = kgmDailyMap[kgmTodayStr()] || 0;
+    _kgmSetToday(cur + 1);
+  };
+  window._kgmDailyDec = function() {
+    const cur = kgmDailyMap[kgmTodayStr()] || 0;
+    if (cur <= 0) return;
+    _kgmSetToday(cur - 1);
+  };
+  window._kgmDailyEdit = function() {
+    const cur = kgmDailyMap[kgmTodayStr()] || 0;
+    const raw = prompt('오늘 정비차량 입고 대수 직접 입력:', String(cur));
+    if (raw === null) return;
+    const n = parseInt(String(raw).trim(), 10);
+    if (!Number.isFinite(n) || n < 0) { showNotif('숫자만 입력 (0 이상)', true); return; }
+    _kgmSetToday(n);
+  };
 
   function getList() {
     return Object.entries(records).map(([id, val]) => ({ id, ...val }));
@@ -619,13 +665,19 @@
     document.getElementById('stat-done').textContent = list.filter(r=>r.status==='수리완료').length;
     document.getElementById('stat-today').textContent = list.filter(r=>r.inDate===today).length;
 
-    // 정비차량 (KGM) 통계 — 오늘 입고 / 이달 입고만
-    const kgmList = list.filter(r => r.carType === 'KGM');
+    // 정비차량 (KGM) 일일 카운트 — kgmDailyMap 기반
     const thisMonth = today.slice(0, 7); // 'YYYY-MM'
     const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    setText('stat-kgm-today', kgmList.filter(r => r.inDate === today).length);
-    setText('stat-kgm-month', kgmList.filter(r => (r.inDate || '').startsWith(thisMonth)).length);
-    renderKgmIntakeChart(kgmList);
+    const todayCount = kgmDailyMap[today] || 0;
+    let monthSum = 0;
+    Object.entries(kgmDailyMap).forEach(([day, cnt]) => { if (day.startsWith(thisMonth)) monthSum += cnt; });
+    setText('stat-kgm-today', todayCount);
+    setText('stat-kgm-month', monthSum);
+    // 메타: 마지막 갱신 시각이나 안내
+    const metaEl = document.getElementById('kgm-today-meta');
+    if (metaEl) metaEl.textContent = todayCount > 0 ? '오늘 ' + todayCount + '대 정비' : '탭하여 카운트';
+
+    renderKgmIntakeChart();  // kgmDailyMap 사용
     renderLocationDonut(active);
 
     // 월별 통계도 대시보드로 통합됨 → 같이 렌더
@@ -673,8 +725,8 @@
       </tr>`).join('');
   }
 
-  // ── 정비차량 (KGM) 14일 입고 추이 SVG 차트 ──
-  function renderKgmIntakeChart(kgmList) {
+  // ── 정비차량 (KGM) 14일 입고 추이 SVG 차트 — kgmDailyMap 기반 ──
+  function renderKgmIntakeChart() {
     const el = document.getElementById('kgmIntakeChart');
     if (!el) return;
     const today = new Date();
@@ -683,7 +735,7 @@
       const d = new Date(today);
       d.setDate(d.getDate() - i);
       const ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-      const count = kgmList.filter(r => r.inDate === ds).length;
+      const count = kgmDailyMap[ds] || 0;
       const dow = ['일','월','화','수','목','금','토'][d.getDay()];
       days.push({
         date: ds, count: count,

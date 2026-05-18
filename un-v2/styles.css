@@ -821,6 +821,26 @@
   #page-dashboard #stats-summary .stat-value { font-size: 20px !important; }
   /* 블랙 알림 컴팩트 */
   #page-dashboard #blacklistAlertBanner { padding: 10px 14px !important; margin-bottom: 10px !important; }
+
+  /* 17. KGM 일일 카운터 버튼 (+/-) */
+  .kgm-cnt-btn {
+    width: 32px; height: 32px; border-radius: 4px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.12);
+    color: #fff; font-size: 18px; font-weight: 700;
+    cursor: pointer; line-height: 1;
+    transition: background .12s, border-color .12s, transform .08s;
+    font-family: inherit;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .kgm-cnt-btn:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.2); }
+  .kgm-cnt-btn:active { transform: scale(.92); }
+  .kgm-cnt-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .kgm-cnt-btn.kgm-cnt-plus { background: rgba(239,68,68,.18); border-color: rgba(239,68,68,.4); color: #ff8787; }
+  .kgm-cnt-btn.kgm-cnt-plus:hover { background: rgba(239,68,68,.28); border-color: rgba(239,68,68,.55); }
+  .kgm-today-card .stat-value { transition: color .15s; }
+  .kgm-today-card .stat-value:hover { color: #ff8787; }
   /* 끝 */
 
   /* PWA 설치 안내 (로그인 화면 배너 + 헤더 작은 아이콘) */

@@ -154,11 +154,20 @@
         <div class="chart-card widget-card">
           <div class="chart-header">
             <div class="chart-title">정비차량 (KGM) 현황</div>
-            <div class="chart-subtitle">14일 추이</div>
+            <div class="chart-subtitle">하루 끝에 카운트만 기록</div>
           </div>
           <div class="stats-grid" style="margin-bottom:10px;grid-template-columns:1fr 1fr;">
-            <div class="stat-card red"><div class="stat-label">오늘 입고</div><div class="stat-value" id="stat-kgm-today">0</div><div class="stat-sub">금일 신규</div></div>
-            <div class="stat-card orange"><div class="stat-label">이달 입고</div><div class="stat-value" id="stat-kgm-month">0</div><div class="stat-sub">이번 달</div></div>
+            <!-- 오늘 입고 — 편집 가능 -->
+            <div class="stat-card red kgm-today-card">
+              <div class="stat-label">오늘 입고</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:2px;">
+                <button class="kgm-cnt-btn" onclick="window._kgmDailyDec()" title="−1" aria-label="감소">−</button>
+                <div class="stat-value" id="stat-kgm-today" style="flex:1;text-align:center;cursor:pointer;" onclick="window._kgmDailyEdit()" title="클릭해서 직접 입력">0</div>
+                <button class="kgm-cnt-btn kgm-cnt-plus" onclick="window._kgmDailyInc()" title="+1" aria-label="증가">+</button>
+              </div>
+              <div class="stat-sub" id="kgm-today-meta">탭하여 카운트</div>
+            </div>
+            <div class="stat-card orange"><div class="stat-label">이달 입고</div><div class="stat-value" id="stat-kgm-month">0</div><div class="stat-sub">이번 달 누적</div></div>
           </div>
           <div id="kgmIntakeChart" class="chart-wrap"></div>
         </div>
