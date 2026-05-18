@@ -4542,37 +4542,41 @@ function handleBoltFile(file) {
         const r3 = raw[i+2]||[];
 
         const 청구금액 = parseFloat(String(r2[2]||'').replace(',',''))||0;
-        const 승인금액 = parseFloat(String(r2[6]||'').replace(',',''))||0;
-        const 수납일raw = String(r3[16]||'').trim().replace('.0','');
-        const 수납일있음 = 수납일raw && 수납일raw !== '' && 수납일raw !== '0' && 수납일raw.length > 3;
+        const 선수금 = parseFloat(String(r2[16]||'').replace(',',''))||0; // 자기부담금(면책금)
+        const 선수VAT = parseFloat(String(r2[18]||'').replace(',',''))||0; // 부가세
 
-        if (승인금액 === 0 && !수납일있음) {
-          // 보험사: 3행의 열6(대물보험사) 또는 열2(자차보험사)
-          const ins6 = String(r3[6]||'').trim();
-          const ins2 = String(r3[2]||'').trim();
-          let 보험사 = '';
-          if (ins6.includes(':')) 보험사 = ins6.split(':').slice(1).join(':').trim();
-          else if (ins2.includes(':')) 보험사 = ins2.split(':').slice(1).join(':').trim();
-          else 보험사 = ins6 || ins2 || '미분류';
+        // KGM 볼트 미결리스트는 파일 자체가 "미결만 정리된 것"이므로 모든 데이터 행이 미결.
+        // 자기부담금/부가세는 출고 시 별도로 미리 받기 때문에, 수납일이 찍혀 있어도
+        // 보험사 청구금액은 여전히 미수 — 따라서 필터링 없이 전체 포함.
+        // (기존 if (승인금액===0 && !수납일있음) 조건은 노란색 차량을 누락시켜서 제거)
 
-          // 접수번호: r1[7], 숫자면 .0 제거
-          const 접수번호raw = String(r1[7]||'').replace(/\.0$/, '').trim();
+        // 보험사: 3행의 열6(대물보험사) 또는 열2(자차보험사)
+        const ins6 = String(r3[6]||'').trim();
+        const ins2 = String(r3[2]||'').trim();
+        let 보험사 = '';
+        if (ins6.includes(':')) 보험사 = ins6.split(':').slice(1).join(':').trim();
+        else if (ins2.includes(':')) 보험사 = ins2.split(':').slice(1).join(':').trim();
+        else 보험사 = ins6 || ins2 || '미분류';
 
-          // 청구일자: r1[23]
-          const 청구일자raw = String(r1[23]||'').replace(/\.0$/, '').trim();
-          let 청구일자 = '-';
-          if (청구일자raw.length >= 8) 청구일자 = `${청구일자raw.slice(0,4)}-${청구일자raw.slice(4,6)}-${청구일자raw.slice(6,8)}`;
+        // 접수번호: r1[7], 숫자면 .0 제거
+        const 접수번호raw = String(r1[7]||'').replace(/\.0$/, '').trim();
 
-          records.push({
-            보험사,
-            RO번호: String(r1[2]||'').trim(),
-            접수번호: 접수번호raw || '-',
-            차량번호: String(r1[4]||'').trim(),
-            보험종류: String(r1[18]||'').trim(),
-            청구금액,
-            청구일자,
-          });
-        }
+        // 청구일자: r1[23]
+        const 청구일자raw = String(r1[23]||'').replace(/\.0$/, '').trim();
+        let 청구일자 = '-';
+        if (청구일자raw.length >= 8) 청구일자 = `${청구일자raw.slice(0,4)}-${청구일자raw.slice(4,6)}-${청구일자raw.slice(6,8)}`;
+
+        records.push({
+          보험사,
+          RO번호: String(r1[2]||'').trim(),
+          접수번호: 접수번호raw || '-',
+          차량번호: String(r1[4]||'').trim(),
+          보험종류: String(r1[18]||'').trim(),
+          청구금액,
+          청구일자,
+          선수금,    // 자기부담금(면책금) — 참고용
+          선수VAT,   // 부가세 — 참고용
+        });
       }
       if (!records.length) { alert('미결 건이 없습니다!'); return; }
       const groups = {};
