@@ -24,6 +24,9 @@
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
   const storage = getStorage(app);
+  const LOCAL_DASHBOARD_PREVIEW =
+    new URLSearchParams(location.search).get('preview') === 'dashboard' &&
+    ['127.0.0.1', 'localhost', ''].includes(location.hostname);
   // Storage 헬퍼 전역 노출 (사진 업로드/조회/삭제 로직에서 사용)
   window._storage = storage;
   window._sRef = sRef;
@@ -38,6 +41,108 @@
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
   window.esc = esc;
+
+  function renderLocalDashboardPreview() {
+    document.body.classList.add('dashboard-preview');
+    window._userRole = 'admin';
+    window._userEmail = 'preview@local';
+    window._userName = 'Preview';
+    document.body.style.overflow = '';
+    const loginScreen = document.getElementById('loginScreen');
+    const loadingScreen = document.getElementById('loadingScreen');
+    if (loginScreen) loginScreen.style.display = 'none';
+    if (loadingScreen) loadingScreen.style.display = 'none';
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const dash = document.getElementById('page-dashboard');
+    if (dash) dash.classList.add('active');
+    document.querySelectorAll('.nav-tab').forEach(tab => { tab.style.display = ''; });
+
+    const setText = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    };
+    setText('stat-total', '22');
+    setText('stat-wait', '7');
+    setText('stat-repair', '5');
+    setText('stat-done', '6');
+    setText('stat-today', '7');
+    setText('stat-kgm-today', '7');
+    setText('stat-kgm-week', '24');
+    setText('stat-kgm-month', '86');
+    setText('stat-kgm-quarter', '214');
+    setText('kgm-daily-avg', '4.3');
+    setText('kgm-week-diff', '+6대 ↑');
+    setText('daily-sales-date', '05/18 기준');
+    setText('daily-parts-value', '1,240,000원');
+    setText('daily-function-value', '820,000원');
+    setText('monthly-deposit-value', '4,800,000원');
+    setText('daily-parts-trend', '데이터 있음');
+    setText('daily-function-trend', '데이터 있음');
+    setText('deposit-status', '입력됨');
+
+    const spark = (id, values, color) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const max = Math.max(1, ...values);
+      const pts = values.map((v, i) => {
+        const x = 6 + i * (188 / (values.length - 1));
+        const y = 30 - (v / max * 22);
+        return { x, y };
+      });
+      const line = pts.map((p, i) => (i ? 'L' : 'M') + p.x.toFixed(1) + ' ' + p.y.toFixed(1)).join(' ');
+      el.innerHTML = '<svg viewBox="0 0 204 34" preserveAspectRatio="none" style="width:100%;height:100%;display:block;">'
+        + '<path d="'+line+'" fill="none" stroke="'+color+'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'
+        + '<circle cx="'+pts[pts.length-1].x+'" cy="'+pts[pts.length-1].y+'" r="3.5" fill="'+color+'"/>'
+        + '</svg>';
+    };
+    spark('daily-parts-spark', [0,2,1,3,5,4,6,7,5,8,9,8,10,9], '#fb923c');
+    spark('daily-function-spark', [1,1,2,3,2,4,3,5,6,5,7,7,8,8], '#34d399');
+    spark('deposit-spark', [3,4,3,5,6,8], '#fbbf24');
+
+    const chart = document.getElementById('kgmIntakeChart');
+    if (chart) {
+      const values = [4,6,9,14,11,7,16,8,10,12,14,18,15,6];
+      const max = Math.max(...values);
+      const pts = values.map((v, i) => ({ x: 38 + i * 52, y: 136 - (v / max * 104), v }));
+      const line = pts.map((p, i) => (i ? 'L' : 'M') + p.x + ' ' + p.y).join(' ');
+      const area = line + ' L ' + pts[pts.length-1].x + ' 148 L ' + pts[0].x + ' 148 Z';
+      chart.innerHTML = '<svg viewBox="0 0 760 190" preserveAspectRatio="none" style="width:100%;height:185px;display:block;">'
+        + '<defs><linearGradient id="previewArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8b5cf6" stop-opacity=".45"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity=".02"/></linearGradient></defs>'
+        + '<line x1="30" y1="148" x2="736" y2="148" stroke="rgba(255,255,255,.06)" stroke-dasharray="3,3"/>'
+        + '<line x1="30" y1="92" x2="736" y2="92" stroke="rgba(255,255,255,.06)" stroke-dasharray="3,3"/>'
+        + '<path d="'+area+'" fill="url(#previewArea)"/>'
+        + '<path d="'+line+'" fill="none" stroke="#8b5cf6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'
+        + pts.map((p, i) => '<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="#a78bfa" stroke="#111827" stroke-width="2"/><text x="'+p.x+'" y="172" text-anchor="middle" font-size="10" fill="#94a3b8">'+(i+5)+'</text>').join('')
+        + '</svg>';
+    }
+
+    const recent = document.getElementById('recent-dashboard-tbody');
+    if (recent) {
+      recent.innerHTML = [
+        ['05/18','123가 4567','토레스','입고'],
+        ['05/18','45나 6789','렉스턴 스포츠','수리대기'],
+        ['05/17','12다 3456','코란도','수리중'],
+        ['05/17','98라 7654','티볼리','수리완료'],
+        ['05/16','67마 9012','토레스 EVX','입고']
+      ].map(r => {
+        const cls = r[3] === '수리중' ? 'repair' : (r[3] === '수리완료' ? 'done' : 'wait');
+        return '<tr><td>'+r[0]+'</td><td><span class="car-num">'+r[1]+'</span></td><td>'+r[2]+'</td><td><span class="status-pill '+cls+'">'+r[3]+'</span></td></tr>';
+      }).join('');
+    }
+
+    const statsChart = document.getElementById('stats-chart');
+    if (statsChart) {
+      const months = [20,27,12,9,14,10,18,20,19,28,17,8,6,9,26,11,16,19,18,10,26,7,19,12,23,6,11,18,28,4,24];
+      const max = Math.max(...months);
+      statsChart.innerHTML = months.map((v, i) => {
+        const h = Math.max(4, Math.round(v / max * 120));
+        return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;">'
+          + '<div style="width:100%;height:'+h+'px;border-radius:4px 4px 2px 2px;background:linear-gradient(180deg,#8b5cf6,#4c1d95);box-shadow:0 0 18px rgba(139,92,246,.18);"></div>'
+          + (i % 2 === 0 ? '<div style="font-size:10px;color:#8b95a8;">'+(i+1)+'</div>' : '<div style="height:12px;"></div>')
+          + '</div>';
+      }).join('');
+    }
+  }
 
   // 전화번호 → tel: 링크 셀 (테이블 표시 + 클릭 다이얼)
   function phoneCell(phone) {
@@ -85,6 +190,12 @@
     const loadingScreen = document.getElementById('loadingScreen');
 
     if(!user){
+      if (LOCAL_DASHBOARD_PREVIEW) {
+        renderLocalDashboardPreview();
+        setTimeout(renderLocalDashboardPreview, 300);
+        setTimeout(renderLocalDashboardPreview, 1000);
+        return;
+      }
       loginScreen.style.display='flex';
       document.body.style.overflow='hidden';
       return;
@@ -903,6 +1014,10 @@
   }
 
   function renderDashboard() {
+    if (LOCAL_DASHBOARD_PREVIEW) {
+      renderLocalDashboardPreview();
+      return;
+    }
     const list = getList();
     const active = list.filter(r => r.status !== '출고' && r.status !== '미수리 출고');
     const today = new Date().toISOString().split('T')[0];
@@ -1001,6 +1116,18 @@
       return mq && ml && ms;
     }).sort((a,b) => new Date(b.inDate)-new Date(a.inDate));
 
+    const recentTbody = document.getElementById('recent-dashboard-tbody');
+    if (recentTbody) {
+      const recent = show.slice(0, 5);
+      recentTbody.innerHTML = recent.length ? recent.map(r => `
+        <tr>
+          <td>${fmt(r.inDate)}</td>
+          <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">${esc(r.carNum)}</span></td>
+          <td>${esc(r.carModel)||'-'}</td>
+          <td>${statusQuickCell(r.id, r.status)}</td>
+        </tr>`).join('') : `<tr><td colspan="4" class="empty" style="padding:22px">최근 입고 차량이 없습니다</td></tr>`;
+    }
+
     if (dq || dLoc || dSt) {
       resultEl.style.display = 'block';
       resultEl.textContent = `검색 결과: ${show.length}대` + (dq ? ` (\"${dq}\")` : '') + (dLoc ? ` · 위치: ${dLoc}` : '') + (dSt ? ` · 상태: ${dSt}` : '');
@@ -1047,12 +1174,11 @@
         isWeekend: d.getDay() === 0 || d.getDay() === 6
       });
     }
-    const max = Math.max(1, ...days.map(d => d.count));
-    const w = 760, h = 200, padL = 32, padR = 12, padB = 40, padT = 16;
+    const max = Math.max(2, ...days.map(d => d.count));
+    const w = 760, h = 210, padL = 32, padR = 16, padB = 46, padT = 18;
     const innerW = w - padL - padR;
     const innerH = h - padT - padB;
     const slot = innerW / days.length;
-    const barW = Math.max(14, slot - 8);
     const yTicks = [0, Math.ceil(max/2), max];
 
     const yLines = yTicks.map(v => {
@@ -1061,24 +1187,31 @@
              `<text x="${padL-6}" y="${y+3}" text-anchor="end" font-size="10" fill="#a0a4ac" font-family="JetBrains Mono,monospace">${v}</text>`;
     }).join('');
 
-    const bars = days.map((d, i) => {
-      const x = padL + i * slot + (slot - barW) / 2;
-      const bh = (innerH * d.count) / max;
-      const y = h - padB - bh;
-      const color = d.isToday ? '#a78bfa' : '#8b5cf6';
-      const opacity = d.count === 0 ? 0.2 : 0.9;
+    const points = days.map((d, i) => {
+      const x = padL + i * slot + slot / 2;
+      const y = h - padB - (innerH * d.count) / max;
+      return { x, y, d };
+    });
+    const linePath = points.map((p, i) => (i ? 'L' : 'M') + p.x.toFixed(1) + ' ' + p.y.toFixed(1)).join(' ');
+    const areaPath = linePath + ` L ${points[points.length-1].x.toFixed(1)} ${h-padB} L ${points[0].x.toFixed(1)} ${h-padB} Z`;
+
+    const labels = points.map((p, i) => {
+      const d = p.d;
       const labelColor = d.isWeekend ? '#94a3b8' : '#c1c5cc';
       return `<g>` +
-        `<rect x="${x}" y="${y}" width="${barW}" height="${bh || 2}" rx="3" fill="${color}" opacity="${opacity}"/>` +
-        (d.count > 0 ? `<text x="${x + barW/2}" y="${y - 5}" text-anchor="middle" font-size="11" fill="#fff" font-weight="700" font-family="JetBrains Mono,monospace">${d.count}</text>` : '') +
-        `<text x="${x + barW/2}" y="${h - padB + 14}" text-anchor="middle" font-size="10" fill="${labelColor}" font-family="JetBrains Mono,monospace">${d.label}</text>` +
-        `<text x="${x + barW/2}" y="${h - padB + 28}" text-anchor="middle" font-size="9" fill="${labelColor}" opacity="0.7">${d.dow}</text>` +
+        `<circle cx="${p.x}" cy="${p.y}" r="${d.isToday ? 4 : 3}" fill="${d.isToday ? '#c4b5fd' : '#8b5cf6'}" stroke="#111827" stroke-width="2"/>` +
+        `<text x="${p.x}" y="${h - padB + 16}" text-anchor="middle" font-size="10" fill="${labelColor}" font-family="JetBrains Mono,monospace">${d.label}</text>` +
+        `<text x="${p.x}" y="${h - padB + 30}" text-anchor="middle" font-size="9" fill="${labelColor}" opacity="0.7">${d.dow}</text>` +
       `</g>`;
     }).join('');
 
     el.innerHTML = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" style="width:100%;min-width:600px;height:${h}px;display:block;">` +
-      yLines + bars +
-    `</svg>`;
+      `<defs><linearGradient id="kgmArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8b5cf6" stop-opacity=".42"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity=".02"/></linearGradient><filter id="kgmGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>` +
+      yLines +
+      `<path d="${areaPath}" fill="url(#kgmArea)"/>` +
+      `<path d="${linePath}" fill="none" stroke="#8b5cf6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#kgmGlow)"/>` +
+      labels +
+      `</svg>`;
   }
   window._renderKgmIntakeChart = renderKgmIntakeChart;
 
@@ -1561,6 +1694,10 @@
 
   // ---- STATS ----
   function renderStats() {
+    if (LOCAL_DASHBOARD_PREVIEW) {
+      renderLocalDashboardPreview();
+      return;
+    }
     const list = getList();
     const yearSel = document.getElementById('statsYear');
     const monthSel = document.getElementById('statsMonth');

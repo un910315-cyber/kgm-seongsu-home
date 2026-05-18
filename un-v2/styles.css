@@ -899,3 +899,1057 @@ body > div[style*="position:fixed;top:0;"] {
 #page-insurance.active, #page-usermgmt.active, #page-status.active {
   display: block;
 }
+
+/* ==========================================================================
+   대표 보고용 대시보드: 한 화면 관제 레이아웃
+   ========================================================================== */
+#page-dashboard {
+  min-height: calc(100vh - 92px);
+}
+
+#page-dashboard.active {
+  display: block;
+}
+
+#page-dashboard .main {
+  width: min(100%, 1460px);
+  margin: 0 auto;
+  padding: 16px 18px 28px;
+}
+
+#page-dashboard .widget-card {
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 12px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+    rgba(13, 17, 28, 0.92);
+  border-color: rgba(148, 163, 184, 0.16);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.24);
+}
+
+#page-dashboard > .main > .widget-card:first-of-type {
+  padding: 14px;
+}
+
+#page-dashboard > .main > .widget-card:first-of-type .chart-header {
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+}
+
+#page-dashboard > .main > .widget-card:first-of-type .stats-grid {
+  grid-template-columns: repeat(5, minmax(132px, 1fr)) !important;
+  gap: 12px !important;
+}
+
+#page-dashboard .stat-card {
+  border-radius: 9px;
+  padding: 14px 16px;
+  min-height: 106px;
+  background:
+    radial-gradient(circle at 86% 22%, rgba(255,255,255,.08), transparent 28%),
+    linear-gradient(145deg, rgba(255,255,255,.035), rgba(255,255,255,.01));
+  border-color: rgba(148, 163, 184, 0.14);
+  box-shadow: none;
+}
+
+#page-dashboard .stat-card:hover {
+  transform: none;
+}
+
+#page-dashboard .stat-label {
+  margin-bottom: 6px;
+  font-size: 11px;
+  color: #b8c0d0;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+#page-dashboard .stat-value {
+  font-size: clamp(24px, 2.2vw, 34px);
+  letter-spacing: -0.04em;
+}
+
+#page-dashboard .stat-sub {
+  margin-top: 4px;
+  font-size: 10.5px;
+  color: #8b95a8;
+}
+
+#page-dashboard .dashboard-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(340px, .8fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+#page-dashboard .kgm-section,
+#page-dashboard .daily-sales-section {
+  min-width: 0;
+}
+
+#page-dashboard .kgm-section .widget-card,
+#page-dashboard .daily-sales-section .widget-card {
+  height: 100%;
+}
+
+#page-dashboard .kgm-section .stats-grid[style*="grid-template-columns:1fr;"] {
+  display: none;
+}
+
+#page-dashboard #kgmIntakeChart {
+  padding: 4px 2px 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+#page-dashboard #kgmIntakeChart svg {
+  height: 178px !important;
+  min-width: 0 !important;
+}
+
+#page-dashboard .kgm-section .widget-card > div[style*="margin-top:14px"] {
+  margin-top: 8px !important;
+  padding-top: 10px !important;
+}
+
+#page-dashboard .kgm-section .widget-card > div[style*="margin-top:14px"] .stats-grid {
+  gap: 8px !important;
+}
+
+#page-dashboard .kgm-section .widget-card > div[style*="margin-top:14px"] .stat-card {
+  min-height: 74px;
+  padding: 10px 12px;
+}
+
+#page-dashboard .kgm-section .widget-card > div[style*="margin-top:14px"] .stat-value {
+  font-size: 22px;
+}
+
+#page-dashboard .daily-stat-row {
+  min-height: 0;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background: rgba(3, 7, 18, 0.32);
+}
+
+#page-dashboard .dsr-value {
+  font-size: clamp(21px, 2vw, 28px);
+  line-height: 1.05;
+}
+
+#page-dashboard .dsr-spark {
+  height: 28px;
+}
+
+#page-dashboard .dsr-meta {
+  font-size: 10px;
+}
+
+#page-dashboard .dashboard-bottom-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+#page-dashboard .monthly-stats-card,
+#page-dashboard .recent-intake-card {
+  min-width: 0;
+}
+
+#page-dashboard .monthly-stats-card .stats-grid {
+  grid-template-columns: repeat(4, minmax(100px, 1fr)) !important;
+  gap: 8px !important;
+  margin-bottom: 10px !important;
+}
+
+#page-dashboard .monthly-stats-card .stats-grid .stat-card {
+  min-height: 72px;
+  padding: 10px 12px;
+}
+
+#page-dashboard .monthly-stats-card .stats-grid .stat-value {
+  font-size: 22px;
+}
+
+#page-dashboard .monthly-stats-card #stats-chart {
+  height: 108px !important;
+  padding: 0;
+}
+
+#page-dashboard .monthly-stats-card .chart-header {
+  margin-bottom: 9px !important;
+  padding-bottom: 8px;
+}
+
+#page-dashboard .monthly-stats-card .chart-header:nth-of-type(n+3),
+#page-dashboard .monthly-stats-card #stats-bar,
+#page-dashboard .monthly-stats-card .table-wrap {
+  display: none;
+}
+
+#page-dashboard .monthly-stats-card div[style*="background:rgba(255,255,255,.02)"] {
+  margin-bottom: 0 !important;
+  padding: 10px !important;
+}
+
+#page-dashboard .recent-intake-card .table-wrap {
+  border-radius: 8px;
+}
+
+#page-dashboard .recent-intake-card table {
+  font-size: 12px;
+}
+
+#page-dashboard .recent-intake-card th,
+#page-dashboard .recent-intake-card td {
+  padding: 10px 12px;
+}
+
+#page-dashboard .recent-intake-card .car-num {
+  padding: 1px 6px;
+  font-size: 12px;
+}
+
+@media (min-width: 1200px) and (max-height: 860px) {
+  #page-dashboard .main {
+    padding-top: 12px;
+  }
+
+  #page-dashboard .chart-title {
+    font-size: 13px;
+  }
+
+  #page-dashboard .widget-card {
+    padding: 13px;
+    margin-bottom: 10px;
+  }
+
+  #page-dashboard .stat-card {
+    min-height: 92px;
+    padding: 11px 13px;
+  }
+
+  #page-dashboard #kgmIntakeChart svg {
+    height: 150px !important;
+  }
+
+  #page-dashboard .daily-stat-row {
+    padding: 10px 12px;
+    margin-bottom: 7px;
+  }
+
+  #page-dashboard .dsr-spark {
+    height: 22px;
+  }
+
+  #page-dashboard .monthly-stats-card #stats-chart {
+    height: 86px !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  #page-dashboard > .main > .widget-card:first-of-type .stats-grid {
+    grid-template-columns: repeat(3, minmax(140px, 1fr)) !important;
+  }
+
+  #page-dashboard .dashboard-row,
+  #page-dashboard .dashboard-bottom-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Header compaction for the cockpit layout */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 58px !important;
+  padding: 8px 20px !important;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  min-width: 170px;
+}
+
+.logo-grad {
+  width: 150px;
+  height: 38px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: none;
+  filter: drop-shadow(0 8px 18px rgba(124, 58, 237, 0.22));
+}
+
+.logo-grad::before {
+  content: "KGM";
+  color: #8b5cf6;
+  font-family: 'Inter', 'Noto Sans KR', sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 1.6px;
+}
+
+.logo-grad::after {
+  content: "KGM Seongsu Service Center";
+  margin-top: 3px;
+  color: #cbd5e1;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 1.2px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.online-badge,
+.date-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  color: #dbe4f4;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.online-badge {
+  color: #42d392;
+  background: rgba(16, 185, 129, 0.09);
+  border-color: rgba(16, 185, 129, 0.18);
+}
+
+.online-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+}
+
+.nav-tabs {
+  min-height: 46px;
+  padding: 0 18px;
+  background: rgba(3, 7, 18, 0.72);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.nav-tab {
+  padding: 12px 14px;
+  font-size: 13px;
+}
+
+#page-dashboard .daily-stat-row {
+  padding: 9px 12px;
+  gap: 2px;
+}
+
+#page-dashboard .dsr-spark-wrap {
+  margin: 0;
+}
+
+#page-dashboard .dsr-spark {
+  height: 20px;
+}
+
+#page-dashboard .monthly-stats-card {
+  max-height: 264px;
+  overflow: hidden;
+}
+
+#page-dashboard .recent-intake-card {
+  max-height: 264px;
+  overflow: hidden;
+}
+
+@media (min-width: 1200px) and (max-height: 920px) {
+  #page-dashboard .main {
+    padding: 12px 18px 20px;
+  }
+
+  #page-dashboard > .main > .widget-card:first-of-type .stats-grid {
+    gap: 10px !important;
+  }
+
+  #page-dashboard > .main > .widget-card:first-of-type .stat-card {
+    min-height: 86px;
+  }
+
+  #page-dashboard .dashboard-row {
+    grid-template-columns: minmax(0, 1.4fr) minmax(330px, .78fr);
+  }
+
+  #page-dashboard #kgmIntakeChart svg {
+    height: 136px !important;
+  }
+
+  #page-dashboard .kgm-section .widget-card > div[style*="margin-top:14px"] .stat-card {
+    min-height: 64px;
+  }
+
+  #page-dashboard .kgm-section .widget-card > div[style*="margin-top:10px"] {
+    padding: 6px 10px !important;
+  }
+
+  #page-dashboard .daily-stat-row {
+    padding: 8px 11px;
+    margin-bottom: 6px;
+  }
+
+  #page-dashboard .dsr-value {
+    font-size: 22px;
+  }
+
+  #page-dashboard .monthly-stats-card #stats-chart {
+    height: 72px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .header-right {
+    justify-content: flex-start;
+  }
+}
+
+/* ==========================================================================
+   Dashboard v3: reference-style executive cockpit
+   ========================================================================== */
+body:has(#page-dashboard.active) {
+  background:
+    radial-gradient(circle at 76% 12%, rgba(59, 130, 246, 0.10), transparent 28%),
+    radial-gradient(circle at 28% 18%, rgba(124, 58, 237, 0.14), transparent 30%),
+    #070b14;
+  min-width: 1180px;
+}
+
+body:has(#page-dashboard.active) > div[style*="height:30px"] {
+  display: none;
+}
+
+body:has(#page-dashboard.active) .header {
+  position: fixed;
+  top: 30px;
+  left: 0;
+  bottom: 0;
+  width: 204px;
+  height: auto;
+  min-height: 0 !important;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-direction: column;
+  padding: 24px 18px !important;
+  background:
+    linear-gradient(180deg, rgba(10, 15, 28, .98), rgba(7, 11, 20, .96));
+  border-right: 1px solid rgba(148, 163, 184, .14);
+  border-bottom: 0;
+  box-shadow: 22px 0 60px rgba(0, 0, 0, .24);
+}
+
+body:has(#page-dashboard.active) .header::after {
+  content: "빠르고 정확한\A차량 관리";
+  white-space: pre-line;
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 112px;
+  min-height: 132px;
+  padding: 16px;
+  border: 1px solid rgba(139, 92, 246, .28);
+  border-radius: 8px;
+  color: #c4b5fd;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.7;
+  background:
+    linear-gradient(160deg, transparent 54%, rgba(139, 92, 246, .20) 54.5% 56%, transparent 56.5%),
+    linear-gradient(145deg, rgba(88, 28, 135, .38), rgba(17, 24, 39, .82)),
+    radial-gradient(circle at 84% 88%, rgba(139, 92, 246, .30), transparent 46%);
+}
+
+body:has(#page-dashboard.active) .header::after {
+  overflow: hidden;
+}
+
+body:has(#page-dashboard.active) .header::before {
+  content: "YuHyun   ADMIN";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 24px;
+  padding: 14px 16px 14px 42px;
+  border-radius: 8px;
+  color: #e5e7eb;
+  font-size: 12px;
+  font-weight: 800;
+  background:
+    radial-gradient(circle at 22px 50%, #fb923c 0 10px, transparent 11px),
+    rgba(15, 23, 42, .86);
+  border: 1px solid rgba(148, 163, 184, .12);
+}
+
+body:has(#page-dashboard.active) .header-right {
+  display: none;
+}
+
+body:has(#page-dashboard.active) .logo-grad {
+  width: 166px;
+  height: 48px;
+}
+
+body:has(#page-dashboard.active) .logo-grad::before {
+  font-size: 27px;
+  color: #8b5cf6;
+}
+
+body:has(#page-dashboard.active) .logo-grad::after {
+  font-size: 10px;
+  max-width: 132px;
+  line-height: 1.35;
+}
+
+body:has(#page-dashboard.active) .nav-tabs {
+  position: fixed;
+  z-index: 101;
+  top: 132px;
+  left: 18px;
+  width: 168px;
+  min-height: 0;
+  max-height: min(452px, calc(100vh - 448px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+  border: 0;
+}
+
+body:has(#page-dashboard.active) .nav-tab {
+  width: 100%;
+  min-height: 40px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #96a1b8;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: left;
+  background: transparent;
+}
+
+body:has(#page-dashboard.active) .nav-tab.active {
+  color: #eef2ff;
+  border-color: rgba(139, 92, 246, .28);
+  background:
+    linear-gradient(90deg, rgba(124, 58, 237, .28), rgba(124, 58, 237, .06));
+  box-shadow: inset 3px 0 0 #8b5cf6;
+}
+
+body:has(#page-dashboard.active) .nav-tab:hover {
+  color: #f8fafc;
+  background: rgba(148, 163, 184, .07);
+}
+
+body:has(#page-dashboard.active) #page-dashboard .main {
+  width: auto;
+  max-width: none;
+  margin: 0 0 0 204px;
+  padding: 58px 38px 22px;
+}
+
+.dashboard-hero {
+  display: none;
+}
+
+body:has(#page-dashboard.active) .dashboard-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+body:has(#page-dashboard.active) .dashboard-hero h1 {
+  margin: 0 0 5px;
+  color: #f8fafc;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+body:has(#page-dashboard.active) .dashboard-hero p {
+  margin: 0;
+  color: #a8b3c7;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+body:has(#page-dashboard.active) .dashboard-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  margin-bottom: 20px;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .chart-header {
+  display: none;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stats-grid {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 18px !important;
+  width: 100%;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .stat-card {
+  min-height: 168px;
+  padding: 22px 22px 18px;
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 84% 28%, rgba(139, 92, 246, .13), transparent 18%),
+    linear-gradient(150deg, rgba(28, 35, 54, .92), rgba(12, 18, 31, .94));
+  border: 1px solid rgba(148, 163, 184, .15);
+  box-shadow: 0 24px 54px rgba(0, 0, 0, .22);
+}
+
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card::before {
+  content: "●";
+  position: absolute;
+  right: 22px;
+  top: 30px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: rgba(255,255,255,.82);
+  font-size: 13px;
+  background: rgba(139, 92, 246, .13);
+}
+
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.orange::before { background: rgba(249, 115, 22, .13); }
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.purple::before { background: rgba(139, 92, 246, .15); }
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.blue::before { background: rgba(59, 130, 246, .14); }
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.green::before { background: rgba(16, 185, 129, .14); }
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.red::before { background: rgba(244, 63, 94, .14); }
+
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card::after {
+  height: 3px;
+  border-radius: 999px;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card .stat-sub::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 18px;
+  height: 38px;
+  opacity: .75;
+  background:
+    linear-gradient(to top, currentColor, transparent 72%),
+    linear-gradient(135deg, transparent 0 8%, currentColor 8.5% 10%, transparent 10.5% 20%, currentColor 20.5% 22%, transparent 22.5% 35%, currentColor 35.5% 37%, transparent 37.5% 53%, currentColor 53.5% 55%, transparent 55.5% 73%, currentColor 73.5% 75%, transparent 75.5%);
+  clip-path: polygon(0 82%, 10% 78%, 20% 52%, 31% 62%, 43% 35%, 55% 48%, 67% 26%, 78% 38%, 89% 18%, 100% 28%, 100% 100%, 0 100%);
+}
+
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.orange .stat-sub::after { color: rgba(249,115,22,.62); }
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.purple .stat-sub::after { color: rgba(139,92,246,.62); }
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.blue .stat-sub::after { color: rgba(59,130,246,.62); }
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.green .stat-sub::after { color: rgba(16,185,129,.62); }
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.red .stat-sub::after { color: rgba(244,63,94,.62); }
+
+body:has(#page-dashboard.active) #stat-total { color: #c4b5fd; }
+body:has(#page-dashboard.active) #stat-today { color: #fb7185; }
+
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.orange {
+  background:
+    radial-gradient(circle at 84% 34%, rgba(249, 115, 22, .12), transparent 20%),
+    linear-gradient(150deg, rgba(28, 35, 54, .92), rgba(12, 18, 31, .94));
+}
+
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.green {
+  background:
+    radial-gradient(circle at 84% 34%, rgba(16, 185, 129, .14), transparent 20%),
+    linear-gradient(150deg, rgba(18, 40, 38, .74), rgba(12, 18, 31, .94));
+}
+
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.red {
+  background:
+    radial-gradient(circle at 84% 34%, rgba(244, 63, 94, .14), transparent 20%),
+    linear-gradient(150deg, rgba(48, 23, 35, .74), rgba(12, 18, 31, .94));
+}
+
+body:has(#page-dashboard.active) #page-dashboard .stat-label {
+  color: #f4f7fb;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .stat-value {
+  margin-top: 14px;
+  font-size: 34px;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .stat-sub {
+  color: #aab4c8;
+  font-size: 12px;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .dashboard-row {
+  grid-template-columns: minmax(0, 1.55fr) minmax(360px, .92fr);
+  gap: 18px;
+  margin-bottom: 2px;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .widget-card {
+  border-radius: 8px;
+  padding: 18px;
+  background:
+    linear-gradient(155deg, rgba(23, 31, 48, .88), rgba(11, 17, 29, .96));
+  border: 1px solid rgba(148, 163, 184, .14);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, .23);
+}
+
+body:has(#page-dashboard.active) #page-dashboard .chart-header {
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom-color: rgba(148, 163, 184, .11);
+}
+
+body:has(#page-dashboard.active) #page-dashboard .chart-title {
+  color: #f8fafc;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .chart-subtitle {
+  color: #8793aa;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .kgm-section .stats-grid[style*="grid-template-columns:1fr;"] {
+  display: grid;
+  width: 160px;
+  margin: 0 0 10px !important;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .kgm-section .stats-grid[style*="grid-template-columns:1fr;"] .stat-card {
+  min-height: 64px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .kgm-section .stats-grid[style*="grid-template-columns:1fr;"] .stat-label {
+  color: #98a3b8;
+  font-size: 12px;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .kgm-section .stats-grid[style*="grid-template-columns:1fr;"] .stat-value {
+  margin-top: 4px;
+  color: #ff5c67 !important;
+  font-size: 28px;
+}
+
+body:has(#page-dashboard.active) #page-dashboard #kgmIntakeChart svg {
+  height: 208px !important;
+  min-width: 0 !important;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .kgm-section .widget-card > div[style*="margin-top:14px"] {
+  margin-top: 16px !important;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .kgm-section .widget-card > div[style*="margin-top:14px"] .stat-card {
+  min-height: 96px;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .daily-stat-row {
+  min-height: 122px;
+  padding: 18px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background: rgba(8, 13, 24, .72);
+  border-color: rgba(148, 163, 184, .10);
+  border-left-width: 4px;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .dsr-value {
+  margin-top: 6px;
+  font-size: 28px;
+  font-family: 'Noto Sans KR', 'Inter', sans-serif;
+  letter-spacing: -0.05em;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .dsr-spark {
+  height: 32px;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .dashboard-bottom-row {
+  grid-template-columns: minmax(0, .95fr) minmax(430px, 1fr);
+  gap: 18px;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card,
+body:has(#page-dashboard.active) #page-dashboard .recent-intake-card {
+  max-height: 248px;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card .stats-grid {
+  display: none;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card #stats-chart {
+  height: 132px !important;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .recent-intake-card th,
+body:has(#page-dashboard.active) #page-dashboard .recent-intake-card td {
+  padding: 11px 14px;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .status-pill {
+  border-radius: 7px;
+  border: 1px solid currentColor;
+  padding: 4px 9px;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .status-pill.wait {
+  color: #a78bfa;
+  background: rgba(139, 92, 246, .12);
+}
+
+@media (max-height: 880px) {
+  body:has(#page-dashboard.active) #page-dashboard .main {
+    padding-top: 50px;
+  }
+
+  body:has(#page-dashboard.active) .dashboard-hero {
+    margin-bottom: 22px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stats-grid {
+    gap: 14px !important;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .stat-card {
+    min-height: 146px;
+    padding: 18px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard #kgmIntakeChart svg {
+    height: 174px !important;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .daily-stat-row {
+    min-height: 104px;
+    padding: 14px 16px;
+  }
+}
+
+@media (min-width: 1180px) and (max-height: 940px) {
+  body:has(#page-dashboard.active) #page-dashboard .main {
+    padding-top: 48px;
+    padding-bottom: 16px;
+  }
+
+  body:has(#page-dashboard.active) .dashboard-hero {
+    margin-bottom: 16px;
+  }
+
+  body:has(#page-dashboard.active) .dashboard-hero h1 {
+    font-size: 23px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card {
+    margin-bottom: 14px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stats-grid {
+    gap: 14px !important;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card {
+    min-height: 124px;
+    padding: 16px 18px 14px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card::before {
+    top: 24px;
+    right: 18px;
+    width: 34px;
+    height: 34px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card .stat-sub::after {
+    bottom: 14px;
+    height: 30px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .dashboard-row {
+    gap: 14px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .widget-card {
+    padding: 15px 18px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .chart-header {
+    margin-bottom: 11px;
+    padding-bottom: 10px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .kgm-section .stats-grid[style*="grid-template-columns:1fr;"] {
+    margin-bottom: 2px !important;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .kgm-section .stats-grid[style*="grid-template-columns:1fr;"] .stat-card {
+    min-height: 48px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .kgm-section .stats-grid[style*="grid-template-columns:1fr;"] .stat-value {
+    font-size: 23px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard #kgmIntakeChart svg {
+    height: 142px !important;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .kgm-section .widget-card > div[style*="margin-top:14px"] {
+    margin-top: 8px !important;
+    padding-top: 8px !important;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .kgm-section .widget-card > div[style*="margin-top:14px"] .stat-card {
+    min-height: 72px;
+    padding: 12px 16px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .kgm-section .widget-card > div[style*="margin-top:14px"] .stat-value {
+    font-size: 26px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .kgm-section .widget-card > div[style*="margin-top:10px"] {
+    margin-top: 8px !important;
+    padding: 7px 10px !important;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .daily-stat-row {
+    min-height: 91px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .dsr-value {
+    font-size: 24px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .dsr-spark {
+    height: 24px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .dashboard-bottom-row {
+    gap: 14px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card,
+  body:has(#page-dashboard.active) #page-dashboard .recent-intake-card {
+    max-height: 220px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card #stats-chart {
+    height: 106px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  body.dashboard-preview:has(#page-dashboard.active) {
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  body.dashboard-preview:has(#page-dashboard.active) .header {
+    width: 148px;
+    padding: 18px 12px !important;
+  }
+
+  body.dashboard-preview:has(#page-dashboard.active) .logo-grad {
+    width: 124px;
+  }
+
+  body.dashboard-preview:has(#page-dashboard.active) .logo-grad::before {
+    font-size: 22px;
+  }
+
+  body.dashboard-preview:has(#page-dashboard.active) .logo-grad::after {
+    font-size: 8px;
+  }
+
+  body.dashboard-preview:has(#page-dashboard.active) .nav-tabs {
+    left: 12px;
+    width: 124px;
+  }
+
+  body.dashboard-preview:has(#page-dashboard.active) .nav-tab {
+    min-height: 34px;
+    padding: 8px 10px;
+    font-size: 10px;
+  }
+
+  body.dashboard-preview:has(#page-dashboard.active) .header::after {
+    left: 12px;
+    right: 12px;
+    bottom: 104px;
+    min-height: 132px;
+    padding: 14px;
+    font-size: 10px;
+  }
+
+  body.dashboard-preview:has(#page-dashboard.active) .header::before {
+    left: 12px;
+    right: 12px;
+    bottom: 20px;
+    padding: 12px 10px 12px 34px;
+    font-size: 10px;
+  }
+
+  body.dashboard-preview:has(#page-dashboard.active) #page-dashboard .main {
+    width: calc((100vw - 148px) / .36);
+    margin-left: 148px;
+    padding: 18px 28px 18px;
+    transform: scale(.36);
+    transform-origin: top left;
+  }
+}

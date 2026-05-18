@@ -31,8 +31,11 @@
   function updateDate() {
     const now = new Date();
     const days = ['일','월','화','수','목','금','토'];
-    document.getElementById('dateDisplay').textContent =
-      `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} (${days[now.getDay()]})`;
+    const label = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} (${days[now.getDay()]})`;
+    const dateDisplay = document.getElementById('dateDisplay');
+    const dashboardDateDisplay = document.getElementById('dashboardDateDisplay');
+    if (dateDisplay) dateDisplay.textContent = label;
+    if (dashboardDateDisplay) dashboardDateDisplay.textContent = label;
   }
   updateDate();
   setInterval(updateDate, 60000);

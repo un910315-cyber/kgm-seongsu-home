@@ -115,6 +115,17 @@
   </aside>
 
   <div class="main">
+    <div class="dashboard-hero">
+      <div>
+        <h1>대시보드</h1>
+        <p>오늘도 안전하고 효율적인 업무 되세요.</p>
+      </div>
+      <div class="dashboard-hero-actions">
+        <button class="pwa-header-btn" type="button" onclick="document.getElementById('pwaHeaderBtn')?.click()">📱 설치</button>
+        <div class="online-badge"><span class="online-dot"></span>실시간 연결</div>
+        <div class="date-badge" id="dashboardDateDisplay"></div>
+      </div>
+    </div>
     <!-- 블랙 차량 입고 알림 (관리자만) -->
     <div id="blacklistAlertBanner" style="display:none;margin-bottom:16px;padding:14px 18px;background:rgba(232,68,42,.12);border:1px solid rgba(232,68,42,.45);border-left:4px solid #e8442a;border-radius:8px;">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
@@ -135,7 +146,7 @@
       <div id="arList"></div>
     </div>
     <!-- 사고차량 현황 위젯 카드 -->
-    <div class="chart-card widget-card">
+    <div class="chart-card widget-card dashboard-kpi-card">
       <div class="chart-header">
         <div class="chart-title">사고차량 현황</div>
         <div class="chart-subtitle">실시간</div>
@@ -239,7 +250,8 @@
     <!-- 건물내 차량 위치현황 — 일단 제거 (나중에 필요하면 다시 추가) -->
 
     <!-- 월별 통계 위젯 카드 (풀폭) -->
-    <div class="chart-card widget-card" style="margin-top:12px;">
+    <div class="dashboard-bottom-row">
+    <div class="chart-card widget-card monthly-stats-card" style="margin-top:12px;">
       <div class="chart-header" style="justify-content:space-between;">
         <div style="display:flex;align-items:baseline;gap:10px;">
           <div class="chart-title">월별 통계</div>
@@ -305,6 +317,29 @@
           <tfoot id="stats-tfoot"></tfoot>
         </table>
       </div>
+    </div>
+    <div class="chart-card widget-card recent-intake-card" style="margin-top:12px;">
+      <div class="chart-header" style="justify-content:space-between;">
+        <div>
+          <div class="chart-title">최근 입고 차량</div>
+          <div class="chart-subtitle">대표 보고용 핵심 현황</div>
+        </div>
+        <a href="#" onclick="switchPage('status');return false;" style="color:#c4b5fd;text-decoration:none;font-size:11px;font-weight:600;">전체 보기 →</a>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>입고일</th>
+              <th>차량번호</th>
+              <th>차종</th>
+              <th>상태</th>
+            </tr>
+          </thead>
+          <tbody id="recent-dashboard-tbody"></tbody>
+        </table>
+      </div>
+    </div>
     </div>
   </div>
 </div>
@@ -2007,6 +2042,73 @@
 <div class="eldr2" id="eLdr2"><div class="loading-spinner"></div><div class="loading-text" id="eLT2">분석중...</div></div>
 <div class="etst2" id="eTst2"></div>
 
+<script>
+(function(){
+  var params = new URLSearchParams(location.search);
+  var isLocal = location.hostname === '127.0.0.1' || location.hostname === 'localhost' || location.hostname === '';
+  if (params.get('preview') !== 'dashboard' || !isLocal) return;
+  function setText(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = value;
+  }
+  function spark(id, values, color) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var max = Math.max.apply(null, values.concat([1]));
+    var pts = values.map(function(v, i){
+      return { x: 6 + i * (188 / (values.length - 1)), y: 30 - (v / max * 22) };
+    });
+    var line = pts.map(function(p, i){ return (i ? 'L' : 'M') + p.x.toFixed(1) + ' ' + p.y.toFixed(1); }).join(' ');
+    el.innerHTML = '<svg viewBox="0 0 204 34" preserveAspectRatio="none" style="width:100%;height:100%;display:block;">'
+      + '<path d="'+line+'" fill="none" stroke="'+color+'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'
+      + '<circle cx="'+pts[pts.length-1].x+'" cy="'+pts[pts.length-1].y+'" r="3.5" fill="'+color+'"/></svg>';
+  }
+  function preview() {
+    document.body.classList.add('dashboard-preview');
+    document.body.style.overflow = '';
+    var login = document.getElementById('loginScreen');
+    var loading = document.getElementById('loadingScreen');
+    if (login) login.style.display = 'none';
+    if (loading) loading.style.display = 'none';
+    document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+    var dash = document.getElementById('page-dashboard');
+    if (dash) dash.classList.add('active');
+    document.querySelectorAll('.nav-tab').forEach(function(tab){ tab.style.display = ''; });
+    setText('stat-total','22'); setText('stat-wait','7'); setText('stat-repair','5'); setText('stat-done','6'); setText('stat-today','7');
+    setText('stat-kgm-today','7'); setText('stat-kgm-week','24'); setText('stat-kgm-month','86'); setText('stat-kgm-quarter','214');
+    setText('kgm-daily-avg','4.3'); setText('kgm-week-diff','+6대 ↑'); setText('daily-sales-date','05/18 기준');
+    setText('daily-parts-value','1,240,000원'); setText('daily-function-value','820,000원'); setText('monthly-deposit-value','4,800,000원');
+    setText('daily-parts-trend','데이터 있음'); setText('daily-function-trend','데이터 있음'); setText('deposit-status','입력됨');
+    spark('daily-parts-spark', [0,2,1,3,5,4,6,7,5,8,9,8,10,9], '#fb923c');
+    spark('daily-function-spark', [1,1,2,3,2,4,3,5,6,5,7,7,8,8], '#34d399');
+    spark('deposit-spark', [3,4,3,5,6,8], '#fbbf24');
+    var chart = document.getElementById('kgmIntakeChart');
+    if (chart) {
+      var vals = [4,6,9,14,11,7,16,8,10,12,14,18,15,6], max = Math.max.apply(null, vals);
+      var pts = vals.map(function(v, i){ return { x: 38 + i * 52, y: 136 - (v / max * 104) }; });
+      var line = pts.map(function(p, i){ return (i ? 'L' : 'M') + p.x + ' ' + p.y; }).join(' ');
+      chart.innerHTML = '<svg viewBox="0 0 760 190" preserveAspectRatio="none" style="width:100%;height:185px;display:block;"><defs><linearGradient id="previewAreaInline" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8b5cf6" stop-opacity=".45"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity=".02"/></linearGradient></defs>'
+        + '<path d="'+line+' L '+pts[pts.length-1].x+' 148 L '+pts[0].x+' 148 Z" fill="url(#previewAreaInline)"/><path d="'+line+'" fill="none" stroke="#8b5cf6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'
+        + pts.map(function(p,i){ return '<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="#a78bfa" stroke="#111827" stroke-width="2"/><text x="'+p.x+'" y="172" text-anchor="middle" font-size="10" fill="#94a3b8">'+(i+5)+'</text>'; }).join('') + '</svg>';
+    }
+    var stats = document.getElementById('stats-chart');
+    if (stats) {
+      var months = [20,27,12,9,14,10,18,20,19,28,17,8,6,9,26,11,16,19,18,10,26,7,19,12,23,6,11,18,28,4,24];
+      var mmax = Math.max.apply(null, months);
+      stats.innerHTML = months.map(function(v,i){ var h = Math.max(4, Math.round(v / mmax * 120)); return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;"><div style="width:100%;height:'+h+'px;border-radius:4px 4px 2px 2px;background:linear-gradient(180deg,#8b5cf6,#4c1d95);box-shadow:0 0 18px rgba(139,92,246,.18);"></div>'+(i%2===0?'<div style="font-size:10px;color:#8b95a8;">'+(i+1)+'</div>':'<div style="height:12px;"></div>')+'</div>'; }).join('');
+    }
+    var recent = document.getElementById('recent-dashboard-tbody');
+    if (recent) {
+      recent.innerHTML = [['05/18','123가 4567','토레스','입고','wait'],['05/18','45나 6789','렉스턴 스포츠','수리대기','wait'],['05/17','12다 3456','코란도','수리중','repair'],['05/17','98라 7654','티볼리','수리완료','done']].map(function(r){ return '<tr><td>'+r[0]+'</td><td><span class="car-num">'+r[1]+'</span></td><td>'+r[2]+'</td><td><span class="status-pill '+r[4]+'">'+r[3]+'</span></td></tr>'; }).join('');
+    }
+  }
+  preview();
+  document.addEventListener('DOMContentLoaded', preview);
+  setTimeout(preview, 300);
+  setTimeout(preview, 1200);
+  setTimeout(preview, 3000);
+})();
+</script>
 <script defer src="app-features.js"></script>
 </body>
 </html>
