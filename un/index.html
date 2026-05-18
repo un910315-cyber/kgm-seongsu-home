@@ -6734,6 +6734,7 @@ function eTst2(msg){
     progEl.style.display = '';
     var files = [];
     var fetchFails = 0;
+    var totalBytes = 0;
     for (var i = 0; i < arr.length; i++) {
       var p = arr[i];
       progEl.textContent = '사진 준비 중... (' + (i+1) + '/' + arr.length + ')';
@@ -6741,8 +6742,11 @@ function eTst2(msg){
         var resp = await fetch(p.url);
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         var blob = await resp.blob();
+        // 압축으로 용량 줄여서 공유 한도 회피
+        var compressed = await _compressForShare(blob);
+        totalBytes += compressed.size;
         var fname = carNum + '_' + currentStage + '_' + String(i+1).padStart(2,'0') + '.jpg';
-        files.push(new File([blob], fname, { type: blob.type || 'image/jpeg' }));
+        files.push(new File([compressed], fname, { type: compressed.type || 'image/jpeg' }));
       } catch(e) {
         fetchFails++;
         console.warn('share fetch fail', p.url, e);
@@ -6758,7 +6762,14 @@ function eTst2(msg){
       setTimeout(function(){ progEl.style.display = 'none'; }, 4000);
       return;
     }
-    progEl.textContent = '공유 시트 여는 중... (' + files.length + '장)';
+    var totalMB = (totalBytes / 1024 / 1024).toFixed(1);
+    // iOS Web Share는 ~30~50MB 부근에서 막힘. 압축 후에도 넘으면 분할 권장.
+    if (totalBytes > 40 * 1024 * 1024) {
+      progEl.textContent = '[size] 압축 후 총 ' + totalMB + 'MB — 너무 큼. 사진 수를 줄이거나 한 장씩 공유해주세요';
+      setTimeout(function(){ progEl.style.display = 'none'; }, 5000);
+      return;
+    }
+    progEl.textContent = '공유 시트 여는 중... (' + files.length + '장 · ' + totalMB + 'MB)';
     try {
       await navigator.share({
         files: files,
@@ -7020,6 +7031,42 @@ function eTst2(msg){
     _updateLightbox();
   };
 
+  // 공유용 이미지 압축 — 긴 변 1600px, JPEG 85% (Web Share API 총 용량 한도 회피)
+  // 500KB 미만은 압축 안 함 (이미 작음)
+  async function _compressForShare(blob) {
+    try {
+      if (!blob || blob.size < 500 * 1024) return blob;
+      var url = URL.createObjectURL(blob);
+      try {
+        var img = await new Promise(function(res, rej){
+          var i = new Image();
+          i.onload = function(){ res(i); };
+          i.onerror = function(){ rej(new Error('decode fail')); };
+          i.src = url;
+        });
+        var w = img.naturalWidth, h = img.naturalHeight;
+        var MAX = 1600;
+        if (w > MAX || h > MAX) {
+          var ratio = MAX / Math.max(w, h);
+          w = Math.round(w * ratio);
+          h = Math.round(h * ratio);
+        }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        var out = await new Promise(function(res){
+          canvas.toBlob(function(b){ res(b); }, 'image/jpeg', 0.85);
+        });
+        return out && out.size < blob.size ? out : blob;
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    } catch(e) {
+      console.warn('compress failed, using original', e);
+      return blob;
+    }
+  }
+
   // 1장 공유 (Web Share API → 카톡/메시지/메모 등 OS 공유 시트)
   window._lightboxShare = async function() {
     var item = lightboxList[lightboxIdx];
@@ -7047,8 +7094,9 @@ function eTst2(msg){
       showNotif('[2] 사진 가져오기 실패 — ' + (fetchErr.message || fetchErr) + ' (CORS 또는 네트워크 문제)', true);
       return;
     }
-    // 단계 3: File 객체 생성 + 공유 가능 여부 체크
-    var file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
+    // 단계 3: 압축 + File 객체 생성 + 공유 가능 여부 체크
+    var compressed = await _compressForShare(blob);
+    var file = new File([compressed], fileName, { type: compressed.type || 'image/jpeg' });
     if (navigator.canShare && !navigator.canShare({ files: [file] })) {
       console.warn('canShare returned false for file', file);
       showNotif('[3] 이 기기는 파일 공유 미지원 — 다운로드로 대체합니다', true);
