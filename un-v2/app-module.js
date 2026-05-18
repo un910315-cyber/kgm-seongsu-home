@@ -920,6 +920,30 @@
     Object.entries(kgmDailyMap).forEach(([day, cnt]) => { if (day.startsWith(thisMonth)) monthSum += cnt; });
     setText('stat-kgm-today', todayCount);
     setText('stat-kgm-month', monthSum);
+
+    // 이번 주 (월요일 ~ 오늘) 누적
+    const nowD = new Date();
+    const dow = nowD.getDay(); // 0=일, 1=월, ..., 6=토
+    const daysFromMon = (dow + 6) % 7; // 월=0, 일=6
+    const weekStart = new Date(nowD); weekStart.setDate(nowD.getDate() - daysFromMon); weekStart.setHours(0,0,0,0);
+    let weekSum = 0;
+    Object.entries(kgmDailyMap).forEach(([day, cnt]) => {
+      const d = new Date(day + 'T00:00:00');
+      if (d >= weekStart && d <= nowD) weekSum += cnt;
+    });
+    setText('stat-kgm-week', weekSum);
+
+    // 이번 분기 (1~3월=Q1, 4~6=Q2, 7~9=Q3, 10~12=Q4)
+    const curMonth = nowD.getMonth(); // 0-11
+    const qStartMonth = Math.floor(curMonth / 3) * 3;
+    const qStart = new Date(nowD.getFullYear(), qStartMonth, 1);
+    let quarterSum = 0;
+    Object.entries(kgmDailyMap).forEach(([day, cnt]) => {
+      const d = new Date(day + 'T00:00:00');
+      if (d >= qStart && d <= nowD) quarterSum += cnt;
+    });
+    setText('stat-kgm-quarter', quarterSum);
+
     // 메타: 저장 상태 안내
     const metaEl = document.getElementById('kgm-today-meta');
     if (metaEl) metaEl.textContent = todayCount > 0 ? '저장됨' : '하루 끝에 저장';

@@ -157,16 +157,25 @@
             <div class="chart-title">정비차량 (KGM) 현황</div>
             <div class="chart-subtitle">하루 끝에 카운트만 기록</div>
           </div>
-          <div class="stats-grid" style="margin-bottom:10px;grid-template-columns:1fr 1fr;">
+          <div class="stats-grid" style="margin-bottom:10px;grid-template-columns:1fr;">
             <!-- 오늘 입고 — 읽기 전용 (입력은 '매출 보고' 탭에서) -->
             <div class="stat-card red">
               <div class="stat-label">오늘 입고</div>
               <div class="stat-value" id="stat-kgm-today">0</div>
               <div class="stat-sub">매출 보고 탭에서 입력</div>
             </div>
-            <div class="stat-card orange"><div class="stat-label">이달 입고</div><div class="stat-value" id="stat-kgm-month">0</div><div class="stat-sub">이번 달 누적</div></div>
           </div>
           <div id="kgmIntakeChart" class="chart-wrap"></div>
+
+          <!-- 누적 통계 (주/월/분기) -->
+          <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06);">
+            <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;letter-spacing:0.4px;text-transform:uppercase;font-weight:600;">📅 누적 통계</div>
+            <div class="stats-grid" style="grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:0;">
+              <div class="stat-card purple"><div class="stat-label">이번 주</div><div class="stat-value" id="stat-kgm-week">0</div><div class="stat-sub">월~일</div></div>
+              <div class="stat-card orange"><div class="stat-label">이번 달</div><div class="stat-value" id="stat-kgm-month">0</div><div class="stat-sub">월 누적</div></div>
+              <div class="stat-card blue"><div class="stat-label">이번 분기</div><div class="stat-value" id="stat-kgm-quarter">0</div><div class="stat-sub">분기 누적</div></div>
+            </div>
+          </div>
         </div>
       </div>
 
