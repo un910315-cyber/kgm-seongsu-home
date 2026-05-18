@@ -70,8 +70,8 @@
 
   /* MAIN */
   .main { padding: 20px; max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
-  /* 대시보드는 컬럼이 많은 현황 목록을 담아 더 넓은 max-width로 조정 (양옆 fixed 사이드바와는 z-index로 겹쳐도 시각적으로만 가림) */
-  #page-dashboard > .main { max-width: 1500px; }
+  /* 대시보드는 데이터를 좌측 정렬로 — 가운데 centering 해제, 전체 폭 사용 */
+  #page-dashboard > .main { max-width: 100%; margin: 0; }
   #page-dashboard table { min-width: 1200px; } /* 한 화면에 12컬럼이 다 들어가도록 최소 너비 보장 */
   #page-dashboard th, #page-dashboard td { padding-left: 10px; padding-right: 10px; } /* 패딩 살짝 축소 */
 
