@@ -6738,8 +6738,7 @@ function eTst2(msg){
         showNotif('공유 완료', false);
       } catch (e) {
         if (e.name === 'AbortError') return;
-        console.error('share() failed:', e);
-        showNotif('공유 실패 — ' + (e.name || 'Error') + ': ' + (e.message || e), true);
+        _showShareError('전체 공유 · 2단계', e);
       }
       return;
     }
@@ -6764,8 +6763,8 @@ function eTst2(msg){
         // 압축으로 용량 줄여서 공유 한도 회피
         var compressed = await _compressForShare(blob);
         totalBytes += compressed.size;
-        var fname = carNum + '_' + currentStage + '_' + String(i+1).padStart(2,'0') + '.jpg';
-        files.push(new File([compressed], fname, { type: compressed.type || 'image/jpeg' }));
+        var fname = _safeFileName(carNum + '_' + currentStage + '_' + String(i+1).padStart(2,'0')) + '.jpg';
+        files.push(new File([compressed], fname, { type: 'image/jpeg' }));
       } catch(e) {
         fetchFails++;
         console.warn('share fetch fail', p.url, e);
@@ -7103,6 +7102,36 @@ function eTst2(msg){
     _pendingShare = null;
   }
 
+  // 파일명 ASCII로 정규화 — 한글·공백·특수문자가 일부 안드로이드 공유 타겟(카톡 등)에서 실패 유발
+  function _safeFileName(s) {
+    var ascii = String(s || 'photo')
+      .replace(/[^\w\-]/g, '_')   // 영숫자·_·- 외 전부 _ 로
+      .replace(/_+/g, '_')         // 연속 _ 정리
+      .replace(/^_|_$/g, '');      // 양끝 _ 제거
+    return ascii || 'photo';
+  }
+
+  // 공유 에러를 사용자가 정확히 읽을 수 있는 모달로 표시 (showNotif는 짧아서 잘림)
+  function _showShareError(stage, err) {
+    var nm = (err && err.name) || 'Error';
+    var msg = (err && err.message) || String(err);
+    console.error('[share error]', stage, nm, msg, err);
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    overlay.onclick = function(e){ if (e.target === overlay) document.body.removeChild(overlay); };
+    overlay.innerHTML = ''
+      + '<div style="background:#1f1f1f;border:1px solid #444;border-radius:12px;padding:24px;max-width:90vw;color:#fff;font-size:14px;line-height:1.6;">'
+      +   '<div style="font-size:18px;font-weight:700;margin-bottom:14px;color:#ef4444;">🚫 공유 실패 (' + stage + ')</div>'
+      +   '<div style="margin-bottom:6px;"><b style="color:#fbbf24;">유형:</b> ' + nm + '</div>'
+      +   '<div style="margin-bottom:14px;word-break:break-word;"><b style="color:#fbbf24;">메시지:</b> ' + msg + '</div>'
+      +   '<div style="font-size:12px;color:#a3a3a3;line-height:1.7;">'
+      +     '이 화면을 캡처해서 관리자에게 보내주세요. 한 장씩 공유 시도해보거나, "📦 전체 다운로드" 후 갤러리에서 카톡으로 보내는 방법도 있습니다.'
+      +   '</div>'
+      +   '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="margin-top:18px;padding:10px 20px;background:#444;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;width:100%;">닫기</button>'
+      + '</div>';
+    document.body.appendChild(overlay);
+  }
+
   // 1장 공유 — 2단계 클릭 패턴
   window._lightboxShare = async function() {
     if (!navigator.share) {
@@ -7117,8 +7146,7 @@ function eTst2(msg){
         await navigator.share({ files: p.files, title: p.title, text: p.text });
       } catch (e) {
         if (e.name === 'AbortError') return;
-        console.error('share() failed:', e);
-        showNotif('공유 실패 — ' + (e.name || 'Error') + ': ' + (e.message || e), true);
+        _showShareError('1장 공유 · 2단계', e);
       }
       return;
     }
@@ -7127,7 +7155,8 @@ function eTst2(msg){
     if (!item) return;
     var r = getRecord();
     var carNum = (r && r.carNum) ? r.carNum : 'vehicle';
-    var fileName = carNum + '_' + currentStage + '_' + (lightboxIdx + 1) + '.jpg';
+    // 파일명은 ASCII로 — 한글/공백이 안드로이드 카톡 등에서 실패 원인
+    var fileName = _safeFileName(carNum + '_' + currentStage + '_' + (lightboxIdx + 1)) + '.jpg';
     var btn = document.querySelector('#photoLightbox button[onclick="window._lightboxShare()"]');
     var origLabel = btn ? btn.textContent : '';
     var origBg = btn ? btn.style.background : '';
@@ -7137,7 +7166,7 @@ function eTst2(msg){
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
       var blob = await resp.blob();
       var compressed = await _compressForShare(blob);
-      var file = new File([compressed], fileName, { type: compressed.type || 'image/jpeg' });
+      var file = new File([compressed], fileName, { type: 'image/jpeg' });
       if (navigator.canShare && !navigator.canShare({ files: [file] })) {
         showNotif('[3] 이 기기는 파일 공유 미지원 — 다운로드로 대체', true);
         if (btn) { btn.textContent = origLabel; btn.disabled = false; }
