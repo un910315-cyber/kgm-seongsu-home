@@ -120,6 +120,9 @@
       parts: [18,22,21,25,30,28,33,36,34,38,41,43],
       func: [9,11,13,12,16,18,17,21,23,22,25,27],
       deposit: [5,6,6,7,7,8,9,9,10,11,12,13],
+      partsAmount: 11820000,
+      functionAmount: 6820000,
+      depositAmount: 4800000,
       totalText: '18,640,000원',
       partsText: '11,820,000원',
       functionText: '6,820,000원'
@@ -145,6 +148,9 @@
     const parts = opts?.parts || [];
     const func = opts?.func || [];
     const deposit = opts?.deposit || [];
+    const partsAmount = Number(opts?.partsAmount ?? parts[parts.length - 1]) || 0;
+    const funcAmount = Number(opts?.functionAmount ?? func[func.length - 1]) || 0;
+    const depositAmount = Number(opts?.depositAmount ?? deposit[deposit.length - 1]) || 0;
     const totalEl = document.getElementById('cum-sales-total');
     const partsEl = document.getElementById('cum-sales-parts');
     const funcEl = document.getElementById('cum-sales-function');
@@ -165,6 +171,35 @@
       + '<path d="'+makePath(func)+'" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'
       + '<path d="'+makePath(deposit)+'" fill="none" stroke="#fbbf24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>'
       + '</svg>';
+
+    const mix = document.getElementById('cumSalesMixChart');
+    if (mix) {
+      const total = Math.max(1, partsAmount + funcAmount + depositAmount);
+      const partsPct = partsAmount / total;
+      const funcPct = funcAmount / total;
+      const depPct = depositAmount / total;
+      const c = 2 * Math.PI * 32;
+      const partsLen = c * partsPct;
+      const funcLen = c * funcPct;
+      const depLen = c * depPct;
+      mix.innerHTML = `<svg viewBox="0 0 86 86" class="cum-sales-mix-svg">`
+        + `<circle cx="43" cy="43" r="32" fill="none" stroke="rgba(148,163,184,.13)" stroke-width="10"/>`
+        + `<circle cx="43" cy="43" r="32" fill="none" stroke="#fb923c" stroke-width="10" stroke-linecap="round" stroke-dasharray="${partsLen} ${c-partsLen}" transform="rotate(-90 43 43)"/>`
+        + `<circle cx="43" cy="43" r="32" fill="none" stroke="#34d399" stroke-width="10" stroke-linecap="round" stroke-dasharray="${funcLen} ${c-funcLen}" stroke-dashoffset="${-partsLen}" transform="rotate(-90 43 43)"/>`
+        + `<circle cx="43" cy="43" r="32" fill="none" stroke="#fbbf24" stroke-width="10" stroke-linecap="round" stroke-dasharray="${depLen} ${c-depLen}" stroke-dashoffset="${-(partsLen+funcLen)}" transform="rotate(-90 43 43)"/>`
+        + `<text x="43" y="40" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="900">${Math.round(Math.max(partsPct, funcPct, depPct) * 100)}%</text>`
+        + `<text x="43" y="53" text-anchor="middle" fill="#8b95a8" font-size="8" font-weight="800">TOP</text>`
+        + `</svg>`;
+    }
+    const mixMain = document.getElementById('cum-sales-mix-main');
+    const mixSub = document.getElementById('cum-sales-mix-sub');
+    const top = [
+      { name: '부품 중심', value: partsAmount, pct: partsAmount / Math.max(1, partsAmount + funcAmount + depositAmount) },
+      { name: '기능 중심', value: funcAmount, pct: funcAmount / Math.max(1, partsAmount + funcAmount + depositAmount) },
+      { name: '보증금 중심', value: depositAmount, pct: depositAmount / Math.max(1, partsAmount + funcAmount + depositAmount) }
+    ].sort((a,b) => b.value - a.value)[0];
+    if (mixMain) mixMain.textContent = top.name;
+    if (mixSub) mixSub.textContent = '최대 비중 ' + Math.round(top.pct * 100) + '%';
   }
 
   // 전화번호 → tel: 링크 셀 (테이블 표시 + 클릭 다이얼)
@@ -778,6 +813,9 @@
       parts: partsCum.length ? partsCum : [0],
       func: funcCum.length ? funcCum : [0],
       deposit: depCum.length ? depCum : [depositVal],
+      partsAmount: partsRun,
+      functionAmount: funcRun,
+      depositAmount: depositVal,
       totalText: _fmtKRW(partsRun + funcRun + depositVal),
       partsText: _fmtKRW(partsRun),
       functionText: _fmtKRW(funcRun)

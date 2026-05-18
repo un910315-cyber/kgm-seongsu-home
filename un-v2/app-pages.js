@@ -2,10 +2,17 @@
 
   // PAGE SWITCH
   function switchPage(name) {
+    document.body.setAttribute('data-page', name);
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
     var el = document.getElementById('page-'+name);
     if(el) el.classList.add('active');
+    var opsGroup = document.getElementById('opsNavGroup');
+    if (opsGroup && ['list','status','complete','out'].indexOf(name) >= 0) {
+      opsGroup.classList.add('nav-group-open', 'active');
+    } else if (opsGroup) {
+      opsGroup.classList.remove('active');
+    }
     var tabEls = document.querySelectorAll('.nav-tab');
     tabEls.forEach(function(t){
       var pg = t.getAttribute('onclick');
@@ -27,6 +34,12 @@
     }
   }
 
+  function toggleOpsNav() {
+    var group = document.getElementById('opsNavGroup');
+    if (group) group.classList.toggle('nav-group-open');
+  }
+  window.toggleOpsNav = toggleOpsNav;
+
   // DATE
   function updateDate() {
     const now = new Date();
@@ -39,6 +52,10 @@
   }
   updateDate();
   setInterval(updateDate, 60000);
+  (function initActivePageFlag(){
+    var active = document.querySelector('.page.active');
+    if (active) document.body.setAttribute('data-page', active.id.replace('page-', ''));
+  })();
 
   // CLOSE MODAL ON OVERLAY CLICK
   // formModal은 백드롭 클릭으로 닫지 않음 — 입력 중 실수로 작업 날아가는 사고 방지.

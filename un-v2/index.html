@@ -79,10 +79,15 @@
 
 <div class="nav-tabs">
   <div class="nav-tab active" onclick="switchPage('dashboard')">대시보드</div>
-  <div class="nav-tab" onclick="switchPage('list')">입출고 목록</div>
-  <div class="nav-tab" onclick="switchPage('status')">현황 목록</div>
-  <div class="nav-tab" onclick="switchPage('complete')">수리완료 대기</div>
-  <div class="nav-tab" onclick="switchPage('out')">출고완료</div>
+  <div class="nav-group nav-group-open" id="opsNavGroup">
+    <div class="nav-tab nav-parent" onclick="toggleOpsNav()">입출고 목록</div>
+    <div class="nav-subtabs" id="opsNavSubtabs">
+      <div class="nav-tab nav-subtab" onclick="switchPage('list')">입출고 목록</div>
+      <div class="nav-tab nav-subtab" onclick="switchPage('status')">현황 목록</div>
+      <div class="nav-tab nav-subtab" onclick="switchPage('complete')">수리완료 대기</div>
+      <div class="nav-tab nav-subtab" onclick="switchPage('out')">출고완료</div>
+    </div>
+  </div>
   <div class="nav-tab" onclick="switchPage('migyeol')">보험 미결</div>
   <div class="nav-tab" onclick="switchPage('leave')" id="tab-leave">연차관리</div>
   <div class="nav-tab" onclick="switchPage('board')" id="tab-board">게시판 · 일정</div>
@@ -330,6 +335,14 @@
         <div><span>이번 달 누적</span><strong id="cum-sales-total">0원</strong></div>
         <div><span>부품</span><strong id="cum-sales-parts">0원</strong></div>
         <div><span>기능</span><strong id="cum-sales-function">0원</strong></div>
+      </div>
+      <div class="cum-sales-mix">
+        <div id="cumSalesMixChart" class="cum-sales-mix-chart"></div>
+        <div class="cum-sales-mix-copy">
+          <span>매출 구성</span>
+          <strong id="cum-sales-mix-main">부품 중심</strong>
+          <em id="cum-sales-mix-sub">부품 · 기능 · 보증금 비율</em>
+        </div>
       </div>
       <div id="cumSalesChart" class="cum-sales-chart"></div>
       <div class="cum-sales-legend">
@@ -2108,6 +2121,17 @@
         + '</svg>';
     }
     setText('cum-sales-total','18,640,000원'); setText('cum-sales-parts','11,820,000원'); setText('cum-sales-function','6,820,000원');
+    setText('cum-sales-mix-main','부품 중심'); setText('cum-sales-mix-sub','최대 비중 50%');
+    var mix = document.getElementById('cumSalesMixChart');
+    if (mix) {
+      var partsLen = 201 * .50, funcLen = 201 * .29, depLen = 201 * .21;
+      mix.innerHTML = '<svg viewBox="0 0 86 86" class="cum-sales-mix-svg">'
+        + '<circle cx="43" cy="43" r="32" fill="none" stroke="rgba(148,163,184,.13)" stroke-width="10"/>'
+        + '<circle cx="43" cy="43" r="32" fill="none" stroke="#fb923c" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+partsLen+' '+(201-partsLen)+'" transform="rotate(-90 43 43)"/>'
+        + '<circle cx="43" cy="43" r="32" fill="none" stroke="#34d399" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+funcLen+' '+(201-funcLen)+'" stroke-dashoffset="'+(-partsLen)+'" transform="rotate(-90 43 43)"/>'
+        + '<circle cx="43" cy="43" r="32" fill="none" stroke="#fbbf24" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+depLen+' '+(201-depLen)+'" stroke-dashoffset="'+(-(partsLen+funcLen))+'" transform="rotate(-90 43 43)"/>'
+        + '<text x="43" y="40" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="900">50%</text><text x="43" y="53" text-anchor="middle" fill="#8b95a8" font-size="8" font-weight="800">TOP</text></svg>';
+    }
     var cum = document.getElementById('cumSalesChart');
     if (cum) {
       function makePath(values) {
