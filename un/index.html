@@ -5378,6 +5378,7 @@ function fmtDateVal(val) {
         <input type="file" id="photoCamera" accept="image/*" capture="environment" style="display:none" onchange="window._handlePhotoFiles(this.files)">
         <button class="btn btn-primary btn-sm" id="photoCaptureBtn" onclick="document.getElementById('photoCamera').click()" style="flex:1;min-width:120px;">📷 촬영하기</button>
         <button class="btn btn-ghost btn-sm" id="photoPickBtn" onclick="document.getElementById('photoPicker').click()" style="flex:1;min-width:120px;">📁 파일 선택</button>
+        <button class="btn btn-sm" id="photoShareAllBtn" onclick="window._shareAllPhotos()" style="flex:1;min-width:120px;background:#FEE500;color:#3C1E1E;border:1px solid #E0CC00;font-weight:700;">📤 카톡으로 전체 보내기</button>
         <button class="btn btn-ghost btn-sm" id="photoDownloadAllBtn" onclick="window._downloadAllPhotos()" style="flex:1;min-width:120px;">📦 전체 다운로드</button>
       </div>
       <div id="photoProgress" style="display:none;font-size:12px;color:var(--accent);margin-bottom:10px;padding:8px 12px;background:rgba(139,92,246,0.08);border-radius:6px;"></div>
@@ -5389,7 +5390,8 @@ function fmtDateVal(val) {
 
 <!-- 사진 라이트박스 (전체화면 보기) -->
 <div id="photoLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:300;align-items:center;justify-content:center;flex-direction:column;">
-  <div style="position:absolute;top:14px;right:14px;display:flex;gap:8px;z-index:2;">
+  <div style="position:absolute;top:14px;right:14px;display:flex;gap:8px;z-index:2;flex-wrap:wrap;justify-content:flex-end;">
+    <button class="btn btn-sm" onclick="window._lightboxShare()" style="background:#FEE500;color:#3C1E1E;border:1px solid #E0CC00;font-weight:700;">📤 카톡 보내기</button>
     <button class="btn btn-ghost btn-sm" onclick="window._lightboxDownload()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);">⬇️ 다운로드</button>
     <button class="btn btn-ghost btn-sm" id="lightboxDeleteBtn" onclick="window._lightboxDelete()" style="background:rgba(239,68,68,0.2);color:#fff;border:1px solid rgba(239,68,68,0.4);">🗑️ 삭제</button>
     <button class="btn btn-ghost btn-sm" onclick="window._closeLightbox()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);">✕ 닫기</button>
@@ -6718,6 +6720,61 @@ function eTst2(msg){
     }).join('');
   };
 
+  // 전체 사진 공유 (모든 사용자 가능) — files 배열로 OS 공유 시트 한 번에 호출
+  window._shareAllPhotos = async function() {
+    var arr = getPhotoArr(currentStage);
+    if (!arr.length) { showNotif('공유할 사진이 없습니다', true); return; }
+    if (!(navigator.canShare && typeof navigator.share === 'function')) {
+      showNotif('이 기기는 공유 기능을 지원하지 않습니다. 데스크톱 PC는 지원 안 됨 — 휴대폰에서 시도해주세요', true);
+      return;
+    }
+    var r = getRecord();
+    var carNum = (r && r.carNum) ? r.carNum : 'vehicle';
+    var progEl = document.getElementById('photoProgress');
+    progEl.style.display = '';
+    var files = [];
+    for (var i = 0; i < arr.length; i++) {
+      var p = arr[i];
+      progEl.textContent = '사진 준비 중... (' + (i+1) + '/' + arr.length + ')';
+      try {
+        var resp = await fetch(p.url);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        var blob = await resp.blob();
+        var fname = carNum + '_' + currentStage + '_' + String(i+1).padStart(2,'0') + '.jpg';
+        files.push(new File([blob], fname, { type: blob.type || 'image/jpeg' }));
+      } catch(e) {
+        console.warn('fetch fail', p.url, e);
+      }
+    }
+    if (!files.length) {
+      progEl.textContent = '사진을 가져올 수 없습니다';
+      setTimeout(function(){ progEl.style.display = 'none'; }, 3000);
+      return;
+    }
+    if (!navigator.canShare({ files: files })) {
+      progEl.textContent = '이 기기는 다중 파일 공유 미지원 — 한 장씩 공유해주세요';
+      setTimeout(function(){ progEl.style.display = 'none'; }, 3500);
+      return;
+    }
+    progEl.textContent = '공유 시트 여는 중... (' + files.length + '장)';
+    try {
+      await navigator.share({
+        files: files,
+        title: carNum + ' 입출고 사진 ' + files.length + '장',
+        text: carNum + ' (' + currentStage + ')',
+      });
+      progEl.textContent = '공유 완료 ✓';
+    } catch(e) {
+      if (e.name === 'AbortError') {
+        progEl.textContent = '공유 취소됨';
+      } else {
+        console.warn('share all failed:', e);
+        progEl.textContent = '공유 실패: ' + (e.message || e);
+      }
+    }
+    setTimeout(function(){ progEl.style.display = 'none'; }, 2500);
+  };
+
   window._downloadAllPhotos = async function() {
     if (window._userRole !== 'admin') return;
     var arr = getPhotoArr(currentStage);
@@ -6959,6 +7016,35 @@ function eTst2(msg){
     if (!lightboxList.length) return;
     lightboxIdx = (lightboxIdx + delta + lightboxList.length) % lightboxList.length;
     _updateLightbox();
+  };
+
+  // 1장 공유 (Web Share API → 카톡/메시지/메모 등 OS 공유 시트)
+  window._lightboxShare = async function() {
+    var item = lightboxList[lightboxIdx];
+    if (!item) return;
+    var r = getRecord();
+    var carNum = (r && r.carNum) ? r.carNum : 'vehicle';
+    var fileName = carNum + '_' + currentStage + '_' + (lightboxIdx + 1) + '.jpg';
+    try {
+      var resp = await fetch(item.url);
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      var blob = await resp.blob();
+      var file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: carNum + ' 입출고 사진',
+          text: carNum + ' (' + currentStage + ')',
+        });
+        return;
+      }
+      showNotif('이 기기는 공유 기능을 지원하지 않습니다 — 다운로드로 진행합니다', true);
+      window._lightboxDownload();
+    } catch(e) {
+      if (e.name === 'AbortError') return; // 사용자 취소
+      console.warn('lightbox share failed:', e);
+      showNotif('공유 실패: ' + (e.message || e), true);
+    }
   };
 
   window._lightboxDownload = async function() {
