@@ -1615,25 +1615,8 @@ body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card:
 }
 
 body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card .stat-sub::after {
-  content: "";
-  position: absolute;
-  left: 18px;
-  right: 18px;
-  bottom: 18px;
-  height: 38px;
-  opacity: .75;
-  background:
-    linear-gradient(to top, currentColor, transparent 72%),
-    linear-gradient(135deg, transparent 0 8%, currentColor 8.5% 10%, transparent 10.5% 20%, currentColor 20.5% 22%, transparent 22.5% 35%, currentColor 35.5% 37%, transparent 37.5% 53%, currentColor 53.5% 55%, transparent 55.5% 73%, currentColor 73.5% 75%, transparent 75.5%);
-  clip-path: polygon(0 82%, 10% 78%, 20% 52%, 31% 62%, 43% 35%, 55% 48%, 67% 26%, 78% 38%, 89% 18%, 100% 28%, 100% 100%, 0 100%);
+  content: none;
 }
-
-body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.orange .stat-sub::after { color: rgba(249,115,22,.62); }
-body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.purple .stat-sub::after { color: rgba(139,92,246,.62); }
-body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.blue .stat-sub::after { color: rgba(59,130,246,.62); }
-body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.green .stat-sub::after { color: rgba(16,185,129,.62); }
-body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.red .stat-sub::after { color: rgba(244,63,94,.62); }
-body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.red .stat-sub::after { display: none; }
 
 body:has(#page-dashboard.active) #stat-total { color: #c4b5fd; }
 body:has(#page-dashboard.active) #stat-today { color: #fb7185; }
