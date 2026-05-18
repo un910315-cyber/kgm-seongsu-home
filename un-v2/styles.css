@@ -536,6 +536,139 @@
   }
   @media print { @page { size:A4 landscape; margin:0; } }
 
+  /* ═══════════════════════════════════════════════════════════════
+     Tabler 인스피레이션 패치 (un-v2 전용 시각 톤 개선)
+     CSS만, 마크업 0 변경. 마음에 안 들면 이 블록 통째로 제거.
+     ═══════════════════════════════════════════════════════════════ */
+
+  /* 1. 바탕 — 살짝 푸른 다크 (Tabler 톤) */
+  body {
+    background: #15171b !important;
+    background-image: none !important;
+  }
+
+  /* 2. 헤더 — 슬림하게, 블러 글래스 */
+  .header {
+    background: rgba(21,23,27,.85) !important;
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border-bottom: 1px solid rgba(255,255,255,.06) !important;
+    min-height: calc(60px + env(safe-area-inset-top, 0px)) !important;
+    box-shadow: 0 1px 0 rgba(0,0,0,.4) !important;
+  }
+  .logo-grad { height: 44px !important; }
+  .date-badge { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.08); color: #c1c5cc; }
+  .online-badge { background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.28); }
+
+  /* 3. 네비 탭 — Tabler nav-link 스타일 */
+  .nav-tabs {
+    background: rgba(21,23,27,.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    padding: 0 24px;
+  }
+  .nav-tab {
+    padding: 14px 14px;
+    font-size: 13px;
+    text-transform: none;
+    letter-spacing: -0.1px;
+    color: #a0a4ac;
+    border-bottom-width: 2px;
+    transition: color .15s, border-color .15s;
+  }
+  .nav-tab:hover:not(.active) {
+    color: #fff;
+    background: transparent;
+  }
+  .nav-tab.active {
+    color: #fff;
+    border-bottom-color: #fff;
+    font-weight: 600;
+  }
+
+  /* 4. 메인 영역 — 컨테이너 폭/패딩 정리 */
+  .main { padding: 28px 24px 60px; }
+
+  /* 5. 테이블 — Tabler card-table 톤 */
+  .table-wrap {
+    background: #1a1c20 !important;
+    border: 1px solid rgba(255,255,255,.06) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,.2), 0 6px 18px rgba(0,0,0,.12);
+  }
+  thead tr {
+    background: rgba(255,255,255,.02) !important;
+    border-bottom: 1px solid rgba(255,255,255,.06) !important;
+  }
+  th {
+    padding: 14px 14px !important;
+    font-size: 11px !important;
+    color: #a0a4ac !important;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  td {
+    padding: 16px 14px !important;
+    border-bottom: 1px solid rgba(255,255,255,.05) !important;
+    color: #e7e9ec;
+  }
+  tbody tr { transition: background .12s; }
+  tbody tr:hover { background: rgba(255,255,255,.025) !important; }
+
+  /* 6. 통계 카드 — 약간 더 차분한 톤 */
+  .stat-card { box-shadow: 0 1px 2px rgba(0,0,0,.2), 0 4px 12px rgba(0,0,0,.08); }
+
+  /* 7. 검색·필터 인풋 — Tabler form-control */
+  .search-box, .filter-select {
+    background: #16181d !important;
+    border: 1px solid rgba(255,255,255,.08) !important;
+    border-radius: 8px !important;
+    color: #e7e9ec !important;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .search-box:focus, .filter-select:focus {
+    border-color: #8b5cf6 !important;
+    box-shadow: 0 0 0 3px rgba(139,92,246,.18) !important;
+    outline: none;
+  }
+
+  /* 8. 버튼 — 약간 더 정돈된 hover */
+  .btn { transition: background .15s, border-color .15s, transform .1s; }
+  .btn:active { transform: translateY(1px); }
+  .btn-ghost { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.08); }
+  .btn-ghost:hover { background: rgba(255,255,255,.07); border-color: #8b5cf6; color: #c4b5fd; }
+
+  /* 9. 블랙 알림 — 빨간 그라데이션 카드 (preview 톤) */
+  #blacklistAlertBanner {
+    background: linear-gradient(135deg,#2a0e10 0%,#3a1014 100%) !important;
+    border: 1px solid #d63939 !important;
+    border-left: 5px solid #ff4d4d !important;
+    box-shadow: 0 4px 16px rgba(214,57,57,.18);
+    padding: 14px 18px !important;
+  }
+  #blacklistAlertBanner > div:first-child > span:nth-child(2) {
+    color: #ffffff !important; font-size: 15px !important;
+  }
+  #blacklistAlertCount { color: #ffb3b3 !important; font-weight: 600; }
+  #blacklistAlertBanner button {
+    background: #ffffff !important; color: #a01b1b !important;
+    border: none !important; font-weight: 700 !important;
+    padding: 7px 14px !important; border-radius: 6px !important;
+  }
+  #blacklistAlertBanner button:hover { background: #f4f4f4 !important; }
+
+  /* 10. 차량번호 칩 — 더 정돈 */
+  .car-num {
+    background: rgba(245,166,35,.12) !important;
+    color: #fbb049 !important;
+    border-radius: 6px;
+    font-weight: 700;
+    padding: 4px 9px;
+  }
+  /* 끝 */
+
   /* PWA 설치 안내 (로그인 화면 배너 + 헤더 작은 아이콘) */
   .pwa-banner { display: none; margin-top: 18px; padding: 12px 14px; background: rgba(196,169,108,.08); border: 1px solid rgba(196,169,108,.35); border-radius: 6px; max-width: 340px; text-align: left; color: rgba(250,250,250,.85); font-size: 12px; line-height: 1.5; }
   .pwa-banner.show { display: block; }
