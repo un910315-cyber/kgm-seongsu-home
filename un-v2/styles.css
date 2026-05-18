@@ -679,6 +679,40 @@
   .chart-title { font-size: 14px; font-weight: 700; color: #ffffff; }
   .chart-subtitle { font-size: 12px; color: #a0a4ac; }
   .chart-wrap { width: 100%; overflow-x: auto; }
+
+  /* 13. 각지게 — 라운드 대폭 축소 */
+  .stat-card,
+  .table-wrap,
+  .chart-card,
+  #blacklistAlertBanner,
+  #accessRequests,
+  .dash-out-side,
+  .dash-res-side { border-radius: 4px !important; }
+
+  .search-box,
+  .filter-select,
+  .form-input,
+  .form-select,
+  input.form-input,
+  select.filter-select { border-radius: 3px !important; }
+
+  .btn,
+  .btn-primary,
+  .btn-ghost,
+  .btn-success,
+  .btn-danger,
+  .dash-out-toggle-btn,
+  #blacklistAlertBanner button { border-radius: 3px !important; }
+
+  .btn-sm { border-radius: 3px !important; }
+
+  .car-num,
+  .date-badge,
+  .online-badge,
+  .stats-section-label { border-radius: 2px !important; }
+
+  /* 통계 카드 상단 액센트 라인은 모서리 0 */
+  .stat-card::before { border-radius: 0 !important; }
   /* 끝 */
 
   /* PWA 설치 안내 (로그인 화면 배너 + 헤더 작은 아이콘) */
