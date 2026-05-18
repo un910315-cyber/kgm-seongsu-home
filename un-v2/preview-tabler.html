@@ -9,6 +9,42 @@
 <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/tabler-icons.min.css" rel="stylesheet">
 <style>
   body { font-family: 'Inter', -apple-system, 'Noto Sans KR', sans-serif; }
+
+  /* ── 다크 모드 대비 강화 (Tabler 기본이 너무 침침) ── */
+  [data-bs-theme="dark"] {
+    --tblr-body-color: #e7e9ec;            /* 본문 → 거의 흰색 */
+    --tblr-secondary-color: #c1c5cc;       /* secondary → 한 톤 더 밝게 */
+    --tblr-tertiary-color: #a0a4ac;        /* tertiary → 살짝 밝게 */
+    --tblr-emphasis-color: #ffffff;        /* 강조 텍스트 흰색 */
+    --tblr-muted: #a0a4ac;
+    --tblr-link-color: #4dabf7;            /* 링크 좀 더 밝게 */
+  }
+  [data-bs-theme="dark"] .text-secondary { color: #c1c5cc !important; }
+  [data-bs-theme="dark"] .text-muted { color: #a0a4ac !important; }
+  [data-bs-theme="dark"] .subheader { color: #c1c5cc !important; }
+  [data-bs-theme="dark"] .card-title { color: #ffffff; font-weight: 700; }
+  [data-bs-theme="dark"] .page-title { color: #ffffff; }
+  [data-bs-theme="dark"] .nav-link { color: #c1c5cc; }
+  [data-bs-theme="dark"] .nav-link:hover { color: #ffffff; }
+  [data-bs-theme="dark"] .nav-item.active .nav-link,
+  [data-bs-theme="dark"] .nav-link.active { color: #ffffff; font-weight: 600; }
+  [data-bs-theme="dark"] .navbar-brand { color: #ffffff; }
+  [data-bs-theme="dark"] .table { color: #e7e9ec; }
+  [data-bs-theme="dark"] .table .text-secondary { color: #c1c5cc !important; }
+  /* 배지 라이트 톤도 어둠 속에서 또렷하게 */
+  [data-bs-theme="dark"] .badge.bg-blue-lt { color: #74c0fc !important; background-color: rgba(116,192,252,.18) !important; }
+  [data-bs-theme="dark"] .badge.bg-green-lt { color: #69db7c !important; background-color: rgba(105,219,124,.18) !important; }
+  [data-bs-theme="dark"] .badge.bg-orange-lt { color: #ffb366 !important; background-color: rgba(255,179,102,.18) !important; }
+  [data-bs-theme="dark"] .badge.bg-purple-lt { color: #b197fc !important; background-color: rgba(177,151,252,.18) !important; }
+  [data-bs-theme="dark"] .badge.bg-red-lt { color: #ff8787 !important; background-color: rgba(255,135,135,.18) !important; }
+  [data-bs-theme="dark"] .badge.bg-secondary-lt { color: #ced4da !important; background-color: rgba(206,212,218,.15) !important; }
+  /* 추세 색도 보강 */
+  [data-bs-theme="dark"] .text-green { color: #51cf66 !important; }
+  [data-bs-theme="dark"] .text-red { color: #ff8787 !important; }
+  [data-bs-theme="dark"] .text-orange { color: #ffb366 !important; }
+  [data-bs-theme="dark"] .text-blue { color: #74c0fc !important; }
+  [data-bs-theme="dark"] .text-purple { color: #b197fc !important; }
+
   .preview-ribbon {
     position: fixed; top: 12px; right: 12px; z-index: 9999;
     background: #d63939; color: white;
