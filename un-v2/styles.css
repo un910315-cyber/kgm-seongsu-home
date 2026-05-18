@@ -816,8 +816,8 @@
   #page-dashboard .floor-count { font-size: 14px !important; min-width: 22px !important; }
   /* 메인 패딩 줄임 */
   #page-dashboard > .main { padding: 14px 16px 40px !important; }
-  /* 월별 통계 안 차트도 줄임 */
-  #page-dashboard #stats-chart { height: 140px !important; }
+  /* 월별 통계 안 차트 — 막대 위로 튀어나오지 않게 충분한 높이 */
+  #page-dashboard #stats-chart { height: 180px !important; overflow: hidden; }
   #page-dashboard #stats-summary .stat-value { font-size: 20px !important; }
   /* 블랙 알림 컴팩트 */
   #page-dashboard #blacklistAlertBanner { padding: 10px 14px !important; margin-bottom: 10px !important; }

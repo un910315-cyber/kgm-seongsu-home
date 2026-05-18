@@ -1327,7 +1327,7 @@
     if(chart){
       const curMonth = new Date().toISOString().slice(0,7);
       const selPrefix = isMonthly ? prefix : '';
-      const chartH = 190; // 막대 최대 높이 px
+      const chartH = 140; // 막대 최대 높이 px (컨테이너 180px - 라벨 약 40px 여유)
       chart.innerHTML = monthlyData.map(d=>{
         const barH = maxMonth>0 ? Math.max(3, Math.round(d.total/maxMonth*chartH)) : 3;
         const isCur = d.prefix===curMonth;
