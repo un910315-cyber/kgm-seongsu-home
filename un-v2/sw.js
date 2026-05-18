@@ -1,7 +1,7 @@
 // KGM 성수 내부 페이지 (v2 테스트 환경) — Service Worker
 // 운영(un/)과 캐시 이름 prefix를 다르게 해 캐시 충돌 없음.
 
-const CACHE_VERSION = 'v2test-15-2026-05-18-sharp-corners';
+const CACHE_VERSION = 'v2test-16-2026-05-18-kgm-simplify';
 const CACHE_NAME = `kgm-seongsu-un-v2-${CACHE_VERSION}`;
 
 const APP_SHELL = [

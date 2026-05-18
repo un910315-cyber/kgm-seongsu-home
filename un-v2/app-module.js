@@ -619,15 +619,12 @@
     document.getElementById('stat-done').textContent = list.filter(r=>r.status==='수리완료').length;
     document.getElementById('stat-today').textContent = list.filter(r=>r.inDate===today).length;
 
-    // 정비차량 (KGM) 통계
+    // 정비차량 (KGM) 통계 — 오늘 입고 / 이달 입고만
     const kgmList = list.filter(r => r.carType === 'KGM');
-    const kgmActive = kgmList.filter(r => r.status !== '출고' && r.status !== '미수리 출고');
+    const thisMonth = today.slice(0, 7); // 'YYYY-MM'
     const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    setText('stat-kgm-total', kgmActive.length);
-    setText('stat-kgm-wait', kgmList.filter(r=>r.status==='수리대기').length);
-    setText('stat-kgm-repair', kgmList.filter(r=>r.status==='수리중').length);
-    setText('stat-kgm-done', kgmList.filter(r=>r.status==='수리완료').length);
-    setText('stat-kgm-today', kgmList.filter(r=>r.inDate===today).length);
+    setText('stat-kgm-today', kgmList.filter(r => r.inDate === today).length);
+    setText('stat-kgm-month', kgmList.filter(r => (r.inDate || '').startsWith(thisMonth)).length);
     renderKgmIntakeChart(kgmList);
 
     renderOutSchedule();
