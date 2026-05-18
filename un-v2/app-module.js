@@ -49,7 +49,7 @@
 
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
-    admin: ['dashboard','list','status','complete','out','stats','migyeol','leave','board','estimate','insurance','usermgmt'],
+    admin: ['dashboard','list','status','complete','out','migyeol','leave','board','estimate','insurance','usermgmt'],
     staff: ['dashboard','status','complete','leave','board','estimate','insurance'],
     viewer: ['dashboard','status','complete','leave','board']
   };
@@ -626,6 +626,10 @@
     setText('stat-kgm-today', kgmList.filter(r => r.inDate === today).length);
     setText('stat-kgm-month', kgmList.filter(r => (r.inDate || '').startsWith(thisMonth)).length);
     renderKgmIntakeChart(kgmList);
+
+    // 월별 통계도 대시보드로 통합됨 → 같이 렌더
+    if (typeof initYearSelect === 'function') { try { initYearSelect(); } catch(e){} }
+    if (typeof renderStats === 'function') { try { renderStats(); } catch(e){} }
 
     renderOutSchedule();
 

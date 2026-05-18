@@ -83,7 +83,6 @@
   <div class="nav-tab" onclick="switchPage('status')">현황 목록</div>
   <div class="nav-tab" onclick="switchPage('complete')">수리완료 대기</div>
   <div class="nav-tab" onclick="switchPage('out')">출고완료</div>
-  <div class="nav-tab" onclick="switchPage('stats')">월별 통계</div>
   <div class="nav-tab" onclick="switchPage('migyeol')">보험 미결</div>
   <div class="nav-tab" onclick="switchPage('leave')" id="tab-leave">연차관리</div>
   <div class="nav-tab" onclick="switchPage('board')" id="tab-board">게시판 · 일정</div>
@@ -157,6 +156,71 @@
         </div>
         <div id="kgmIntakeChart" class="chart-wrap"></div>
       </div>
+    </div>
+
+    <!-- 월별 통계 (대시보드로 이동) -->
+    <div class="stats-section-label" style="margin-top:28px;">월별 통계</div>
+    <div class="chart-card" style="padding:16px 18px;">
+      <div class="toolbar" style="margin-bottom:14px;">
+        <select class="filter-select" id="statsYear" onchange="renderStats()"></select>
+        <select class="filter-select" id="statsMonth" onchange="renderStats()">
+          <option value="all">전체 (연간)</option>
+          <option value="01">1월</option><option value="02">2월</option><option value="03">3월</option>
+          <option value="04">4월</option><option value="05">5월</option><option value="06">6월</option>
+          <option value="07">7월</option><option value="08">8월</option><option value="09">9월</option>
+          <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+        </select>
+        <div style="color:var(--text-dim);font-size:13px;padding:0 4px;" id="statsPeriodLabel">연간 분석</div>
+      </div>
+
+      <!-- 요약 카드 -->
+      <div class="stats-grid" style="margin-bottom:18px;" id="stats-summary"></div>
+
+      <!-- 월별 차트 -->
+      <div class="chart-header" style="margin-bottom:10px;">
+        <div class="chart-title">월별 입고 추이</div>
+      </div>
+      <div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:4px;padding:14px;margin-bottom:18px;">
+        <div id="stats-chart" style="display:flex;align-items:flex-end;gap:6px;height:200px;"></div>
+        <div style="display:flex;gap:14px;margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05);">
+          <span style="font-size:11px;color:var(--accent);">■ KGM</span>
+          <span style="font-size:11px;color:var(--blue);">■ 국산</span>
+          <span style="font-size:11px;color:var(--red);">■ 외산</span>
+        </div>
+      </div>
+
+      <!-- 월별 테이블 -->
+      <div class="chart-header" style="margin-bottom:10px;">
+        <div class="chart-title">월별 상세</div>
+      </div>
+      <div style="margin-bottom:12px;padding:10px 14px;background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.15);border-radius:4px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div style="font-size:12px;color:var(--text-dim);">⚠️ 출고일 없는 출고차량이 있으면 통계가 부정확할 수 있어요</div>
+        <button class="btn btn-ghost btn-sm" onclick="fixMissingOutDates()">출고일 자동 보정</button>
+      </div>
+      <div class="table-wrap" style="margin-bottom:18px;">
+        <table>
+          <thead>
+            <tr>
+              <th>월</th>
+              <th style="color:var(--accent);">KGM</th>
+              <th style="color:var(--blue);">국산차</th>
+              <th style="color:var(--red);">외산차</th>
+              <th>미분류</th>
+              <th style="color:var(--text);font-weight:800;">입고 합계</th>
+              <th style="color:var(--green);">출고 완료</th>
+              <th>비율</th>
+            </tr>
+          </thead>
+          <tbody id="stats-tbody"></tbody>
+          <tfoot id="stats-tfoot"></tfoot>
+        </table>
+      </div>
+
+      <!-- KGM 비율 바 -->
+      <div class="chart-header" style="margin-bottom:10px;">
+        <div class="chart-title">차량 구분 비율 (연간)</div>
+      </div>
+      <div id="stats-bar"></div>
     </div>
   </div>
 </div>
@@ -325,66 +389,7 @@
 </div>
 
 <!-- STATS -->
-<div id="page-stats" class="page">
-  <div class="main">
-    <div class="toolbar">
-      <select class="filter-select" id="statsYear" onchange="renderStats()"></select>
-      <select class="filter-select" id="statsMonth" onchange="renderStats()">
-        <option value="all">전체 (연간)</option>
-        <option value="01">1월</option><option value="02">2월</option><option value="03">3월</option>
-        <option value="04">4월</option><option value="05">5월</option><option value="06">6월</option>
-        <option value="07">7월</option><option value="08">8월</option><option value="09">9월</option>
-        <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
-      </select>
-      <div style="color:var(--text-dim);font-size:13px;padding:0 4px;" id="statsPeriodLabel">연간 분석</div>
-    </div>
-
-    <!-- 요약 카드 -->
-    <div class="stats-grid" style="margin-bottom:20px;" id="stats-summary"></div>
-
-    <!-- 월별 차트 -->
-    <div style="font-size:15px;font-weight:700;margin-bottom:12px;">📊 월별 입고 추이</div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 16px 12px;margin-bottom:16px;">
-      <div id="stats-chart" style="display:flex;align-items:flex-end;gap:6px;height:220px;"></div>
-      <div style="display:flex;gap:12px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
-        <span style="font-size:10px;color:var(--accent);">■ KGM</span>
-        <span style="font-size:10px;color:var(--blue);">■ 국산</span>
-        <span style="font-size:10px;color:var(--red);">■ 외산</span>
-      </div>
-    </div>
-
-    <!-- 월별 테이블 -->
-    <div style="font-size:15px;font-weight:700;margin-bottom:12px;">📅 월별 상세</div>
-    <div style="margin-bottom:12px;padding:10px 14px;background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.15);border-radius:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-      <div style="font-size:12px;color:var(--text-dim);">⚠️ 출고일 없는 출고차량이 있으면 통계가 부정확할 수 있어요</div>
-      <button class="btn btn-ghost btn-sm" onclick="fixMissingOutDates()">출고일 자동 보정</button>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>월</th>
-            <th style="color:var(--accent);">KGM</th>
-            <th style="color:var(--blue);">국산차</th>
-            <th style="color:var(--red);">외산차</th>
-            <th>미분류</th>
-            <th style="color:var(--text);font-weight:800;">입고 합계</th>
-            <th style="color:var(--green);">출고 완료</th>
-            <th>비율</th>
-          </tr>
-        </thead>
-        <tbody id="stats-tbody"></tbody>
-        <tfoot id="stats-tfoot"></tfoot>
-      </table>
-    </div>
-
-    <!-- KGM 비율 바 -->
-    <div style="margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;">
-      <div style="font-size:14px;font-weight:700;margin-bottom:16px;">🚗 차량 구분 비율 (연간)</div>
-      <div id="stats-bar"></div>
-    </div>
-  </div>
-</div>
+<!-- (월별 통계 페이지는 대시보드에 통합됨 — page-stats div 제거) -->
 
 <!-- MODAL -->
 <div class="modal-overlay" id="formModal">

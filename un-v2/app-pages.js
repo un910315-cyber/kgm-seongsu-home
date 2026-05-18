@@ -16,7 +16,6 @@
       if (name==='status' && window.renderDashboard) window.renderDashboard();
       if (name==='complete' && window._renderComplete) window._renderComplete();
       if (name==='out' && window._renderOut) window._renderOut();
-      if (name==='stats') { if(window._initYearSelect) window._initYearSelect(); if(window._renderStats) window._renderStats(); }
       if (name==='usermgmt') { if(window.loadUserMgmt) window.loadUserMgmt(); if(window._renderOrgChart) window._renderOrgChart(); }
       if (name==='leave' && window._renderLeave) window._renderLeave();
       if (name==='board') { if(window._renderBoard) window._renderBoard(); if(window._renderCalendar) window._renderCalendar(); }
