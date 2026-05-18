@@ -50,8 +50,8 @@
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
     admin: ['dashboard','list','status','complete','out','migyeol','leave','board','estimate','insurance','sales','usermgmt'],
-    staff: ['dashboard','status','complete','leave','board','estimate','insurance','sales'],
-    viewer: ['dashboard','status','complete','leave','board']
+    staff: ['status','complete','leave','board','estimate','insurance','sales'],
+    viewer: ['status','complete','leave','board']
   };
   // 'blacklist' 페이지는 ROLE_MENUS에 포함하지 않음 — 출고완료 페이지의 작은 버튼으로만 진입 (admin 전용 가드)
 
@@ -120,6 +120,12 @@
           tab.style.display = allowedMenus.includes(page) ? '' : 'none';
         }
       });
+      // 권한 없는 페이지가 active면 첫 허용 페이지로 자동 전환 (예: 비admin이 대시보드 못 봄)
+      const activeEl = document.querySelector('.page.active');
+      const activePage = activeEl ? activeEl.id.replace('page-','') : '';
+      if (activePage && !allowedMenus.includes(activePage) && allowedMenus.length > 0) {
+        if (typeof switchPage === 'function') switchPage(allowedMenus[0]);
+      }
       // 견적 권한 없는 역할(viewer)은 등록 모달의 "저장 후 견적도우미" 버튼 숨김
       const saveAndEstimateGroup = document.getElementById('saveAndEstimateGroup');
       if (saveAndEstimateGroup) saveAndEstimateGroup.style.display = allowedMenus.includes('estimate') ? '' : 'none';
