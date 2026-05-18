@@ -318,26 +318,24 @@
         </table>
       </div>
     </div>
-    <div class="chart-card widget-card recent-intake-card" style="margin-top:12px;">
+    <div class="chart-card widget-card cumulative-sales-card" style="margin-top:12px;">
       <div class="chart-header" style="justify-content:space-between;">
         <div>
-          <div class="chart-title">최근 입고 차량</div>
-          <div class="chart-subtitle">대표 보고용 핵심 현황</div>
+          <div class="chart-title">누적 매출 보고</div>
+          <div class="chart-subtitle">부품 · 기능 · 보증금 흐름</div>
         </div>
-        <a href="#" onclick="switchPage('status');return false;" style="color:#c4b5fd;text-decoration:none;font-size:11px;font-weight:600;">전체 보기 →</a>
+        <a href="#" onclick="switchPage('sales');return false;" style="color:#c4b5fd;text-decoration:none;font-size:11px;font-weight:600;">상세 보기 →</a>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>입고일</th>
-              <th>차량번호</th>
-              <th>차종</th>
-              <th>상태</th>
-            </tr>
-          </thead>
-          <tbody id="recent-dashboard-tbody"></tbody>
-        </table>
+      <div class="cum-sales-summary">
+        <div><span>이번 달 누적</span><strong id="cum-sales-total">0원</strong></div>
+        <div><span>부품</span><strong id="cum-sales-parts">0원</strong></div>
+        <div><span>기능</span><strong id="cum-sales-function">0원</strong></div>
+      </div>
+      <div id="cumSalesChart" class="cum-sales-chart"></div>
+      <div class="cum-sales-legend">
+        <span style="--legend-color:#fb923c;">부품</span>
+        <span style="--legend-color:#34d399;">기능</span>
+        <span style="--legend-color:#fbbf24;">보증금</span>
       </div>
     </div>
     </div>
@@ -2097,9 +2095,22 @@
       var mmax = Math.max.apply(null, months);
       stats.innerHTML = months.map(function(v,i){ var h = Math.max(4, Math.round(v / mmax * 120)); return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;"><div style="width:100%;height:'+h+'px;border-radius:4px 4px 2px 2px;background:linear-gradient(180deg,#8b5cf6,#4c1d95);box-shadow:0 0 18px rgba(139,92,246,.18);"></div>'+(i%2===0?'<div style="font-size:10px;color:#8b95a8;">'+(i+1)+'</div>':'<div style="height:12px;"></div>')+'</div>'; }).join('');
     }
-    var recent = document.getElementById('recent-dashboard-tbody');
-    if (recent) {
-      recent.innerHTML = [['05/18','123가 4567','토레스','입고','wait'],['05/18','45나 6789','렉스턴 스포츠','수리대기','wait'],['05/17','12다 3456','코란도','수리중','repair'],['05/17','98라 7654','티볼리','수리완료','done']].map(function(r){ return '<tr><td>'+r[0]+'</td><td><span class="car-num">'+r[1]+'</span></td><td>'+r[2]+'</td><td><span class="status-pill '+r[4]+'">'+r[3]+'</span></td></tr>'; }).join('');
+    setText('cum-sales-total','18,640,000원'); setText('cum-sales-parts','11,820,000원'); setText('cum-sales-function','6,820,000원');
+    var cum = document.getElementById('cumSalesChart');
+    if (cum) {
+      function makePath(values) {
+        var max = Math.max.apply(null, [1].concat([18,22,21,25,30,28,33,36,34,38,41,43,9,11,13,12,16,18,17,21,23,22,25,27,5,6,6,7,7,8,9,9,10,11,12,13]));
+        return values.map(function(v, i){
+          var x = 28 + i * (700 / (values.length - 1));
+          var y = 150 - (v / max * 116);
+          return (i ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1);
+        }).join(' ');
+      }
+      cum.innerHTML = '<svg viewBox="0 0 760 176" preserveAspectRatio="none" style="width:100%;height:100%;display:block;">'
+        + '<line x1="28" y1="150" x2="732" y2="150" stroke="rgba(255,255,255,.07)"/><line x1="28" y1="92" x2="732" y2="92" stroke="rgba(255,255,255,.06)" stroke-dasharray="3,4"/>'
+        + '<path d="'+makePath([18,22,21,25,30,28,33,36,34,38,41,43])+'" fill="none" stroke="#fb923c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'
+        + '<path d="'+makePath([9,11,13,12,16,18,17,21,23,22,25,27])+'" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'
+        + '<path d="'+makePath([5,6,6,7,7,8,9,9,10,11,12,13])+'" fill="none" stroke="#fbbf24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/></svg>';
     }
   }
   preview();

@@ -116,19 +116,14 @@
         + '</svg>';
     }
 
-    const recent = document.getElementById('recent-dashboard-tbody');
-    if (recent) {
-      recent.innerHTML = [
-        ['05/18','123가 4567','토레스','입고'],
-        ['05/18','45나 6789','렉스턴 스포츠','수리대기'],
-        ['05/17','12다 3456','코란도','수리중'],
-        ['05/17','98라 7654','티볼리','수리완료'],
-        ['05/16','67마 9012','토레스 EVX','입고']
-      ].map(r => {
-        const cls = r[3] === '수리중' ? 'repair' : (r[3] === '수리완료' ? 'done' : 'wait');
-        return '<tr><td>'+r[0]+'</td><td><span class="car-num">'+r[1]+'</span></td><td>'+r[2]+'</td><td><span class="status-pill '+cls+'">'+r[3]+'</span></td></tr>';
-      }).join('');
-    }
+    renderCumulativeSalesChart({
+      parts: [18,22,21,25,30,28,33,36,34,38,41,43],
+      func: [9,11,13,12,16,18,17,21,23,22,25,27],
+      deposit: [5,6,6,7,7,8,9,9,10,11,12,13],
+      totalText: '18,640,000원',
+      partsText: '11,820,000원',
+      functionText: '6,820,000원'
+    });
 
     const statsChart = document.getElementById('stats-chart');
     if (statsChart) {
@@ -142,6 +137,34 @@
           + '</div>';
       }).join('');
     }
+  }
+
+  function renderCumulativeSalesChart(opts) {
+    const chart = document.getElementById('cumSalesChart');
+    if (!chart) return;
+    const parts = opts?.parts || [];
+    const func = opts?.func || [];
+    const deposit = opts?.deposit || [];
+    const totalEl = document.getElementById('cum-sales-total');
+    const partsEl = document.getElementById('cum-sales-parts');
+    const funcEl = document.getElementById('cum-sales-function');
+    if (totalEl) totalEl.textContent = opts?.totalText || '0원';
+    if (partsEl) partsEl.textContent = opts?.partsText || '0원';
+    if (funcEl) funcEl.textContent = opts?.functionText || '0원';
+    const all = parts.concat(func, deposit);
+    const max = Math.max(1, ...all);
+    const makePath = (values) => values.map((v, i) => {
+      const x = 28 + i * (700 / Math.max(1, values.length - 1));
+      const y = 150 - (v / max * 116);
+      return (i ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1);
+    }).join(' ');
+    chart.innerHTML = '<svg viewBox="0 0 760 176" preserveAspectRatio="none" style="width:100%;height:100%;display:block;">'
+      + '<line x1="28" y1="150" x2="732" y2="150" stroke="rgba(255,255,255,.07)"/>'
+      + '<line x1="28" y1="92" x2="732" y2="92" stroke="rgba(255,255,255,.06)" stroke-dasharray="3,4"/>'
+      + '<path d="'+makePath(parts)+'" fill="none" stroke="#fb923c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'
+      + '<path d="'+makePath(func)+'" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'
+      + '<path d="'+makePath(deposit)+'" fill="none" stroke="#fbbf24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>'
+      + '</svg>';
   }
 
   // 전화번호 → tel: 링크 셀 (테이블 표시 + 클릭 다이얼)
@@ -738,6 +761,27 @@
     const months6 = _last6Months();
     const depSeries = months6.map(m => Number(depositMap[m]) || 0);
     _renderSpark('deposit-spark', depSeries, '#fbbf24');
+
+    const monthDays = Object.keys(salesDailyMap).filter(d => d.startsWith(mo)).sort();
+    let partsRun = 0, funcRun = 0;
+    const partsCum = [];
+    const funcCum = [];
+    monthDays.forEach(d => {
+      const dayData = salesDailyMap[d] || {};
+      partsRun += Number(dayData.parts) || 0;
+      funcRun += Number(dayData.function) || 0;
+      partsCum.push(partsRun);
+      funcCum.push(funcRun);
+    });
+    const depCum = partsCum.map((_, i) => Math.round(depositVal * ((i + 1) / Math.max(1, partsCum.length))));
+    renderCumulativeSalesChart({
+      parts: partsCum.length ? partsCum : [0],
+      func: funcCum.length ? funcCum : [0],
+      deposit: depCum.length ? depCum : [depositVal],
+      totalText: _fmtKRW(partsRun + funcRun + depositVal),
+      partsText: _fmtKRW(partsRun),
+      functionText: _fmtKRW(funcRun)
+    });
 
     // 매출 보고 페이지 — 저장된 값 표시
     const dailyReportDate = document.getElementById('daily-report-date');

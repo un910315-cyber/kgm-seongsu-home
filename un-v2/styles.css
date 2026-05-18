@@ -1113,6 +1113,69 @@ body > div[style*="position:fixed;top:0;"] {
   font-size: 12px;
 }
 
+#page-dashboard .cumulative-sales-card {
+  min-width: 0;
+}
+
+#page-dashboard .cum-sales-summary {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+#page-dashboard .cum-sales-summary div {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(3, 7, 18, .32);
+  border: 1px solid rgba(148, 163, 184, .10);
+}
+
+#page-dashboard .cum-sales-summary span {
+  display: block;
+  color: #8b95a8;
+  font-size: 10px;
+  font-weight: 800;
+  margin-bottom: 3px;
+}
+
+#page-dashboard .cum-sales-summary strong {
+  color: #f8fafc;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+#page-dashboard .cum-sales-chart {
+  height: 118px;
+  width: 100%;
+}
+
+#page-dashboard .cum-sales-legend {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: 8px;
+  border-top: 1px solid rgba(148, 163, 184, .08);
+}
+
+#page-dashboard .cum-sales-legend span {
+  color: #98a3b8;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+#page-dashboard .cum-sales-legend span::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 5px;
+  border-radius: 999px;
+  background: var(--legend-color);
+}
+
 @media (min-width: 1200px) and (max-height: 860px) {
   #page-dashboard .main {
     padding-top: 12px;
@@ -1543,25 +1606,8 @@ body:has(#page-dashboard.active) #page-dashboard .stat-card {
 }
 
 body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card::before {
-  content: "●";
-  position: absolute;
-  right: 22px;
-  top: 30px;
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: rgba(255,255,255,.82);
-  font-size: 13px;
-  background: rgba(139, 92, 246, .13);
+  content: none;
 }
-
-body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.orange::before { background: rgba(249, 115, 22, .13); }
-body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.purple::before { background: rgba(139, 92, 246, .15); }
-body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.blue::before { background: rgba(59, 130, 246, .14); }
-body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.green::before { background: rgba(16, 185, 129, .14); }
-body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.red::before { background: rgba(244, 63, 94, .14); }
 
 body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card::after {
   height: 3px;
@@ -1587,6 +1633,7 @@ body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.
 body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.blue .stat-sub::after { color: rgba(59,130,246,.62); }
 body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.green .stat-sub::after { color: rgba(16,185,129,.62); }
 body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.red .stat-sub::after { color: rgba(244,63,94,.62); }
+body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card.red .stat-sub::after { display: none; }
 
 body:has(#page-dashboard.active) #stat-total { color: #c4b5fd; }
 body:has(#page-dashboard.active) #stat-today { color: #fb7185; }
@@ -1723,7 +1770,7 @@ body:has(#page-dashboard.active) #page-dashboard .dashboard-bottom-row {
 }
 
 body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card,
-body:has(#page-dashboard.active) #page-dashboard .recent-intake-card {
+body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card {
   max-height: 248px;
 }
 
@@ -1738,6 +1785,10 @@ body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card #stats-char
 body:has(#page-dashboard.active) #page-dashboard .recent-intake-card th,
 body:has(#page-dashboard.active) #page-dashboard .recent-intake-card td {
   padding: 11px 14px;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sales-chart {
+  height: 104px;
 }
 
 body:has(#page-dashboard.active) #page-dashboard .status-pill {
@@ -1804,13 +1855,6 @@ body:has(#page-dashboard.active) #page-dashboard .status-pill.wait {
   body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card {
     min-height: 124px;
     padding: 16px 18px 14px;
-  }
-
-  body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card::before {
-    top: 24px;
-    right: 18px;
-    width: 34px;
-    height: 34px;
   }
 
   body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stat-card .stat-sub::after {
@@ -1885,12 +1929,24 @@ body:has(#page-dashboard.active) #page-dashboard .status-pill.wait {
   }
 
   body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card,
-  body:has(#page-dashboard.active) #page-dashboard .recent-intake-card {
+  body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card {
     max-height: 220px;
   }
 
   body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card #stats-chart {
     height: 106px !important;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sales-chart {
+    height: 92px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .cum-sales-summary {
+    margin-bottom: 6px;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .cum-sales-summary div {
+    padding: 8px 10px;
   }
 }
 
