@@ -758,6 +758,39 @@
   }
   .floor-count.zero { color: #4a4d54; font-weight: 500; }
 
+  /* 16-A. 위젯 카드 통일 톤 (Tabler 스타일 — 모든 섹션 같은 카드 구조) */
+  #page-dashboard .widget-card {
+    background: #1a1c20;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 4px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.15);
+    margin-bottom: 12px;
+  }
+  #page-dashboard .widget-card .chart-header {
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    display: flex; align-items: baseline; gap: 10px;
+  }
+  #page-dashboard .widget-card .chart-title { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: -0.2px; }
+  #page-dashboard .widget-card .chart-subtitle { font-size: 11px; color: #a0a4ac; font-weight: 500; }
+  /* 위젯 카드 내부 stat-card는 무 보더 (이중 보더 제거) */
+  #page-dashboard .widget-card .stat-card {
+    background: rgba(255,255,255,.02);
+    border: 1px solid rgba(255,255,255,.04);
+    box-shadow: none;
+  }
+  #page-dashboard .widget-card .stat-card:hover {
+    background: rgba(255,255,255,.04);
+    transform: none;
+    box-shadow: none;
+    border-color: rgba(255,255,255,.1);
+  }
+  #page-dashboard .widget-card .stat-card::before { opacity: 0.5; }
+  /* 위젯 카드 안 chart-wrap은 추가 보더 없이 */
+  #page-dashboard .widget-card .building-wrap { background: rgba(0,0,0,.2); border-color: rgba(255,255,255,.08); }
+
   /* 16. 컴팩트 모드 — 한 화면에 한눈에 보이게 전체적 축소 */
   /* 통계 카드 */
   #page-dashboard .stat-card { padding: 10px 12px !important; }

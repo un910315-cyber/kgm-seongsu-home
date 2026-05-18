@@ -133,35 +133,40 @@
       </div>
       <div id="arList"></div>
     </div>
-    <div class="stats-section-label">사고차량 현황</div>
-    <div class="stats-grid">
-      <div class="stat-card orange"><div class="stat-label">현재 입고</div><div class="stat-value" id="stat-total">0</div><div class="stat-sub">공업사 내 차량</div></div>
-      <div class="stat-card purple"><div class="stat-label">수리 대기</div><div class="stat-value" id="stat-wait">0</div><div class="stat-sub">작업 대기 중</div></div>
-      <div class="stat-card blue"><div class="stat-label">수리 중</div><div class="stat-value" id="stat-repair">0</div><div class="stat-sub">작업 진행 중</div></div>
-      <div class="stat-card green"><div class="stat-label">수리 완료</div><div class="stat-value" id="stat-done">0</div><div class="stat-sub">출고 대기</div></div>
-      <div class="stat-card red"><div class="stat-label">오늘 입고</div><div class="stat-value" id="stat-today">0</div><div class="stat-sub">금일 접수</div></div>
+    <!-- 사고차량 현황 위젯 카드 -->
+    <div class="chart-card widget-card">
+      <div class="chart-header">
+        <div class="chart-title">사고차량 현황</div>
+        <div class="chart-subtitle">실시간</div>
+      </div>
+      <div class="stats-grid" style="margin-bottom:0;">
+        <div class="stat-card orange"><div class="stat-label">현재 입고</div><div class="stat-value" id="stat-total">0</div><div class="stat-sub">공업사 내</div></div>
+        <div class="stat-card purple"><div class="stat-label">수리 대기</div><div class="stat-value" id="stat-wait">0</div><div class="stat-sub">대기 중</div></div>
+        <div class="stat-card blue"><div class="stat-label">수리 중</div><div class="stat-value" id="stat-repair">0</div><div class="stat-sub">진행 중</div></div>
+        <div class="stat-card green"><div class="stat-label">수리 완료</div><div class="stat-value" id="stat-done">0</div><div class="stat-sub">출고 대기</div></div>
+        <div class="stat-card red"><div class="stat-label">오늘 입고</div><div class="stat-value" id="stat-today">0</div><div class="stat-sub">금일</div></div>
+      </div>
     </div>
 
     <div class="dashboard-row">
       <div class="kgm-section">
-        <div class="stats-section-label" style="margin-top:18px;">정비차량 (KGM) 현황</div>
-        <div class="stats-grid">
-          <div class="stat-card red"><div class="stat-label">오늘 입고</div><div class="stat-value" id="stat-kgm-today">0</div><div class="stat-sub">금일 신규</div></div>
-          <div class="stat-card orange"><div class="stat-label">이달 입고</div><div class="stat-value" id="stat-kgm-month">0</div><div class="stat-sub">이번 달 누적</div></div>
-        </div>
-
-        <div class="chart-card" style="margin-top:18px;">
+        <!-- 정비차량(KGM) 위젯 카드 -->
+        <div class="chart-card widget-card">
           <div class="chart-header">
-            <div class="chart-title">정비차량 입고 추이</div>
-            <div class="chart-subtitle">최근 14일</div>
+            <div class="chart-title">정비차량 (KGM) 현황</div>
+            <div class="chart-subtitle">14일 추이</div>
+          </div>
+          <div class="stats-grid" style="margin-bottom:10px;grid-template-columns:1fr 1fr;">
+            <div class="stat-card red"><div class="stat-label">오늘 입고</div><div class="stat-value" id="stat-kgm-today">0</div><div class="stat-sub">금일 신규</div></div>
+            <div class="stat-card orange"><div class="stat-label">이달 입고</div><div class="stat-value" id="stat-kgm-month">0</div><div class="stat-sub">이번 달</div></div>
           </div>
           <div id="kgmIntakeChart" class="chart-wrap"></div>
         </div>
       </div>
 
       <div class="location-section">
-        <div class="stats-section-label" style="margin-top:18px;">위치별 차량 분포</div>
-        <div class="chart-card">
+        <!-- 건물내 차량 위치 위젯 카드 -->
+        <div class="chart-card widget-card">
           <div class="chart-header">
             <div class="chart-title">건물내 차량 위치현황</div>
             <div class="chart-subtitle">총 <span id="loc-total" style="color:#fff;font-weight:800;">0</span>대</div>
@@ -171,19 +176,23 @@
       </div>
     </div>
 
-    <!-- 월별 통계 (대시보드로 이동) -->
-    <div class="stats-section-label" style="margin-top:28px;">월별 통계</div>
-    <div class="chart-card" style="padding:16px 18px;">
-      <div class="toolbar" style="margin-bottom:14px;">
-        <select class="filter-select" id="statsYear" onchange="renderStats()"></select>
-        <select class="filter-select" id="statsMonth" onchange="renderStats()">
-          <option value="all">전체 (연간)</option>
-          <option value="01">1월</option><option value="02">2월</option><option value="03">3월</option>
-          <option value="04">4월</option><option value="05">5월</option><option value="06">6월</option>
-          <option value="07">7월</option><option value="08">8월</option><option value="09">9월</option>
-          <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
-        </select>
-        <div style="color:var(--text-dim);font-size:13px;padding:0 4px;" id="statsPeriodLabel">연간 분석</div>
+    <!-- 월별 통계 위젯 카드 -->
+    <div class="chart-card widget-card" style="margin-top:12px;">
+      <div class="chart-header" style="justify-content:space-between;">
+        <div style="display:flex;align-items:baseline;gap:10px;">
+          <div class="chart-title">월별 통계</div>
+          <div class="chart-subtitle" id="statsPeriodLabel">연간 분석</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <select class="filter-select" id="statsYear" onchange="renderStats()"></select>
+          <select class="filter-select" id="statsMonth" onchange="renderStats()">
+            <option value="all">전체 (연간)</option>
+            <option value="01">1월</option><option value="02">2월</option><option value="03">3월</option>
+            <option value="04">4월</option><option value="05">5월</option><option value="06">6월</option>
+            <option value="07">7월</option><option value="08">8월</option><option value="09">9월</option>
+            <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+          </select>
+        </div>
       </div>
 
       <!-- 요약 카드 -->
