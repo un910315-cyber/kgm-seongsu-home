@@ -1,7 +1,7 @@
 {
-  "name": "KGM 성수",
-  "short_name": "KGM 성수",
-  "description": "KGM 성수서비스센터 내부 관리 페이지 — 입출고·연차·게시판",
+  "name": "KGM 성수 (테스트)",
+  "short_name": "KGM 테스트",
+  "description": "KGM 성수서비스센터 — 테스트 환경. 운영 DB와 공유됨. 쓰기 작업 자제.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
