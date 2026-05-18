@@ -944,6 +944,37 @@
     });
     setText('stat-kgm-quarter', quarterSum);
 
+    // 인사이트: 이번 달 일평균 (지난 일수 기준)
+    const daysIntoMonth = nowD.getDate(); // 1-31
+    const avg = (monthSum / daysIntoMonth).toFixed(1);
+    setText('kgm-daily-avg', avg);
+
+    // 인사이트: 지난 주 대비 (지난 주 월~일 합계 vs 이번 주까지 합계)
+    const lastWeekStart = new Date(weekStart); lastWeekStart.setDate(weekStart.getDate() - 7);
+    const lastWeekEnd = new Date(weekStart); lastWeekEnd.setDate(weekStart.getDate() - 1); lastWeekEnd.setHours(23,59,59,999);
+    let lastWeekSum = 0;
+    Object.entries(kgmDailyMap).forEach(([day, cnt]) => {
+      const d = new Date(day + 'T00:00:00');
+      if (d >= lastWeekStart && d <= lastWeekEnd) lastWeekSum += cnt;
+    });
+    const diff = weekSum - lastWeekSum;
+    const diffEl = document.getElementById('kgm-week-diff');
+    if (diffEl) {
+      if (lastWeekSum === 0 && weekSum === 0) {
+        diffEl.textContent = '—';
+        diffEl.style.color = '#a0a4ac';
+      } else if (diff > 0) {
+        diffEl.textContent = '+' + diff + '대 ↑';
+        diffEl.style.color = '#69db7c';
+      } else if (diff < 0) {
+        diffEl.textContent = diff + '대 ↓';
+        diffEl.style.color = '#ff8787';
+      } else {
+        diffEl.textContent = '동일';
+        diffEl.style.color = '#a0a4ac';
+      }
+    }
+
     // 메타: 저장 상태 안내
     const metaEl = document.getElementById('kgm-today-meta');
     if (metaEl) metaEl.textContent = todayCount > 0 ? '저장됨' : '하루 끝에 저장';
