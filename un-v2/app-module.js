@@ -49,9 +49,9 @@
 
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
-    admin: ['dashboard','list','complete','out','stats','migyeol','leave','board','estimate','insurance','usermgmt'],
-    staff: ['dashboard','complete','leave','board','estimate','insurance'],
-    viewer: ['dashboard','complete','leave','board']
+    admin: ['dashboard','list','status','complete','out','stats','migyeol','leave','board','estimate','insurance','usermgmt'],
+    staff: ['dashboard','status','complete','leave','board','estimate','insurance'],
+    viewer: ['dashboard','status','complete','leave','board']
   };
   // 'blacklist' 페이지는 ROLE_MENUS에 포함하지 않음 — 출고완료 페이지의 작은 버튼으로만 진입 (admin 전용 가드)
 
