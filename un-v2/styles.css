@@ -714,6 +714,10 @@
 
   /* 통계 카드 상단 액센트 라인은 모서리 0 */
   .stat-card::before { border-radius: 0 !important; }
+
+  /* 14. 정비차량 섹션 — 가로 절반으로 (모바일은 풀폭) */
+  .kgm-section { max-width: 50%; }
+  @media (max-width: 800px) { .kgm-section { max-width: 100%; } }
   /* 끝 */
 
   /* PWA 설치 안내 (로그인 화면 배너 + 헤더 작은 아이콘) */
