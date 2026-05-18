@@ -618,6 +618,18 @@
     document.getElementById('stat-repair').textContent = list.filter(r=>r.status==='수리중').length;
     document.getElementById('stat-done').textContent = list.filter(r=>r.status==='수리완료').length;
     document.getElementById('stat-today').textContent = list.filter(r=>r.inDate===today).length;
+
+    // 정비차량 (KGM) 통계
+    const kgmList = list.filter(r => r.carType === 'KGM');
+    const kgmActive = kgmList.filter(r => r.status !== '출고' && r.status !== '미수리 출고');
+    const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    setText('stat-kgm-total', kgmActive.length);
+    setText('stat-kgm-wait', kgmList.filter(r=>r.status==='수리대기').length);
+    setText('stat-kgm-repair', kgmList.filter(r=>r.status==='수리중').length);
+    setText('stat-kgm-done', kgmList.filter(r=>r.status==='수리완료').length);
+    setText('stat-kgm-today', kgmList.filter(r=>r.inDate===today).length);
+    renderKgmIntakeChart(kgmList);
+
     renderOutSchedule();
 
     const dq = (document.getElementById('dashSearchInput')?.value||'').toLowerCase().trim();
@@ -658,6 +670,61 @@
         <td><button class="btn btn-ghost btn-sm" onclick="window._openModal('${esc(r.id)}')">수정</button></td>
       </tr>`).join('');
   }
+
+  // ── 정비차량 (KGM) 14일 입고 추이 SVG 차트 ──
+  function renderKgmIntakeChart(kgmList) {
+    const el = document.getElementById('kgmIntakeChart');
+    if (!el) return;
+    const today = new Date();
+    const days = [];
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      const count = kgmList.filter(r => r.inDate === ds).length;
+      const dow = ['일','월','화','수','목','금','토'][d.getDay()];
+      days.push({
+        date: ds, count: count,
+        label: (d.getMonth()+1) + '/' + d.getDate(),
+        dow: dow,
+        isToday: i === 0,
+        isWeekend: d.getDay() === 0 || d.getDay() === 6
+      });
+    }
+    const max = Math.max(1, ...days.map(d => d.count));
+    const w = 760, h = 200, padL = 32, padR = 12, padB = 40, padT = 16;
+    const innerW = w - padL - padR;
+    const innerH = h - padT - padB;
+    const slot = innerW / days.length;
+    const barW = Math.max(14, slot - 8);
+    const yTicks = [0, Math.ceil(max/2), max];
+
+    const yLines = yTicks.map(v => {
+      const y = h - padB - (innerH * v) / max;
+      return `<line x1="${padL}" y1="${y}" x2="${w-padR}" y2="${y}" stroke="rgba(255,255,255,.06)" stroke-dasharray="3,3"/>` +
+             `<text x="${padL-6}" y="${y+3}" text-anchor="end" font-size="10" fill="#a0a4ac" font-family="JetBrains Mono,monospace">${v}</text>`;
+    }).join('');
+
+    const bars = days.map((d, i) => {
+      const x = padL + i * slot + (slot - barW) / 2;
+      const bh = (innerH * d.count) / max;
+      const y = h - padB - bh;
+      const color = d.isToday ? '#a78bfa' : '#8b5cf6';
+      const opacity = d.count === 0 ? 0.2 : 0.9;
+      const labelColor = d.isWeekend ? '#94a3b8' : '#c1c5cc';
+      return `<g>` +
+        `<rect x="${x}" y="${y}" width="${barW}" height="${bh || 2}" rx="3" fill="${color}" opacity="${opacity}"/>` +
+        (d.count > 0 ? `<text x="${x + barW/2}" y="${y - 5}" text-anchor="middle" font-size="11" fill="#fff" font-weight="700" font-family="JetBrains Mono,monospace">${d.count}</text>` : '') +
+        `<text x="${x + barW/2}" y="${h - padB + 14}" text-anchor="middle" font-size="10" fill="${labelColor}" font-family="JetBrains Mono,monospace">${d.label}</text>` +
+        `<text x="${x + barW/2}" y="${h - padB + 28}" text-anchor="middle" font-size="9" fill="${labelColor}" opacity="0.7">${d.dow}</text>` +
+      `</g>`;
+    }).join('');
+
+    el.innerHTML = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" style="width:100%;min-width:600px;height:${h}px;display:block;">` +
+      yLines + bars +
+    `</svg>`;
+  }
+  window._renderKgmIntakeChart = renderKgmIntakeChart;
 
   // ---- LIST ----
   function renderList() {

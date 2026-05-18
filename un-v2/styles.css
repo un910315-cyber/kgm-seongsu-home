@@ -656,6 +656,29 @@
     font-weight: 700;
     padding: 4px 9px;
   }
+
+  /* 11. 통계 섹션 라벨 (사고차량 현황 / 정비차량 현황) */
+  .stats-section-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #c1c5cc;
+    letter-spacing: 0.3px;
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+
+  /* 12. 차트 카드 */
+  .chart-card {
+    background: #1a1c20;
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.2), 0 6px 18px rgba(0,0,0,.12);
+  }
+  .chart-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+  .chart-title { font-size: 14px; font-weight: 700; color: #ffffff; }
+  .chart-subtitle { font-size: 12px; color: #a0a4ac; }
+  .chart-wrap { width: 100%; overflow-x: auto; }
   /* 끝 */
 
   /* PWA 설치 안내 (로그인 화면 배너 + 헤더 작은 아이콘) */
