@@ -730,25 +730,33 @@
 
   // ── 건물 모양 위치 분포 (5층 + 도장팀 + 판금팀 + 정비팀 + 지하) ──
   // 실제 location 값들을 5개 층으로 그룹핑
+  // 실제 건물 구조: 5층=주차장 / 3층=도장 / 2층=판금 / 1층=정비+마당 / 지하=주차장
+  // (4층 없음. 도장대기중은 주로 5층, 조립*은 2층 기본)
   const FLOOR_MAP = {
-    '5층':         { floor: '5층',   sub: '경량 보관' },
-    '도장':        { floor: '도장팀', sub: '도장 작업' },
-    '도장대기중':  { floor: '도장팀', sub: '도장 대기' },
-    '판금':        { floor: '판금팀', sub: '판금 작업' },
-    '조립대기중':  { floor: '2층',   sub: '조립 대기' },
-    '조립중':      { floor: '2층',   sub: '조립 작업' },
-    '정비':        { floor: '1층',   sub: '정비 작업' },
-    '1층':         { floor: '1층',   sub: '1층' },
-    '지하':        { floor: '지하',   sub: '하부 작업' },
+    '5층':         { floor: '5층' },
+    '도장대기중':  { floor: '5층' },
+    '도장':        { floor: '3층' },
+    '판금':        { floor: '2층' },
+    '조립대기중':  { floor: '2층' },
+    '조립중':      { floor: '2층' },
+    '정비':        { floor: '1층' },
+    '1층':         { floor: '1층' },
+    '지하':        { floor: '지하' },
   };
-  const FLOOR_ORDER = ['5층', '도장팀', '판금팀', '2층', '1층', '지하'];
+  const FLOOR_ORDER = ['5층', '3층', '2층', '1층', '지하'];
+  const FLOOR_ROLES = {
+    '5층':   '주차장',
+    '3층':   '도장',
+    '2층':   '판금',
+    '1층':   '정비·마당',
+    '지하':   '주차장',
+  };
   const FLOOR_COLORS = {
-    '5층':   '#60a5fa',
-    '도장팀': '#fb923c',
-    '판금팀': '#f472b6',
-    '2층':   '#84cc16',
-    '1층':   '#34d399',
-    '지하':   '#94a3b8',
+    '5층':   '#60a5fa',  // 파랑 (옥상 주차장)
+    '3층':   '#fb923c',  // 오렌지 (도장)
+    '2층':   '#f472b6',  // 핑크 (판금)
+    '1층':   '#34d399',  // 그린 (정비)
+    '지하':   '#94a3b8',  // 회색 (지하 주차장)
     '미지정': '#6b7280',
   };
 
@@ -758,7 +766,7 @@
     if (!el) return;
 
     // 층별 카운트 + 미지정 위치
-    const floorCounts = { '5층':0, '도장팀':0, '판금팀':0, '2층':0, '1층':0, '지하':0 };
+    const floorCounts = { '5층':0, '3층':0, '2층':0, '1층':0, '지하':0 };
     let unmapped = 0;
     activeList.forEach(r => {
       const loc = (r.location || '').trim();
@@ -777,10 +785,11 @@
     const floors = FLOOR_ORDER.map(name => {
       const cnt = floorCounts[name];
       const color = FLOOR_COLORS[name];
+      const role = FLOOR_ROLES[name] || '';
       const dots = Array.from({length: cnt}, () => `<span class="car-dot" style="--car-color:${color};"></span>`).join('');
       const countCls = cnt === 0 ? 'floor-count zero' : 'floor-count';
       return `<div class="floor">` +
-        `<div class="floor-name">${name}<span class="floor-sub" style="color:${color};opacity:0.85;">●</span></div>` +
+        `<div class="floor-name"><span>${name}</span><span class="floor-sub" style="color:${color};">${role}</span></div>` +
         `<div class="floor-cars">${dots}</div>` +
         `<div class="${countCls}">${cnt}</div>` +
       `</div>`;
