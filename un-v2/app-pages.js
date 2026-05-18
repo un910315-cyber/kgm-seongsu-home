@@ -13,6 +13,7 @@
     });
     try {
       if (name==='list' && window._renderList) window._renderList();
+      if (name==='status' && window.renderDashboard) window.renderDashboard();
       if (name==='complete' && window._renderComplete) window._renderComplete();
       if (name==='out' && window._renderOut) window._renderOut();
       if (name==='stats') { if(window._initYearSelect) window._initYearSelect(); if(window._renderStats) window._renderStats(); }

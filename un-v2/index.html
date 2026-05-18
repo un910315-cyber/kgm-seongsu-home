@@ -80,6 +80,7 @@
 <div class="nav-tabs">
   <div class="nav-tab active" onclick="switchPage('dashboard')">대시보드</div>
   <div class="nav-tab" onclick="switchPage('list')">입출고 목록</div>
+  <div class="nav-tab" onclick="switchPage('status')">현황 목록</div>
   <div class="nav-tab" onclick="switchPage('complete')">수리완료 대기</div>
   <div class="nav-tab" onclick="switchPage('out')">출고완료</div>
   <div class="nav-tab" onclick="switchPage('stats')">월별 통계</div>
@@ -158,6 +159,12 @@
       </div>
       <div id="kgmIntakeChart" class="chart-wrap"></div>
     </div>
+  </div>
+</div>
+
+<!-- STATUS (현황 목록 — 대시보드에서 분리) -->
+<div id="page-status" class="page">
+  <div class="main">
     <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
       <div class="section-title">📋 현황 목록</div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
