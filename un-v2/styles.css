@@ -757,6 +757,36 @@
     min-width: 28px; text-align: right; flex-shrink: 0;
   }
   .floor-count.zero { color: #4a4d54; font-weight: 500; }
+
+  /* 16. 컴팩트 모드 — 한 화면에 한눈에 보이게 전체적 축소 */
+  /* 통계 카드 */
+  #page-dashboard .stat-card { padding: 10px 12px !important; }
+  #page-dashboard .stat-label { font-size: 10px !important; margin-bottom: 4px !important; letter-spacing: 0.3px; }
+  #page-dashboard .stat-value { font-size: 22px !important; }
+  #page-dashboard .stat-sub { font-size: 10px !important; margin-top: 2px !important; }
+  #page-dashboard .stats-grid { gap: 8px !important; margin-bottom: 10px !important; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important; }
+  /* 섹션 라벨 */
+  #page-dashboard .stats-section-label { font-size: 12px !important; margin-bottom: 6px !important; margin-top: 12px !important; }
+  /* 차트 카드 */
+  #page-dashboard .chart-card { padding: 12px 14px !important; }
+  #page-dashboard .chart-header { margin-bottom: 8px !important; gap: 8px; }
+  #page-dashboard .chart-title { font-size: 13px !important; }
+  #page-dashboard .chart-subtitle { font-size: 11px !important; }
+  /* 정비 차트 키 줄임 */
+  #kgmIntakeChart svg { height: 140px !important; }
+  /* 건물 층 컴팩트 */
+  #page-dashboard .floor { padding: 6px 12px !important; min-height: 36px !important; gap: 10px !important; }
+  #page-dashboard .floor-name { width: 56px !important; font-size: 11px !important; }
+  #page-dashboard .floor-name .floor-sub { font-size: 9px !important; }
+  #page-dashboard .car-dot { width: 13px !important; height: 9px !important; }
+  #page-dashboard .floor-count { font-size: 14px !important; min-width: 22px !important; }
+  /* 메인 패딩 줄임 */
+  #page-dashboard > .main { padding: 14px 16px 40px !important; }
+  /* 월별 통계 안 차트도 줄임 */
+  #page-dashboard #stats-chart { height: 140px !important; }
+  #page-dashboard #stats-summary .stat-value { font-size: 20px !important; }
+  /* 블랙 알림 컴팩트 */
+  #page-dashboard #blacklistAlertBanner { padding: 10px 14px !important; margin-bottom: 10px !important; }
   /* 끝 */
 
   /* PWA 설치 안내 (로그인 화면 배너 + 헤더 작은 아이콘) */
