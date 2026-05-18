@@ -2823,7 +2823,7 @@
 
     var html = '';
     if (events.length) {
-      html += '<div style="margin-bottom:16px;"><div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;font-weight:700;letter-spacing:1px;">\ud83d\udcc5 \ud68c\uc0ac \uc77c\uc815</div>';
+      html += '<div style="margin-bottom:16px;"><div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;font-weight:700;letter-spacing:1px;">\ud68c\uc0ac \uc77c\uc815</div>';
       events.forEach(function(e){
         html += '<div style="background:var(--surface2);padding:12px;border-radius:8px;margin-bottom:8px;border-left:3px solid var(--accent);">';
         html += '<div style="font-weight:700;font-size:14px;margin-bottom:4px;">'+esc(e[1].title||'')+'</div>';
@@ -2839,7 +2839,7 @@
       html += '</div>';
     }
     if (leaves.length) {
-      html += '<div><div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;font-weight:700;letter-spacing:1px;">\ud83c\udfd6\ufe0f \uc9c1\uc6d0 \ud734\uac00</div>';
+      html += '<div><div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;font-weight:700;letter-spacing:1px;">\uc9c1\uc6d0 \ud734\uac00</div>';
       leaves.forEach(function(e){
         var u = e[1];
         var emp = leaveEmployees[u.empId];
@@ -2859,7 +2859,7 @@
     }
     if (isAdmin) {
       html += '<div style="margin-top:16px;text-align:right;">';
-      html += '<button class="btn btn-primary btn-sm" onclick="document.getElementById(\'dateDetailModal\').classList.remove(\'open\');window._openEventModal(\''+dateStr+'\')">\u2795 \uc774\ub0a0 \uc77c\uc815 \ucd94\uac00</button>';
+      html += '<button class="btn btn-primary btn-sm" onclick="document.getElementById(\'dateDetailModal\').classList.remove(\'open\');window._openEventModal(\''+dateStr+'\')">\uc774\ub0a0 \uc77c\uc815 \ucd94\uac00</button>';
       html += '</div>';
     }
     contentEl.innerHTML = html;
@@ -3710,7 +3710,7 @@
     tbody.innerHTML = list.map(function(r) {
       var typeText = r.type + (r.hours ? ' '+r.hours+'h' : '');
       var canCancel = (r.status === 'pending_manager' || r.status === 'pending_admin' || r.status === 'pending_director');
-      var viewBtn = '<button class="btn btn-ghost btn-sm" onclick="window._openRequestPrintView(\''+esc(r.id)+'\')">\ud83d\udcc4 \uc591\uc2dd</button>';
+      var viewBtn = '<button class="btn btn-ghost btn-sm" onclick="window._openRequestPrintView(\''+esc(r.id)+'\')">\uc591\uc2dd</button>';
       var afterBtn = canCancel
         ? '<button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._cancelMyRequest(\''+esc(r.id)+'\')">\ucde8\uc18c</button>'
         : (r.status === 'rejected' && r.rejectedReason ? '<span style="font-size:11px;color:var(--text-dim);" title="'+esc(r.rejectedReason)+'">\uc0ac\uc720: '+esc(r.rejectedReason).slice(0,20)+'</span>' : '');
@@ -3753,7 +3753,7 @@
       var name = emp ? emp.name : '(\uc0ad\uc81c\ub428)';
       var team = emp ? (emp.team || '-') : '-';
       var typeText = r.type + (r.hours ? ' '+r.hours+'h' : '');
-      var viewBtn = '<button class="btn btn-ghost btn-sm" onclick="window._openRequestPrintView(\''+esc(r.id)+'\')">\ud83d\udcc4 \uc591\uc2dd</button>';
+      var viewBtn = '<button class="btn btn-ghost btn-sm" onclick="window._openRequestPrintView(\''+esc(r.id)+'\')">\uc591\uc2dd</button>';
       var actBtns;
       var rowStyle = '';
       if (r.status === 'approved') {
