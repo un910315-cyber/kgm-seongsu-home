@@ -715,11 +715,13 @@
   /* 통계 카드 상단 액센트 라인은 모서리 0 */
   .stat-card::before { border-radius: 0 !important; }
 
-  /* 14. 대시보드 사이드바이드 (정비차량 + 위치별 건물) */
+  /* 14. 대시보드 사이드바이드 (정비차량 + 위치별 건물, 월별통계 + 매출) */
   .dashboard-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
-  /* 데스크톱: flex: 1 → 자동 50/50. 모바일(wrap): 둘 다 풀폭. max-width 제거 */
-  .kgm-section { flex: 1 1 320px; min-width: 280px; }
-  .location-section { flex: 1 1 320px; min-width: 280px; }
+  /* 데스크톱: flex: 1 → 자동 50/50. 모바일(wrap): 둘 다 풀폭. */
+  .kgm-section,
+  .location-section,
+  .stats-section,
+  .sales-section { flex: 1 1 320px; min-width: 280px; }
 
   /* 15. 건물 모양 위치 분포 */
   .building-wrap {
@@ -821,6 +823,64 @@
   #page-dashboard #stats-summary .stat-value { font-size: 20px !important; }
   /* 블랙 알림 컴팩트 */
   #page-dashboard #blacklistAlertBanner { padding: 10px 14px !important; margin-bottom: 10px !important; }
+
+  /* 18. 매출 입력 위젯 */
+  .sales-rows { display: flex; flex-direction: column; gap: 8px; }
+  .sales-row {
+    display: grid;
+    grid-template-columns: 70px 1fr auto 100px;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.05);
+    border-radius: 4px;
+  }
+  .sales-label {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 700; color: #fff;
+  }
+  .sales-dot {
+    width: 10px; height: 10px; border-radius: 2px;
+    background: var(--cat-color, #6b7280);
+    display: inline-block;
+  }
+  .sales-input {
+    background: rgba(0,0,0,.25);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 3px;
+    padding: 6px 9px;
+    color: #fff; font-size: 13px; font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    text-align: right; outline: none;
+    min-width: 0; width: 100%;
+  }
+  .sales-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(139,92,246,.2); }
+  .sales-input::-webkit-outer-spin-button,
+  .sales-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .sales-input[type=number] { -moz-appearance: textfield; }
+  .sales-save-btn {
+    background: rgba(139,92,246,.18);
+    border: 1px solid rgba(139,92,246,.4);
+    color: #c4b5fd;
+    border-radius: 3px;
+    padding: 6px 12px;
+    font-size: 11px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    transition: background .12s, transform .08s;
+  }
+  .sales-save-btn:hover { background: rgba(139,92,246,.3); }
+  .sales-save-btn:active { transform: scale(.95); }
+  .sales-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 800;
+    color: #fff; text-align: right;
+  }
+  .sales-value.zero { color: #4a4d54; font-weight: 500; }
+  @media (max-width: 480px) {
+    .sales-row { grid-template-columns: 60px 1fr auto; }
+    .sales-value { grid-column: 2 / span 2; text-align: right; padding-top: 2px; font-size: 12px; }
+  }
 
   /* 17. KGM 일일 카운트 — 입력 + 저장 UI */
   .kgm-today-input {

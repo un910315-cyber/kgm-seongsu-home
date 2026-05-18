@@ -354,11 +354,13 @@
   (async()=>{const ms=await window.fsLoadMp();if(ms.length){let lc=[];try{lc=JSON.parse(localStorage.getItem("kgm_custom")||"[]");}catch{}const mg=[...ms,...lc.filter(l=>!ms.some(c=>c.label===l.label))];localStorage.setItem("kgm_custom",JSON.stringify(mg));}})();
   const recordsRef = ref(db, 'records');
   const blacklistRef = ref(db, 'blacklist');
-  const kgmDailyRef = ref(db, 'kgmDailyCount');  // { 'YYYY-MM-DD': number }
+  const kgmDailyRef = ref(db, 'kgmDailyCount');
+  const salesRef = ref(db, 'salesMonthly');  // { 'YYYY-MM': { parts, function, panel, paint } }
 
   let records = {};
   let blacklistMap = {};
-  let kgmDailyMap = {};  // { 'YYYY-MM-DD': count }
+  let kgmDailyMap = {};
+  let salesMap = {};  // { 'YYYY-MM': { parts:N, function:N, panel:N, paint:N } }
   let editingId = null;
   window._getRecord = function(id){ return records[id]; };
 
@@ -462,15 +464,72 @@
   // KGM 일일 카운트 실시간 수신
   onValue(kgmDailyRef, (snap) => {
     const val = snap.val() || {};
-    // 숫자만 보관 (잘못된 값 거름)
     kgmDailyMap = {};
     Object.entries(val).forEach(([k, v]) => {
       const n = Number(v);
       if (Number.isFinite(n) && n >= 0) kgmDailyMap[k] = n;
     });
-    // 대시보드만 다시 그림 (다른 페이지 영향 없음)
     if (typeof renderDashboard === 'function') { try { renderDashboard(); } catch(e){} }
   }, (err) => { console.warn('kgmDaily subscribe', err); });
+
+  // 매출 (월별) 실시간 수신
+  onValue(salesRef, (snap) => {
+    salesMap = snap.val() || {};
+    if (typeof renderSalesWidget === 'function') { try { renderSalesWidget(); } catch(e){} }
+  }, (err) => { console.warn('sales subscribe', err); });
+
+  // ── 매출 위젯 ──
+  const SALES_CATS = ['parts', 'function', 'panel', 'paint'];
+  const SALES_LABELS = { parts: '부품', function: '기능팀', panel: '판금팀', paint: '도장팀' };
+  function _salesMonthStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+  }
+  function _fmtKRW(n) {
+    return '₩' + (Number(n)||0).toLocaleString('ko-KR');
+  }
+  function renderSalesWidget() {
+    const mo = _salesMonthStr();
+    const monthData = salesMap[mo] || {};
+    const labelEl = document.getElementById('sales-month-label');
+    if (labelEl) labelEl.textContent = mo.replace('-', '년 ') + '월';
+    let total = 0;
+    SALES_CATS.forEach(cat => {
+      const v = Number(monthData[cat]) || 0;
+      total += v;
+      const valEl = document.getElementById('sales-value-' + cat);
+      if (valEl) {
+        valEl.textContent = _fmtKRW(v);
+        valEl.classList.toggle('zero', v === 0);
+      }
+    });
+    const totalEl = document.getElementById('sales-total');
+    if (totalEl) totalEl.textContent = _fmtKRW(total);
+  }
+  window._renderSalesWidget = renderSalesWidget;
+
+  window._salesSave = async function(cat) {
+    if (SALES_CATS.indexOf(cat) < 0) return;
+    const inp = document.getElementById('sales-input-' + cat);
+    if (!inp) return;
+    const raw = String(inp.value || '').trim();
+    if (raw === '') { showNotif('금액을 입력해주세요', true); inp.focus(); return; }
+    const n = parseInt(raw, 10);
+    if (!Number.isFinite(n) || n < 0 || n > 999999999) {
+      showNotif('0 ~ 9억9천만원 범위로 입력', true);
+      inp.focus(); inp.select();
+      return;
+    }
+    const mo = _salesMonthStr();
+    try {
+      await update(ref(db, 'salesMonthly/' + mo), { [cat]: n });
+      showNotif(SALES_LABELS[cat] + ' ' + _fmtKRW(n) + ' 저장 ✓');
+      inp.value = '';
+    } catch(e) {
+      console.error('sales save fail', e);
+      showNotif('저장 실패: ' + (e.message || e), true);
+    }
+  };
 
   // ── KGM 일일 카운트 저장 — 입력값 → 오늘 자리에 덮어쓰기 ──
   function kgmTodayStr() { return new Date().toISOString().split('T')[0]; }
