@@ -207,7 +207,7 @@
     if (!phone) return '-';
     var digits = String(phone).replace(/[^0-9+]/g, '');
     if (!digits) return esc(phone);
-    return '<a href="tel:' + esc(digits) + '" onclick="event.stopPropagation();" style="color:var(--text);text-decoration:none;" title="전화 걸기">📞 ' + esc(phone) + '</a>';
+    return '<a href="tel:' + esc(digits) + '" onclick="event.stopPropagation();" style="color:var(--text);text-decoration:none;" title="전화 걸기"> ' + esc(phone) + '</a>';
   }
 
   // 역할��� 접근 가능 메뉴
@@ -398,7 +398,7 @@
   }, 2000);
 
   // 사용자 관리 (역할 라벨/설명/색상)
-  var _RL={'admin':'👑 관리자','staff':'🔧 Staff 1단계','viewer':'👤 Staff 2단계'};
+  var _RL={'admin':' 관리자','staff':' Staff 1단계','viewer':' Staff 2단계'};
   var _RD={'admin':'전체 메뉴','staff':'대시보드, 수리완료, 연차, 게시판·일정, 견적','viewer':'대시보드, 수리완료, 연차, 게시판·일정'};
   var _RC={'admin':'var(--accent)','staff':'var(--blue)','viewer':'var(--text-dim)'};
 
@@ -613,7 +613,7 @@
         var dedupeKey = c.recordId + '|' + c.key;
         if (!_notifiedBlackKeys.has(dedupeKey)) {
           _notifiedBlackKeys.add(dedupeKey);
-          showNotif('🚫 블랙 차량 입고: ' + (c.record.carNum||'') + ' — ' + (c.blEntry.reason||'사유 미입력'), true);
+          showNotif(' 블랙 차량 입고: ' + (c.record.carNum||'') + ' — ' + (c.blEntry.reason||'사유 미입력'), true);
         }
       });
     } else {
@@ -634,7 +634,7 @@
     if (typeof window._refreshBlacklistAlerts === 'function') window._refreshBlacklistAlerts();
   }, (error) => {
     document.getElementById('loadingScreen').style.display = 'none';
-    showNotif('❌ Firebase 연결 실패. databaseURL을 확인해주세요.', true);
+    showNotif(' Firebase 연결 실패. databaseURL을 확인해주세요.', true);
     console.error(error);
   });
 
@@ -866,7 +866,7 @@
     const day = _todayStr();
     try {
       await update(ref(db, 'salesDaily/' + day), { [cat]: n });
-      showNotif(SALES_LABELS[cat] + ' ' + _fmtKRW(n) + ' 저장 ✓');
+      showNotif(SALES_LABELS[cat] + ' ' + _fmtKRW(n) + ' 저장 ');
       inp.value = '';
     } catch(e) {
       console.error('salesDaily save fail', e);
@@ -889,7 +889,7 @@
     const day = _todayStr();
     try {
       await update(ref(db, 'kgmDailyCount'), { [day]: n });
-      showNotif('KGM 정비 ' + n + '대 저장 ✓');
+      showNotif('KGM 정비 ' + n + '대 저장 ');
       inp.value = '';
     } catch(e) {
       console.error('kgmDaily save fail', e);
@@ -912,7 +912,7 @@
     const mo = _thisMonthStr();
     try {
       await update(ref(db, 'monthlyDeposit'), { [mo]: n });
-      showNotif('이달 보증금 ' + _fmtKRW(n) + ' 저장 ✓');
+      showNotif('이달 보증금 ' + _fmtKRW(n) + ' 저장 ');
       inp.value = '';
     } catch(e) {
       console.error('deposit save fail', e);
@@ -935,7 +935,7 @@
     }
     try {
       await update(ref(db, 'kgmDailyCount'), { [kgmTodayStr()]: n });
-      showNotif('오늘 정비 ' + n + '대 저장됨 ✓');
+      showNotif('오늘 정비 ' + n + '대 저장됨 ');
       inp.value = '';  // 저장 후 입력란 비움
     } catch(e) {
       console.error('kgmDaily save fail', e);
@@ -957,7 +957,7 @@
     try { renderComplete(); } catch(e) {
       // 에러 발생 시 화면에 직접 표시
       var el = document.getElementById('complete-empty');
-      if(el) { el.style.display='block'; el.innerHTML='<div class="empty-icon">⚠️</div><div>renderComplete 에러: '+e.message+'</div>'; }
+      if(el) { el.style.display='block'; el.innerHTML='<div class="empty-icon"></div><div>renderComplete 에러: '+e.message+'</div>'; }
     }
     try { renderOut(); } catch(e) { console.error('renderOut error:', e); }
     try { initYearSelect(); renderStats(); } catch(e) { console.error('renderStats error:', e); }
@@ -1005,15 +1005,15 @@
   // 위치 빠른변경 셀
   function locationQuickCell(id, loc, status) {
     if (status === '출고' || status === '미수리 출고') return '-';
-    const badge = loc
-      ? locationBadge(loc, status)
-      : `<span style="color:var(--text-dim);font-size:12px;border:1px dashed var(--border);padding:2px 10px;border-radius:5px;cursor:pointer;">위치없음</span>`;
-    return `<span onclick="openLocPicker('${id}','${loc||''}')" style="cursor:pointer;" title="클릭하여 위치 변경">${badge}<span style="margin-left:4px;font-size:10px;color:var(--text-dim);">✏️</span></span>`;
+    const label = loc || '위치없음';
+    const emptyClass = loc ? '' : ' empty';
+    return `<button class="ops-chip ops-location${emptyClass}" onclick="openLocPicker('${id}','${loc||''}')" type="button" title="클릭하여 위치 변경"><span>${esc(label)}</span><b>변경</b></button>`;
   }
 
   // 상태 빠른변경 셀
   function statusQuickCell(id, status) {
-    return `<span onclick="openStatusPicker('${id}','${status}')" style="cursor:pointer;" title="클릭하여 상태 변경">${statusBadge(status)}<span style="margin-left:4px;font-size:10px;color:var(--text-dim);">✏️</span></span>`;
+    const key = (status || '').replace(/\s/g, '');
+    return `<button class="ops-chip ops-status status-${esc(key)}" onclick="openStatusPicker('${id}','${status}')" type="button" title="클릭하여 상태 변경"><span>${esc(status || '상태없음')}</span><b>변경</b></button>`;
   }
 
   window.openStatusPicker = function(id, current) {
@@ -1031,7 +1031,7 @@
     if (val === '출고' || val === '미수리 출고') updateData.outDate = new Date().toISOString().split('T')[0];
     try {
       await update(ref(db, `records/${id}`), updateData);
-      showNotif(`상태가 "${val}"(으)로 변경되었습니다 ✅`);
+      showNotif(`상태가 "${val}"(으)로 변경되었습니다 `);
     } catch(e) { showNotif('변경 실패', true); }
     document.getElementById('statusPickerModal').classList.remove('open');
   };
@@ -1050,7 +1050,7 @@
     const id = document.getElementById('locPickerId').value;
     try {
       await update(ref(db, `records/${id}`), { location: val, updatedAt: new Date().toISOString() });
-      showNotif(`위치가 "${val}"(으)로 변경되었습니다 📍`);
+      showNotif(`위치가 "${val}"(으)로 변경되었습니다 `);
     } catch(e) { showNotif('변경 실패', true); }
     document.getElementById('locPickerModal').classList.remove('open');
   };
@@ -1221,7 +1221,7 @@
     if (!show.length) { tbody.innerHTML = `<tr><td colspan="12" class="empty" style="padding:30px">${(dq||dLoc||dSt) ? '검색 결과가 없습니다' : '입고 차량이 없습니다'}</td></tr>`; return; }
     tbody.innerHTML = show.map(r => `
       <tr>
-        <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">🔍 ${esc(r.carNum)}</span></td>
+        <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span></td>
         <td>${esc(r.carModel)||'-'}</td>
         <td>${phoneCell(r.phone)}</td>
         <td>${locationQuickCell(r.id, r.location, r.status)}</td>
@@ -1229,7 +1229,7 @@
         <td>${insBadge(r.insDaemul,'대물')}</td>
         <td>${insBadge(r.insJacha,'자차')}</td>
         <td>${repairCell(r.repair)}</td>
-        <td>${r.rent ? `<span style="background:rgba(251,146,60,0.12);color:#fb923c;padding:2px 8px;border-radius:5px;font-size:12px;font-weight:600;">🚖 ${esc(r.rent)}</span>` : '-'}</td>
+        <td>${r.rent ? `<span style="background:rgba(251,146,60,0.12);color:#fb923c;padding:2px 8px;border-radius:5px;font-size:12px;font-weight:600;"> ${esc(r.rent)}</span>` : '-'}</td>
         <td>${fmt(r.inDate)}</td>
         <td>${fmt(r.outDate)}</td>
         <td><button class="btn btn-ghost btn-sm" onclick="window._openModal('${esc(r.id)}')">수정</button></td>
@@ -1429,7 +1429,7 @@
     empty.style.display='none';
     tbody.innerHTML = data.map(r => `
       <tr>
-        <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">🔍 ${esc(r.carNum)}</span></td>
+        <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span></td>
         <td>${esc(r.carModel)||'-'}</td>
         <td>${phoneCell(r.phone)}</td>
         <td>${insBadge(r.insDaemul,'대물')}</td>
@@ -1457,7 +1457,7 @@
     empty.style.display='none';
     tbody.innerHTML = data.map(r => `
       <tr>
-        <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">🔍 ${esc(r.carNum)}</span></td>
+        <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span></td>
         <td>${esc(r.carModel)||'-'}</td>
         <td>${phoneCell(r.phone)}</td>
         <td>${locationQuickCell(r.id, r.location, r.status)}</td>
@@ -1470,7 +1470,7 @@
         <td>
           <div style="display:flex;gap:5px;flex-wrap:wrap;">
             <button class="btn btn-success btn-sm" onclick="window._markOut('${esc(r.id)}','${esc(r.carNum)}','${esc(r.name)}')">출고 처리</button>
-            ${window._isAdmin && window._isAdmin() ? `<button class="btn btn-sm" style="background:rgba(232,68,42,0.18);color:#e8442a;border:1px solid rgba(232,68,42,0.4);font-weight:700;" onclick="window._openBlacklistRegModal('${esc(r.id)}','${esc(r.carNum)}','${esc(r.name||'')}','${esc(r.phone||'')}')">🚫 블랙+출고</button>` : ''}
+            ${window._isAdmin && window._isAdmin() ? `<button class="btn btn-sm" style="background:rgba(232,68,42,0.18);color:#e8442a;border:1px solid rgba(232,68,42,0.4);font-weight:700;" onclick="window._openBlacklistRegModal('${esc(r.id)}','${esc(r.carNum)}','${esc(r.name||'')}','${esc(r.phone||'')}')"> 블랙+출고</button>` : ''}
             <button class="btn btn-ghost btn-sm" onclick="window._openModal('${esc(r.id)}')">수정</button>
           </div>
         </td>
@@ -1534,14 +1534,14 @@
     if (!entry) { box.style.display = 'none'; box.innerHTML = ''; return; }
     var sev = entry.severity || 'medium';
     var sevColor = sev === 'high' ? '#e8442a' : sev === 'low' ? '#fbbf24' : '#ef4444';
-    var sevLabel = sev === 'high' ? '🔴 높음' : sev === 'low' ? '🟡 낮음' : '🟠 중간';
+    var sevLabel = sev === 'high' ? ' 높음' : sev === 'low' ? ' 낮음' : ' 중간';
     var pastCount = 0;
     var nv = normalizeCarNum(val);
     Object.values(records).forEach(function(r){ if (r && normalizeCarNum(r.carNum||'') === nv) pastCount++; });
     var addedDate = entry.addedAt ? String(entry.addedAt).slice(0,10) : '-';
     box.innerHTML = ''
       + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
-      +   '<span style="font-size:18px;">🚫</span>'
+      +   ''
       +   '<span style="font-weight:800;color:#e8442a;font-size:14px;">블랙 등록 차량입니다</span>'
       +   '<span style="margin-left:auto;font-size:11px;padding:2px 8px;border-radius:4px;background:rgba(232,68,42,.2);color:'+sevColor+';font-weight:700;">'+sevLabel+'</span>'
       + '</div>'
@@ -1593,11 +1593,11 @@
     try {
       if (editingId) {
         await update(ref(db, `records/${editingId}`), data);
-        showNotif(`${data.carNum} 정보가 수정되었습니다 ✏️`);
+        showNotif(`${data.carNum} 정보가 수정되었습니다 `);
       } else {
         data.createdAt = new Date().toISOString();
         await push(recordsRef, data);
-        showNotif(`${data.carNum} 차량이 등록되었습니다 🚗`);
+        showNotif(`${data.carNum} 차량이 등록되었습니다 `);
       }
       closeModal();
     } catch(e) {
@@ -1640,7 +1640,7 @@
         outDate: new Date().toISOString().split('T')[0],
         updatedAt: new Date().toISOString()
       });
-      showNotif(`${carNum} 출고 처리 완료! ✅`);
+      showNotif(`${carNum} 출고 처리 완료! `);
     } catch(e) { showNotif('처리 실패', true); }
   };
 
@@ -1686,7 +1686,7 @@
       });
       document.getElementById('blacklistRegModal').classList.remove('open');
       _blacklistRegTarget = null;
-      showNotif('🚫 블랙 등록 + 출고 완료');
+      showNotif(' 블랙 등록 + 출고 완료');
     } catch(e) {
       console.error('blacklist+out failed', e);
       showNotif('처리 실패: ' + (e.message||e), true);
@@ -1718,7 +1718,7 @@
     body.innerHTML = entries.map(function(e){
       var sev = e.severity || 'medium';
       var sevColor = sev === 'high' ? '#e8442a' : sev === 'low' ? '#fbbf24' : '#ef4444';
-      var sevLabel = sev === 'high' ? '🔴 높음' : sev === 'low' ? '🟡 낮음' : '🟠 중간';
+      var sevLabel = sev === 'high' ? ' 높음' : sev === 'low' ? ' 낮음' : ' 중간';
       var addedDate = e.addedAt ? String(e.addedAt).slice(0,10) : '-';
       var nv = normalizeCarNum(e.carNum||'');
       var pastCount = 0;
@@ -2008,24 +2008,24 @@
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
-        ${detailRow('🚙 차종', esc(r.carModel)||'-')}
-        ${detailRow('📞 연락처', esc(r.phone)||'-')}
-        ${detailRow('📅 입고일', esc(r.inDate)||'-')}
-        ${detailRow('📅 출고(예정)일', esc(r.outDate)||'-')}
-        ${detailRow('🛞 주행거리', (esc(r.km) ? esc(r.km)+' km' : '-'))}
-        ${detailRow('🚖 렌트카', esc(r.rent)||'-')}
-        ${detailRow('🚗 대물보험', esc(r.insDaemul)||'-')}
-        ${detailRow('🚘 자차보험', esc(r.insJacha)||'-')}
+        ${detailRow(' 차종', esc(r.carModel)||'-')}
+        ${detailRow(' 연락처', esc(r.phone)||'-')}
+        ${detailRow(' 입고일', esc(r.inDate)||'-')}
+        ${detailRow(' 출고(예정)일', esc(r.outDate)||'-')}
+        ${detailRow(' 주행거리', (esc(r.km) ? esc(r.km)+' km' : '-'))}
+        ${detailRow(' 렌트카', esc(r.rent)||'-')}
+        ${detailRow(' 대물보험', esc(r.insDaemul)||'-')}
+        ${detailRow(' 자차보험', esc(r.insJacha)||'-')}
       </div>
       <div style="margin-top:16px;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);">
-        <div style="font-size:11px;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">🔧 수리내용</div>
+        <div style="font-size:11px;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;"> 수리내용</div>
         <div style="font-size:13px;line-height:1.7;white-space:pre-wrap;">${esc(r.repair)||'-'}</div>
       </div>
-      ${r.memo ? `<div style="margin-top:10px;padding:12px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);"><div style="font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:6px;">📝 메모</div><div style="font-size:13px;">${esc(r.memo)}</div></div>` : ''}
+      ${r.memo ? `<div style="margin-top:10px;padding:12px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);"><div style="font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:6px;"> 메모</div><div style="font-size:13px;">${esc(r.memo)}</div></div>` : ''}
       <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
-        <button class="btn btn-ghost btn-sm" onclick="window._openPhotoModal('${esc(id)}','intake')">📷 입고사진 ${photoCountBadge(r,'intake')}</button>
-        <button class="btn btn-ghost btn-sm" onclick="window._openPhotoModal('${esc(id)}','outbound')">📷 출고사진 ${photoCountBadge(r,'outbound')}</button>
-        <button class="btn btn-primary btn-sm" onclick="window._openWorkOrder('${esc(id)}')">🖨️ 작업지시서 인쇄</button>
+        <button class="btn btn-ghost btn-sm" onclick="window._openPhotoModal('${esc(id)}','intake')"> 입고사진 ${photoCountBadge(r,'intake')}</button>
+        <button class="btn btn-ghost btn-sm" onclick="window._openPhotoModal('${esc(id)}','outbound')"> 출고사진 ${photoCountBadge(r,'outbound')}</button>
+        <button class="btn btn-primary btn-sm" onclick="window._openWorkOrder('${esc(id)}')"> 작업지시서 인쇄</button>
       </div>
     `;
     document.getElementById('detailModal').classList.add('open');
@@ -2049,14 +2049,14 @@
   window.fixMissingOutDates = async function() {
     const list = getList();
     const missing = list.filter(r => r.status === '출고' && !r.outDate);
-    if (!missing.length) { showNotif('보정할 차량이 없어요 ✅'); return; }
+    if (!missing.length) { showNotif('보정할 차량이 없어요 '); return; }
     if (!confirm(`출고일이 없는 차량 ${missing.length}대를 오늘 날짜로 보정할까요?`)) return;
     const today = new Date().toISOString().split('T')[0];
     try {
       for (const r of missing) {
         await update(ref(db, `records/${r.id}`), { outDate: today });
       }
-      showNotif(`${missing.length}대 보정 완료! ✅`);
+      showNotif(`${missing.length}대 보정 완료! `);
     } catch(e) { showNotif('보정 실패', true); }
   };
 
@@ -2092,12 +2092,12 @@
       if (editingId) {
         await update(ref(db, `records/${editingId}`), data);
         recordId = editingId;
-        showNotif(`${data.carNum} 저장 완료 → 견적도우미로 이동합니다 🔧`);
+        showNotif(`${data.carNum} 저장 완료 → 견적도우미로 이동합니다 `);
       } else {
         data.createdAt = new Date().toISOString();
         const newRef = await push(recordsRef, data);
         recordId = newRef.key;
-        showNotif(`${data.carNum} 등록 완료 → 견적도우미로 이동합니다 🔧`);
+        showNotif(`${data.carNum} 등록 완료 → 견적도우미로 이동합니다 `);
       }
       closeModal();
       window._estimateLinkedRecordId = recordId;
@@ -2108,7 +2108,7 @@
     } catch(e) {
       showNotif('저장 실패: ' + e.message, true);
     }
-    btn.disabled = false; btn.textContent = '🔧 저장 후 견적도우미';
+    btn.disabled = false; btn.textContent = ' 저장 후 견적도우미';
   };
 
   // 대시보드에서 바로 견적도우미로 이동
@@ -2132,7 +2132,7 @@
       const estPage = document.getElementById('page-estimate');
       if (estPage) estPage.insertBefore(banner, estPage.firstChild);
     }
-    banner.innerHTML = `<span style="font-size:16px;">🔗</span><span style="font-weight:700;color:var(--accent);">${carNum}</span><span style="color:var(--text-dim);">차량 견적 작성 중</span><button onclick="clearEstimateLink()" style="margin-left:auto;background:none;border:1px solid rgba(139,92,246,0.3);color:var(--text-dim);border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;">연동 해제</button>`;
+    banner.innerHTML = `<span style="font-weight:700;color:var(--accent);">${carNum}</span><span style="color:var(--text-dim);">차량 견적 작성 중</span><button onclick="clearEstimateLink()" style="margin-left:auto;background:none;border:1px solid rgba(139,92,246,0.3);color:var(--text-dim);border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;">연동 해제</button>`;
     banner.style.display = 'flex';
   }
 
@@ -2626,12 +2626,12 @@
       html += '</div>';
 
       html += '<div class="ins-domestic" style="background:var(--surface2);border-radius:8px;padding:12px;border-left:3px solid var(--accent);">';
-      html += '<div style="font-size:11px;font-weight:700;color:var(--text-dim);letter-spacing:1px;margin-bottom:8px;">🚗 국산차 담당'+(dom.length>1?' · '+dom.length+'명':'')+'</div>';
+      html += '<div style="font-size:11px;font-weight:700;color:var(--text-dim);letter-spacing:1px;margin-bottom:8px;"> 국산차 담당'+(dom.length>1?' · '+dom.length+'명':'')+'</div>';
       html += _renderInsPersonList(dom);
       html += '</div>';
 
       html += '<div class="ins-foreign" style="background:var(--surface2);border-radius:8px;padding:12px;border-left:3px solid var(--blue);">';
-      html += '<div style="font-size:11px;font-weight:700;color:var(--text-dim);letter-spacing:1px;margin-bottom:8px;">🌍 외제차 담당'+(fgn.length>1?' · '+fgn.length+'명':'')+'</div>';
+      html += '<div style="font-size:11px;font-weight:700;color:var(--text-dim);letter-spacing:1px;margin-bottom:8px;"> 외제차 담당'+(fgn.length>1?' · '+fgn.length+'명':'')+'</div>';
       html += _renderInsPersonList(fgn);
       html += '</div>';
       html += '</div>';
@@ -2655,13 +2655,13 @@
       if (c.phone) {
         html += '<div style="font-size:13px;margin-bottom:4px;">'
           + '<a href="tel:'+esc(_telLink(c.phone))+'" style="color:var(--text);text-decoration:none;display:inline-flex;align-items:center;gap:6px;">'
-          + '<span style="color:var(--text-dim);">📞</span>'
+          + ''
           + '<span style="font-family:\'JetBrains Mono\',monospace;">'+esc(c.phone)+'</span>'
           + '</a></div>';
       }
       if (c.fax) {
         html += '<div style="font-size:12px;color:var(--text-dim);display:inline-flex;align-items:center;gap:6px;">'
-          + '<span>📠</span>'
+          + '<span></span>'
           + '<span style="font-family:\'JetBrains Mono\',monospace;">'+esc(c.fax)+'</span>'
           + '</div>';
       }
@@ -2707,7 +2707,7 @@
     return '<div class="ins-row" style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;">'
       + '<input class="form-input ins-row-name" placeholder="이름" value="'+esc(p.name||'')+'" style="font-size:13px;">'
       + '<input class="form-input ins-row-phone" placeholder="010-0000-0000" value="'+esc(p.phone||'')+'" style="font-size:13px;">'
-      + '<button type="button" class="btn btn-ghost btn-sm" onclick="this.closest(\'.ins-row\').remove()" style="padding:6px 10px;">✕</button>'
+      + '<button type="button" class="btn btn-ghost btn-sm" onclick="this.closest(\'.ins-row\').remove()" style="padding:6px 10px;">\uC0AD\uC81C</button>'
       + '<input class="form-input ins-row-fax" placeholder="팩스 (선택)" value="'+esc(p.fax||'')+'" style="grid-column:1/-1;font-size:13px;">'
       + '</div>';
   }
@@ -3597,7 +3597,7 @@
       + '<div style="margin-bottom:8px;line-height:1.7;">「근로기준법」 제61조 연차휴가의 사용촉진 조항에 근거하여 「잔여 연차유급휴가 사용일」을 지정하여 통지합니다.</div>'
       + '<table style="width:100%;border-collapse:collapse;margin-bottom:14px;">'
       + '<tr><td style="'+hdr+'width:24%;">입사일</td><td style="'+cell+'width:26%;">'+esc(li.hireDate||'')+'</td>'
-      + '<td style="'+hdr+'width:24%;">1년 미만</td><td style="'+cell+'width:26%;text-align:center;">'+(li.isUnder1Year?'☑ 해당':'☐ 해당')+'</td></tr>'
+      + '<td style="'+hdr+'width:24%;">1년 미만</td><td style="'+cell+'width:26%;text-align:center;">'+(li.isUnder1Year?' 해당':' 해당')+'</td></tr>'
       + '<tr><td style="'+hdr+'">발생일</td><td style="'+cell+'">'+esc(li.accrueDate||'')+'</td>'
       + '<td style="'+hdr+'">연차발생일수</td><td style="'+cell+'text-align:center;font-weight:700;">'+(li.totalDays||0)+'일</td></tr>'
       + '<tr><td style="'+hdr+'">사용일</td><td style="'+cell+'">'+(li.usedDays||0)+'일</td>'
@@ -3673,8 +3673,8 @@
       var actions = '<div style="display:flex;gap:5px;flex-wrap:wrap;">';
       var isMyNotice = myEmp && emp.empId === myEmp.id;
       var canFill = isMyNotice && (n.status === 'issued' || n.status === 'draft');
-      if (canFill) actions += '<button class="btn btn-primary btn-sm" onclick="window._openFillNoticeModal(\''+esc(n.id)+'\')">📝 작성</button>';
-      actions += '<button class="btn btn-ghost btn-sm" onclick="window._openNoticePrintView(\''+esc(n.id)+'\')">📄 보기</button>';
+      if (canFill) actions += '<button class="btn btn-primary btn-sm" onclick="window._openFillNoticeModal(\''+esc(n.id)+'\')"> 작성</button>';
+      actions += '<button class="btn btn-ghost btn-sm" onclick="window._openNoticePrintView(\''+esc(n.id)+'\')"> 보기</button>';
       if (isAdmin && n.status !== 'approved') actions += '<button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteNotice(\''+esc(n.id)+'\')">삭제</button>';
       actions += '</div>';
       return '<tr><td><strong>'+esc(emp.name||'-')+'</strong></td><td style="font-size:12px;">'+esc(emp.department||'-')+'</td><td style="text-align:center;font-weight:700;color:var(--accent);">'+(li.remainingDays||0)+'일</td><td style="font-size:11px;">'+esc(up.start||'-')+' ~ '+esc(up.end||'-')+'</td><td>'+noticeStatusBadge(n.status)+'</td><td style="font-size:11px;color:var(--text-dim);">'+esc((n.noticeDate||'').split('T')[0])+'</td><td>'+actions+'</td></tr>';

@@ -49,7 +49,7 @@ function renderSections(type, groups) {
         <div>
           <span style="color:#fff;font-size:16px;font-weight:700;">${ins}</span>
           <span style="color:#a8c4e8;font-size:12px;margin-left:12px;">${list.length}건 · ${amt.toLocaleString()}원</span>
-          <span style="color:#a8c4e8;font-size:11px;margin-left:8px;">👆 클릭하여 상세보기</span>
+          <span style="color:#a8c4e8;font-size:11px;margin-left:8px;"> 클릭하여 상세보기</span>
         </div>
         <span style="color:#fff;font-size:18px;">▶</span>
       </div>

@@ -18,9 +18,9 @@
 </head>
 <body>
 
-<!-- ⚠️ 테스트 환경 표시 (un-v2/ 전용, 운영 un/에는 없음) -->
+<!--  테스트 환경 표시 (un-v2/ 전용, 운영 un/에는 없음) -->
 <div style="position:fixed;top:0;left:0;right:0;z-index:99998;background:linear-gradient(90deg,#dc2626 0%,#991b1b 100%);color:#fff;text-align:center;padding:6px 10px;font-size:12px;font-weight:700;letter-spacing:0.5px;font-family:'Noto Sans KR',sans-serif;box-shadow:0 2px 8px rgba(220,38,38,.4);">
-  ⚠️ 테스트 환경 (un-v2) — 운영 DB와 공유됩니다. 데이터 등록·수정·삭제는 자제해주세요.
+   테스트 환경 (un-v2) — 운영 DB와 공유됩니다. 데이터 등록·수정·삭제는 자제해주세요.
 </div>
 <div style="height:30px;"></div>
 
@@ -29,7 +29,7 @@
 <script>
 (function(){
   var c=document.getElementById('matrixBg'),ctx=c.getContext('2d');
-  var chars='0123456789ABCDEF가나다라마바사아자차카타파하KGM·∘◦⚙';
+  var chars='0123456789ABCDEF가나다라마바사아자차카타파하KGM·∘◦';
   var fontSize=13,columns,drops;
   function init(){
     c.width=window.innerWidth;c.height=window.innerHeight;
@@ -71,7 +71,7 @@
     <div class="logo-grad" role="img" aria-label="KGM Seongsu Service Center"></div>
   </div>
   <div class="header-right">
-    <button class="pwa-header-btn" id="pwaHeaderBtn" type="button" title="홈 화면에 앱 설치">📱 설치</button>
+    <button class="pwa-header-btn" id="pwaHeaderBtn" type="button" title="홈 화면에 앱 설치"> 설치</button>
     <div class="online-badge"><span class="online-dot"></span>실시간 연결</div>
     <div class="date-badge" id="dateDisplay"></div>
   </div>
@@ -100,22 +100,22 @@
 <!-- DASHBOARD -->
 <div id="page-dashboard" class="page active">
   <aside class="dash-out-side hidden" id="dashOutSide">
-    <div class="dash-out-drag" id="dashOutDrag" title="드래그해서 위치 이동">⋮⋮ 드래그 ⋮⋮<button class="dash-out-close" onclick="window._toggleDashOutSide(false)" title="닫기">✕</button></div>
+    <div class="dash-out-drag" id="dashOutDrag" title="드래그해서 위치 이동">⋮⋮ 드래그 ⋮⋮<button class="dash-out-close" onclick="window._toggleDashOutSide(false)" title="닫기">×</button></div>
     <div class="group">
-      <h4>📅 이번주 출고 <span class="cnt" id="outSideThisCnt">0</span></h4>
+      <h4> 이번주 출고 <span class="cnt" id="outSideThisCnt">0</span></h4>
       <div id="outSideThis"></div>
     </div>
     <div class="group">
-      <h4>🗓️ 다음주 출고 <span class="cnt" id="outSideNextCnt">0</span></h4>
+      <h4> 다음주 출고 <span class="cnt" id="outSideNextCnt">0</span></h4>
       <div id="outSideNext"></div>
     </div>
   </aside>
 
   <!-- 예약차 사이드바 (우측, 사용자 직접 등록) -->
   <aside class="dash-res-side hidden" id="dashResSide">
-    <div class="dash-out-drag" id="dashResDrag" title="드래그해서 위치 이동">⋮⋮ 드래그 ⋮⋮<button class="dash-out-close" onclick="window._toggleDashResSide(false)" title="닫기">✕</button></div>
-    <h4>📋 예약차 <span class="cnt" id="resSideCnt">0</span></h4>
-    <button class="dash-res-add" onclick="window._openResModal()">➕ 예약차 등록</button>
+    <div class="dash-out-drag" id="dashResDrag" title="드래그해서 위치 이동">⋮⋮ 드래그 ⋮⋮<button class="dash-out-close" onclick="window._toggleDashResSide(false)" title="닫기">×</button></div>
+    <h4> 예약차 <span class="cnt" id="resSideCnt">0</span></h4>
+    <button class="dash-res-add" onclick="window._openResModal()"> 예약차 등록</button>
     <div id="resSideList"></div>
   </aside>
 
@@ -126,7 +126,7 @@
         <p>오늘도 안전하고 효율적인 업무 되세요.</p>
       </div>
       <div class="dashboard-hero-actions">
-        <button class="pwa-header-btn" type="button" onclick="document.getElementById('pwaHeaderBtn')?.click()">📱 설치</button>
+        <button class="pwa-header-btn" type="button" onclick="document.getElementById('pwaHeaderBtn')?.click()"> 설치</button>
         <div class="online-badge"><span class="online-dot"></span>실시간 연결</div>
         <div class="date-badge" id="dashboardDateDisplay"></div>
       </div>
@@ -134,7 +134,7 @@
     <!-- 블랙 차량 입고 알림 (관리자만) -->
     <div id="blacklistAlertBanner" style="display:none;margin-bottom:16px;padding:14px 18px;background:rgba(232,68,42,.12);border:1px solid rgba(232,68,42,.45);border-left:4px solid #e8442a;border-radius:8px;">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <span style="font-size:20px;">🚫</span>
+        <span style="font-size:20px;"></span>
         <span style="font-size:14px;font-weight:800;color:#e8442a;letter-spacing:0.3px;">블랙 차량 입고 중</span>
         <span id="blacklistAlertCount" style="font-size:12px;color:rgba(250,250,250,.7);"></span>
         <button onclick="switchPage('blacklist')" style="margin-left:auto;background:transparent;border:1px solid rgba(232,68,42,.45);color:#e8442a;padding:5px 12px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">블랙 관리 →</button>
@@ -144,7 +144,7 @@
     <!-- 접근 요청 알림 (관리자만) -->
     <div id="accessRequests" style="display:none;margin-bottom:16px;padding:14px 18px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.25);border-radius:12px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-        <span style="font-size:16px;">🔔</span>
+        <span style="font-size:16px;"></span>
         <span style="font-size:13px;font-weight:700;color:var(--accent);">접근 요청</span>
         <span id="arCount" style="font-size:11px;color:var(--text-dim);"></span>
       </div>
@@ -185,7 +185,7 @@
 
           <!-- 누적 통계 (주/월/분기) -->
           <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06);">
-            <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;letter-spacing:0.4px;text-transform:uppercase;font-weight:600;">📅 누적 통계</div>
+            <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;letter-spacing:0.4px;text-transform:uppercase;font-weight:600;"> 누적 통계</div>
             <div class="stats-grid" style="grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:0;">
               <div class="stat-card purple"><div class="stat-label">이번 주</div><div class="stat-value" id="stat-kgm-week">0</div><div class="stat-sub">월~일</div></div>
               <div class="stat-card orange"><div class="stat-label">이번 달</div><div class="stat-value" id="stat-kgm-month">0</div><div class="stat-sub">월 누적</div></div>
@@ -301,7 +301,7 @@
         <div class="chart-title">월별 상세</div>
       </div>
       <div style="margin-bottom:12px;padding:10px 14px;background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.15);border-radius:4px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-        <div style="font-size:12px;color:var(--text-dim);">⚠️ 출고일 없는 출고차량이 있으면 통계가 부정확할 수 있어요</div>
+        <div style="font-size:12px;color:var(--text-dim);"> 출고일 없는 출고차량이 있으면 통계가 부정확할 수 있어요</div>
         <button class="btn btn-ghost btn-sm" onclick="fixMissingOutDates()">출고일 자동 보정</button>
       </div>
       <div class="table-wrap">
@@ -359,10 +359,10 @@
 <div id="page-status" class="page">
   <div class="main">
     <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-      <div class="section-title">📋 현황 목록</div>
+      <div class="section-title"> 현황 목록</div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <button id="dashOutToggleBtn" class="dash-out-toggle-btn" onclick="window._toggleDashOutSide()" title="이번주/다음주 출고 예정 사이드바 열기/닫기">📅 출고일정</button>
-        <button id="dashResToggleBtn" class="dash-out-toggle-btn" onclick="window._toggleDashResSide()" title="예약차 사이드바 열기/닫기">📋 예약차</button>
+        <button id="dashOutToggleBtn" class="dash-out-toggle-btn" onclick="window._toggleDashOutSide()" title="이번주/다음주 출고 예정 사이드바 열기/닫기"> 출고일정</button>
+        <button id="dashResToggleBtn" class="dash-out-toggle-btn" onclick="window._toggleDashResSide()" title="예약차 사이드바 열기/닫기"> 예약차</button>
         <input class="form-input" id="dashSearchInput" type="text" placeholder="차량번호 / 고객명 / 연락처 검색" oninput="renderDashboard()" style="width:260px;padding:8px 12px;font-size:13px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);">
         <select class="form-input" id="dashFilterLoc" onchange="renderDashboard()" style="width:100px;padding:8px 10px;font-size:13px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);">
           <option value="">전체 위치</option>
@@ -399,7 +399,7 @@
 <div id="page-list" class="page">
   <div class="main">
     <div class="toolbar">
-      <input class="search-box" type="text" id="searchInput" placeholder="🔍  차량번호, 고객명, 연락처 검색..." oninput="renderList()">
+      <input class="search-box" type="text" id="searchInput" placeholder="  차량번호, 고객명, 연락처 검색..." oninput="renderList()">
       <select class="filter-select" id="filterStatus" onchange="renderList()">
         <option value="">전체 상태</option>
         <option value="입고">입고</option>
@@ -416,21 +416,21 @@
         <tbody id="list-tbody"></tbody>
       </table>
     </div>
-    <div id="list-empty" class="empty" style="display:none;"><div class="empty-icon">🚗</div><div>등록된 차량이 없습니다</div></div>
+    <div id="list-empty" class="empty" style="display:none;"><div class="empty-icon"></div><div>등록된 차량이 없습니다</div></div>
   </div>
 </div>
 
 <!-- COMPLETE -->
 <div id="page-complete" class="page">
   <div class="main">
-    <div class="section-header"><div class="section-title">✅ 수리 완료 — 출고 대기 중</div></div>
+    <div class="section-header"><div class="section-title"> 수리 완료 — 출고 대기 중</div></div>
     <div class="table-wrap">
       <table>
         <thead><tr><th>차량번호</th><th>차종</th><th>연락처</th><th>위치</th><th>대물보험</th><th>자차보험</th><th>수리내용</th><th>수리비용</th><th>입고일</th><th>주행거리</th><th>관리</th></tr></thead>
         <tbody id="complete-tbody"></tbody>
       </table>
     </div>
-    <div id="complete-empty" class="empty" style="display:none;"><div class="empty-icon">✅</div><div>수리 완료 대기 차량이 없습니다</div></div>
+    <div id="complete-empty" class="empty" style="display:none;"><div class="empty-icon"></div><div>수리 완료 대기 차량이 없습니다</div></div>
   </div>
 </div>
 
@@ -438,9 +438,9 @@
 <div id="page-out" class="page">
   <div class="main">
     <div class="toolbar">
-      <input class="search-box" type="text" id="searchOutInput" placeholder="🔍  차량번호, 고객명 검색..." oninput="renderOut()">
+      <input class="search-box" type="text" id="searchOutInput" placeholder="  차량번호, 고객명 검색..." oninput="renderOut()">
       <input class="filter-select" type="month" id="filterOutMonth" onchange="renderOut()" style="padding:9px 12px;">
-      <button id="blacklistEntryBtn" class="btn btn-sm" style="display:none;background:rgba(232,68,42,0.12);color:#e8442a;border:1px solid rgba(232,68,42,0.35);padding:8px 12px;font-size:12px;font-weight:600;margin-left:auto;" onclick="switchPage('blacklist')" title="블랙 고객 관리 (관리자 전용)">🚫 블랙 관리</button>
+      <button id="blacklistEntryBtn" class="btn btn-sm" style="display:none;background:rgba(232,68,42,0.12);color:#e8442a;border:1px solid rgba(232,68,42,0.35);padding:8px 12px;font-size:12px;font-weight:600;margin-left:auto;" onclick="switchPage('blacklist')" title="블랙 고객 관리 (관리자 전용)"> 블랙 관리</button>
     </div>
     <div class="table-wrap">
       <table>
@@ -448,7 +448,7 @@
         <tbody id="out-tbody"></tbody>
       </table>
     </div>
-    <div id="out-empty" class="empty" style="display:none;"><div class="empty-icon">🏁</div><div>출고완료 차량이 없습니다</div></div>
+    <div id="out-empty" class="empty" style="display:none;"><div class="empty-icon"></div><div>출고완료 차량이 없습니다</div></div>
   </div>
 </div>
 
@@ -465,7 +465,7 @@
     <!-- AOS 탭 -->
     <div id="migyeol-aos">
       <div id="aos-upload-area" style="border:2px dashed var(--border);border-radius:16px;padding:40px 20px;text-align:center;margin-bottom:20px;cursor:pointer;" onclick="document.getElementById('aos-file-input').click()" ondragover="event.preventDefault();this.style.borderColor='var(--accent)'" ondragleave="this.style.borderColor='var(--border)'" ondrop="handleAosDrop(event)">
-        <div style="font-size:40px;margin-bottom:12px;">📂</div>
+        <div style="font-size:40px;margin-bottom:12px;"></div>
         <div style="font-size:15px;font-weight:700;margin-bottom:6px;">AOS 엑셀 파일 (.xlsx) 업로드</div>
         <div style="font-size:12px;color:var(--text-dim);">보험사별 미결 현황이 자동으로 분석됩니다</div>
         <input type="file" id="aos-file-input" accept=".xlsx" style="display:none" onchange="handleAosFile(this.files[0])">
@@ -473,10 +473,10 @@
       <div id="aos-result" style="display:none;">
         <div id="aos-summary-cards" class="stats-grid" style="margin-bottom:20px;"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
-          <div style="font-size:15px;font-weight:700;">🏢 보험사별 미결 리스트</div>
+          <div style="font-size:15px;font-weight:700;"> 보험사별 미결 리스트</div>
           <div style="display:flex;gap:8px;">
-            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('aos-file-input').click()">📂 다른 파일</button>
-            <button class="btn btn-primary btn-sm" onclick="printAllSections('aos')">🖨️ 전체 프린트</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('aos-file-input').click()"> 다른 파일</button>
+            <button class="btn btn-primary btn-sm" onclick="printAllSections('aos')"> 전체 프린트</button>
           </div>
         </div>
         <div id="aos-sections"></div>
@@ -486,7 +486,7 @@
     <!-- 볼트 탭 -->
     <div id="migyeol-bolt" style="display:none;">
       <div id="bolt-upload-area" style="border:2px dashed var(--border);border-radius:16px;padding:40px 20px;text-align:center;margin-bottom:20px;cursor:pointer;" onclick="document.getElementById('bolt-file-input').click()" ondragover="event.preventDefault();this.style.borderColor='var(--accent)'" ondragleave="this.style.borderColor='var(--border)'" ondrop="handleBoltDrop(event)">
-        <div style="font-size:40px;margin-bottom:12px;">📂</div>
+        <div style="font-size:40px;margin-bottom:12px;"></div>
         <div style="font-size:15px;font-weight:700;margin-bottom:6px;">KGM 볼트 엑셀 파일 (.xls / .xlsx) 업로드</div>
         <div style="font-size:12px;color:var(--text-dim);">보험사별 미결 현황이 자동으로 분석됩니다</div>
         <input type="file" id="bolt-file-input" accept=".xls,.xlsx" style="display:none" onchange="handleBoltFile(this.files[0])">
@@ -494,10 +494,10 @@
       <div id="bolt-result" style="display:none;">
         <div id="bolt-summary-cards" class="stats-grid" style="margin-bottom:20px;"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
-          <div style="font-size:15px;font-weight:700;">🏢 보험사별 미결 리스트 (볼트)</div>
+          <div style="font-size:15px;font-weight:700;"> 보험사별 미결 리스트 (볼트)</div>
           <div style="display:flex;gap:8px;">
-            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('bolt-file-input').click()">📂 다른 파일</button>
-            <button class="btn btn-primary btn-sm" onclick="printAllSections('bolt')">🖨️ 전체 프린트</button>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('bolt-file-input').click()"> 다른 파일</button>
+            <button class="btn btn-primary btn-sm" onclick="printAllSections('bolt')"> 전체 프린트</button>
           </div>
         </div>
         <div id="bolt-sections"></div>
@@ -512,7 +512,7 @@
   <div style="max-width:1100px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;">
     <div id="insDetailContent"></div>
     <div style="padding:16px;text-align:right;border-top:1px solid #dde3f0;display:flex;gap:10px;justify-content:flex-end;">
-      <button onclick="printInsDetail()" style="padding:9px 20px;background:#1b3a6b;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;">🖨️ 프린트</button>
+      <button onclick="printInsDetail()" style="padding:9px 20px;background:#1b3a6b;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;"> 프린트</button>
       <button onclick="closeInsDetail()" style="padding:9px 20px;background:#f1f3f5;color:#333;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;">닫기</button>
     </div>
   </div>
@@ -535,7 +535,7 @@
         <div class="chart-subtitle">매일 업무 마무리 시 작성</div>
       </div>
       <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;padding:10px 12px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.18);border-radius:4px;line-height:1.6;">
-        💡 담당자가 매일 업무 끝나면 본인 영역의 <b>오늘 실적</b>을 입력하고 저장하세요. 대시보드에 즉시 반영됩니다.
+         담당자가 매일 업무 끝나면 본인 영역의 <b>오늘 실적</b>을 입력하고 저장하세요. 대시보드에 즉시 반영됩니다.
       </div>
       <div class="sales-rows">
         <!-- KGM 오늘 정비 대수 -->
@@ -572,7 +572,7 @@
         <div class="chart-subtitle">매월 15일경 1회 작성</div>
       </div>
       <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;padding:10px 12px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.22);border-radius:4px;line-height:1.6;">
-        📅 보증금액은 한 달에 한 번(15일경) 입력해주세요. 같은 달에는 마지막 저장값이 최신값입니다.
+         보증금액은 한 달에 한 번(15일경) 입력해주세요. 같은 달에는 마지막 저장값이 최신값입니다.
       </div>
       <div class="sales-rows">
         <div class="sales-row">
@@ -592,7 +592,7 @@
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="modalTitle">차량 등록</div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
       <!-- 블랙 차량 경고 (차량번호 입력 시 자동 표시) -->
@@ -649,11 +649,11 @@
           <input class="form-input" id="f-cost" type="number" placeholder="0" min="0">
         </div>
         <div class="form-group" id="saveAndEstimateGroup">
-          <label class="form-label">🔧 견적도우미</label>
-          <button class="btn" id="saveAndEstimateBtn" onclick="saveAndGoEstimate()" style="width:100%;background:rgba(139,92,246,0.15);color:var(--accent);border:1px solid rgba(139,92,246,0.3);font-weight:700;padding:10px;border-radius:8px;cursor:pointer;font-size:13px;">🔧 저장 후 견적도우미</button>
+          <label class="form-label"> 견적도우미</label>
+          <button class="btn" id="saveAndEstimateBtn" onclick="saveAndGoEstimate()" style="width:100%;background:rgba(139,92,246,0.15);color:var(--accent);border:1px solid rgba(139,92,246,0.3);font-weight:700;padding:10px;border-radius:8px;cursor:pointer;font-size:13px;"> 저장 후 견적도우미</button>
         </div>
         <div class="form-group full">
-          <label class="form-label">📍 차량 위치</label>
+          <label class="form-label"> 차량 위치</label>
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px;">
             <label class="loc-btn"><input type="radio" name="location" value="1층"><span>1층</span></label>
             <label class="loc-btn"><input type="radio" name="location" value="판금"><span>판금</span></label>
@@ -688,7 +688,7 @@
           <option value="버스공제"></option>
         </datalist>
         <div class="form-group">
-          <label class="form-label">🚗 대물 보험사</label>
+          <label class="form-label"> 대물 보험사</label>
           <input class="form-input" id="f-ins-daemul" list="ins-suggestions" placeholder="목록에서 선택하거나 직접 입력">
         </div>
         <div class="form-group">
@@ -700,7 +700,7 @@
           <input class="form-input" id="f-daemul-manager" placeholder="예: 송승인 010-4136-6226">
         </div>
         <div class="form-group">
-          <label class="form-label">🚘 자차 보험사</label>
+          <label class="form-label"> 자차 보험사</label>
           <input class="form-input" id="f-ins-jacha" list="ins-suggestions" placeholder="목록에서 선택하거나 직접 입력">
         </div>
         <div class="form-group">
@@ -712,7 +712,7 @@
           <input class="form-input" id="f-jacha-manager" placeholder="예: 송승인 010-4136-6226">
         </div>
         <div class="form-group full">
-          <label class="form-label">🚖 렌트카 정보</label>
+          <label class="form-label"> 렌트카 정보</label>
           <input class="form-input" id="f-rent" placeholder="렌트카 차량번호 또는 업체명 (없으면 비워두세요)">
         </div>
         <div class="form-group full">
@@ -735,8 +735,8 @@
 <div class="modal-overlay" id="detailModal">
   <div class="modal" style="max-width:500px;">
     <div class="modal-header">
-      <div class="modal-title">🚗 차량 상세정보</div>
-      <button class="modal-close" onclick="document.getElementById('detailModal').classList.remove('open')">✕</button>
+      <div class="modal-title"> 차량 상세정보</div>
+      <button class="modal-close" onclick="document.getElementById('detailModal').classList.remove('open')">×</button>
     </div>
     <div class="modal-body" id="detailContent"></div>
   </div>
@@ -746,31 +746,31 @@
 <div class="modal-overlay" id="statusPickerModal">
   <div class="modal" style="max-width:340px;">
     <div class="modal-header">
-      <div class="modal-title">🔄 상태 변경</div>
-      <button class="modal-close" onclick="document.getElementById('statusPickerModal').classList.remove('open')">✕</button>
+      <div class="modal-title"> 상태 변경</div>
+      <button class="modal-close" onclick="document.getElementById('statusPickerModal').classList.remove('open')">×</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="statusPickerId">
       <div style="display:flex;flex-direction:column;gap:10px;">
         <button class="status-pick-btn" data-val="입고" onclick="saveStatus('입고')"
           style="padding:14px;border-radius:10px;border:2px solid rgba(75,156,255,0.3);background:rgba(75,156,255,0.1);color:var(--blue);font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:left;">
-          🔵 입고 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">차량 접수 완료</span>
+           입고 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">차량 접수 완료</span>
         </button>
         <button class="status-pick-btn" data-val="수리대기" onclick="saveStatus('수리대기')"
           style="padding:14px;border-radius:10px;border:2px solid rgba(168,139,250,0.35);background:rgba(168,139,250,0.1);color:#a78bfa;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:left;">
-          🟣 수리대기 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">작업 시작 전 대기</span>
+           수리대기 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">작업 시작 전 대기</span>
         </button>
         <button class="status-pick-btn" data-val="수리중" onclick="saveStatus('수리중')"
           style="padding:14px;border-radius:10px;border:2px solid rgba(245,166,35,0.3);background:rgba(245,166,35,0.1);color:var(--accent);font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:left;">
-          🟡 수리중 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">작업 진행 중</span>
+           수리중 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">작업 진행 중</span>
         </button>
         <button class="status-pick-btn" data-val="수리완료" onclick="saveStatus('수리완료')"
           style="padding:14px;border-radius:10px;border:2px solid rgba(45,206,137,0.3);background:rgba(45,206,137,0.1);color:var(--green);font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:left;">
-          🟢 수리완료 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">출고 대기 중</span>
+           수리완료 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">출고 대기 중</span>
         </button>
         <button class="status-pick-btn" data-val="출고" onclick="saveStatus('출고')"
           style="padding:14px;border-radius:10px;border:2px solid rgba(124,130,150,0.3);background:rgba(124,130,150,0.1);color:var(--text-dim);font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:left;">
-          ⚪ 출고 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">오늘 날짜 자동 입력</span>
+           출고 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">오늘 날짜 자동 입력</span>
         </button>
       </div>
     </div>
@@ -781,8 +781,8 @@
 <div class="modal-overlay" id="locPickerModal">
   <div class="modal" style="max-width:340px;">
     <div class="modal-header">
-      <div class="modal-title">📍 위치 변경</div>
-      <button class="modal-close" onclick="document.getElementById('locPickerModal').classList.remove('open')">✕</button>
+      <div class="modal-title"> 위치 변경</div>
+      <button class="modal-close" onclick="document.getElementById('locPickerModal').classList.remove('open')">×</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="locPickerId">
@@ -841,7 +841,7 @@
 
     <!-- PWA 설치 안내 배너 -->
     <div class="pwa-banner" id="pwaBanner">
-      <div class="pwa-title">📱 홈 화면에 앱으로 설치</div>
+      <div class="pwa-title"> 홈 화면에 앱으로 설치</div>
       <div>브라우저 없이 풀스크린으로 빠르게 접속하세요.</div>
       <button class="pwa-install-btn" id="pwaInstallBtn" type="button">설치하기</button>
       <div class="pwa-ios-hint">iPhone은 하단 <strong>공유 버튼</strong> → <strong>홈 화면에 추가</strong></div>
@@ -910,7 +910,7 @@
     <div class="eapi-wrap"><label>API KEY</label><input type="password" id="eAK" placeholder="sk-ant-..."><span class="east" id="eAS">미입력</span></div>
     <div class="ethumb" id="eThumb" onclick="document.getElementById('eFile').click()">
       <input type="file" id="eFile" accept="image/*" style="display:none" onchange="eOI(this)">
-      <span id="eThIc" style="font-size:16px;opacity:.4">📸</span>
+      <span id="eThIc" style="font-size:16px;opacity:.4"></span>
     </div>
     <div class="eflds">
       <div class="efld"><div class="efl">차종</div><div class="efv em" id="eMd">—</div></div>
@@ -918,8 +918,8 @@
       <div class="efld"><div class="efl">차량번호</div><div class="efv em" id="ePl">—</div></div>
       <div class="efld"><div class="efl">차대번호</div><div class="efv em" id="eVn" style="font-size:8px">—</div></div>
     </div>
-    <button class="evsc" id="eSB2" onclick="eScan()">🔍 인식</button>
-    <button class="evrst" onclick="eRst()">🔄</button>
+    <button class="evsc" id="eSB2" onclick="eScan()"> 인식</button>
+    <button class="evrst" onclick="eRst()">초기화</button>
   </div>
   <div class="emap-svg">
     <svg class="esvg" viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg">
@@ -1011,7 +1011,7 @@
     </svg>
   </div>
   <div class="esel-row" id="eSI"><div class="esel-empty">← 도면 또는 버튼을 클릭하세요</div></div>
-  <div class="eabw"><button class="eab" id="eAB" onclick="eAnalyze()">🔍 작업코드 추출</button></div>
+  <div class="eabw"><button class="eab" id="eAB" onclick="eAnalyze()"> 작업코드 추출</button></div>
 </div>
 <div class="esum-panel" id="eSumPanel">
   <div class="esum-hdr">견적 요약</div>
@@ -1028,10 +1028,10 @@
     <div class="eptog"><button id="eBG" class="active" onclick="eSetPM('g')">일반</button><button id="eBI" onclick="eSetPM('i')">보험</button></div>
     <button class="ebsm2" onclick="eExpCSV()" style="margin-left:4px">CSV</button>
     <button class="ebsm2" onclick="eCopyAll()" style="margin-left:3px">코드복사</button>
-    <button class="ebsm2" onclick="eCSave()" style="margin-left:3px;color:var(--green);border-color:rgba(45,206,137,.3)">☁️저장</button>
-    <button class="ebsm2" onclick="eHist()" style="margin-left:3px;color:var(--blue);border-color:rgba(75,156,255,.3)">📋내역</button>
-    <button class="ebsm2" onclick="ePrintEstimate()" style="margin-left:auto;color:var(--green);border-color:rgba(34,197,94,.3);font-weight:700">🖨️ 견적서</button>
-    <button class="ebsm2" onclick="if(confirm('전체 초기화하고 다음 차량으로 넘어갈까요?'))eRst()" style="color:var(--red);border-color:rgba(232,68,42,.3);font-weight:700">🔄 다음차량</button>
+    <button class="ebsm2" onclick="eCSave()" style="margin-left:3px;color:var(--green);border-color:rgba(45,206,137,.3)">저장</button>
+    <button class="ebsm2" onclick="eHist()" style="margin-left:3px;color:var(--blue);border-color:rgba(75,156,255,.3)">내역</button>
+    <button class="ebsm2" onclick="ePrintEstimate()" style="margin-left:auto;color:var(--green);border-color:rgba(34,197,94,.3);font-weight:700"> 견적서</button>
+    <button class="ebsm2" onclick="if(confirm('전체 초기화하고 다음 차량으로 넘어갈까요?'))eRst()" style="color:var(--red);border-color:rgba(232,68,42,.3);font-weight:700"> 다음차량</button>
   </div>
   <div class="esrch">
     <div class="esrch-box">
@@ -1043,7 +1043,7 @@
     </div>
     <div id="eSrchRes" class="esrch-res"><div class="esrch-empty">검색하면 결과가 나옵니다 · DB <span id="eDbCnt"></span>건</div></div>
   </div>
-  <div class="eres" id="eRes"><div class="eem"><div style="font-size:30px;opacity:.3">🚗</div><div style="font-size:12px;font-weight:500">부위 선택 후 추출하세요</div></div></div>
+  <div class="eres" id="eRes"><div class="eem"><div style="font-size:30px;opacity:.3"></div><div style="font-size:12px;font-weight:500">부위 선택 후 추출하세요</div></div></div>
   <div class="esbar" id="eSBar" style="display:none">
     <div class="esi2"><div class="esl2">항목</div><div class="esv2" id="eSC">0</div></div>
     <div class="esi2"><div class="esl2">코드수</div><div class="esv2 g" id="eSCd">0</div></div>
@@ -1058,19 +1058,19 @@
 <div id="page-leave" class="page">
   <div class="main">
     <div class="section-header">
-      <div class="section-title">📅 연차/반차 관리</div>
+      <div class="section-title"> 연차/반차 관리</div>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-ghost btn-sm leave-admin-only" onclick="window._openLeaveEmpModal()">➕ 직원 추가</button>
-        <button class="btn btn-ghost btn-sm" onclick="window._renderLeave()">🔄 새로고침</button>
+        <button class="btn btn-ghost btn-sm leave-admin-only" onclick="window._openLeaveEmpModal()"> 직원 추가</button>
+        <button class="btn btn-ghost btn-sm" onclick="window._renderLeave()"> 새로고침</button>
       </div>
     </div>
 
     <!-- 내 신청서 -->
     <div class="section-header" style="margin-top:8px;">
-      <div class="section-title" style="font-size:14px;">📥 내 신청서</div>
+      <div class="section-title" style="font-size:14px;"> 내 신청서</div>
       <div style="display:flex;gap:6px;">
-        <button class="btn btn-ghost btn-sm leave-admin-only" onclick="window._openProxyRequestModal()" title="긴급한 경우 관리자가 직원 대신 연차/반차를 등록·즉시 승인">👤 대신 신청</button>
-        <button class="btn btn-primary btn-sm" onclick="window._openMyRequestModal()">➕ 신청서 작성</button>
+        <button class="btn btn-ghost btn-sm leave-admin-only" onclick="window._openProxyRequestModal()" title="긴급한 경우 관리자가 직원 대신 연차/반차를 등록·즉시 승인"> 대신 신청</button>
+        <button class="btn btn-primary btn-sm" onclick="window._openMyRequestModal()"> 신청서 작성</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -1079,12 +1079,12 @@
         <tbody id="myreq-tbody"></tbody>
       </table>
     </div>
-    <div id="myreq-empty" class="empty" style="display:none;"><div class="empty-icon">📥</div><div>제출한 신청서가 없습니다</div></div>
+    <div id="myreq-empty" class="empty" style="display:none;"><div class="empty-icon"></div><div>제출한 신청서가 없습니다</div></div>
 
     <!-- 결재 대기 (관리자/부서장/대표만) -->
     <div id="approval-section" style="display:none;">
       <div class="section-header" style="margin-top:24px;">
-        <div class="section-title" style="font-size:14px;">📨 결재 대기</div>
+        <div class="section-title" style="font-size:14px;"> 결재 대기</div>
       </div>
       <div class="table-wrap">
         <table>
@@ -1092,12 +1092,12 @@
           <tbody id="approval-tbody"></tbody>
         </table>
       </div>
-      <div id="approval-empty" class="empty" style="display:none;"><div class="empty-icon">📨</div><div>결재할 신청이 없습니다</div></div>
+      <div id="approval-empty" class="empty" style="display:none;"><div class="empty-icon"></div><div>결재할 신청이 없습니다</div></div>
     </div>
 
     <!-- 연차 사용촉진 통지서 -->
     <div class="section-header" style="margin-top:24px;">
-      <div class="section-title" style="font-size:14px;">📋 연차 사용촉진 통지서</div>
+      <div class="section-title" style="font-size:14px;"> 연차 사용촉진 통지서</div>
       <div style="display:flex;gap:8px;align-items:center;">
         <select class="form-select leave-admin-only" id="noticeFilterStatus" onchange="window._renderNotices()" style="padding:6px 10px;font-size:12px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);">
           <option value="">전체 상태</option>
@@ -1106,7 +1106,7 @@
           <option value="submitted">제출됨</option>
           <option value="approved">승인완료</option>
         </select>
-        <button class="btn btn-primary btn-sm leave-admin-only" onclick="window._openIssueNoticeModal()">➕ 통지서 발행</button>
+        <button class="btn btn-primary btn-sm leave-admin-only" onclick="window._openIssueNoticeModal()"> 통지서 발행</button>
       </div>
     </div>
     <div class="table-wrap">
@@ -1115,11 +1115,11 @@
         <tbody id="notice-tbody"></tbody>
       </table>
     </div>
-    <div id="notice-empty" class="empty" style="display:none;"><div class="empty-icon">📋</div><div>통지서가 없습니다</div></div>
+    <div id="notice-empty" class="empty" style="display:none;"><div class="empty-icon"></div><div>통지서가 없습니다</div></div>
 
     <!-- 직원별 연차 현황 -->
     <div class="section-header" style="margin-top:24px;">
-      <div class="section-title" style="font-size:14px;">📊 직원별 연차 현황</div>
+      <div class="section-title" style="font-size:14px;"> 직원별 연차 현황</div>
     </div>
     <div class="table-wrap">
       <table>
@@ -1127,13 +1127,13 @@
         <tbody id="leave-emp-tbody"></tbody>
       </table>
     </div>
-    <div id="leave-emp-empty" class="empty" style="display:none;"><div class="empty-icon">📅</div><div>등록된 직원이 없습니다. 직원을 추가해주세요.</div></div>
+    <div id="leave-emp-empty" class="empty" style="display:none;"><div class="empty-icon"></div><div>등록된 직원이 없습니다. 직원을 추가해주세요.</div></div>
 
     <!-- 사용 내역 -->
     <div class="section-header" style="margin-top:24px;">
-      <div class="section-title">📋 사용 내역</div>
+      <div class="section-title"> 사용 내역</div>
       <div style="display:flex;gap:8px;">
-        <button class="btn btn-primary btn-sm leave-admin-only" onclick="window._openLeaveUseModal()">➕ 연차/반차 등록</button>
+        <button class="btn btn-primary btn-sm leave-admin-only" onclick="window._openLeaveUseModal()"> 연차/반차 등록</button>
       </div>
     </div>
     <div class="leave-admin-only" style="display:flex;gap:8px;margin-bottom:12px;">
@@ -1148,7 +1148,7 @@
         <tbody id="leave-use-tbody"></tbody>
       </table>
     </div>
-    <div id="leave-use-empty" class="empty" style="display:none;"><div class="empty-icon">📋</div><div>사용 내역이 없습니다</div></div>
+    <div id="leave-use-empty" class="empty" style="display:none;"><div class="empty-icon"></div><div>사용 내역이 없습니다</div></div>
   </div>
 </div>
 
@@ -1157,7 +1157,7 @@
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="leaveEmpModalTitle">직원 추가</div>
-      <button class="modal-close" onclick="document.getElementById('leaveEmpModal').classList.remove('open')">✕</button>
+      <button class="modal-close" onclick="document.getElementById('leaveEmpModal').classList.remove('open')">×</button>
     </div>
     <div class="modal-body" style="padding:20px 24px;">
       <div class="form-grid">
@@ -1219,7 +1219,7 @@
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title">연차/반차 등록</div>
-      <button class="modal-close" onclick="document.getElementById('leaveUseModal').classList.remove('open')">✕</button>
+      <button class="modal-close" onclick="document.getElementById('leaveUseModal').classList.remove('open')">×</button>
     </div>
     <div class="modal-body" style="padding:20px 24px;">
       <div class="form-grid">
@@ -1274,7 +1274,7 @@
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title">연차 신청서</div>
-      <button class="modal-close" onclick="document.getElementById('myRequestModal').classList.remove('open')">✕</button>
+      <button class="modal-close" onclick="document.getElementById('myRequestModal').classList.remove('open')">×</button>
     </div>
     <div class="modal-body" style="padding:20px 24px;">
       <div id="myreq-flow-info" style="background:var(--surface2);padding:10px 12px;border-radius:8px;margin-bottom:12px;font-size:11px;color:var(--text-dim);line-height:1.5;"></div>
@@ -1324,7 +1324,7 @@
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title">대신 신청 (관리자)</div>
-      <button class="modal-close" onclick="document.getElementById('proxyRequestModal').classList.remove('open')">✕</button>
+      <button class="modal-close" onclick="document.getElementById('proxyRequestModal').classList.remove('open')">×</button>
     </div>
     <div class="modal-body" style="padding:20px 24px;">
       <div style="background:var(--surface2);padding:10px 12px;border-radius:8px;margin-bottom:12px;font-size:11px;color:var(--text-dim);line-height:1.5;">관리자가 직원 대신 등록하며 결재 단계 없이 즉시 승인 처리됩니다. 사용 내역에도 자동 등록됩니다.</div>
@@ -1378,7 +1378,7 @@
   <div class="modal" style="max-width:420px;">
     <div class="modal-header">
       <div class="modal-title">반려 사유</div>
-      <button class="modal-close" onclick="document.getElementById('rejectModal').classList.remove('open')">✕</button>
+      <button class="modal-close" onclick="document.getElementById('rejectModal').classList.remove('open')">×</button>
     </div>
     <div class="modal-body" style="padding:20px 24px;">
       <div class="form-group full">
@@ -1399,8 +1399,8 @@
     <div class="modal-header">
       <div class="modal-title">신청서 양식 미리보기</div>
       <div style="display:flex;gap:6px;">
-        <button class="btn btn-primary btn-sm" onclick="window._printRequest()">🖨️ 인쇄</button>
-        <button class="modal-close" onclick="document.getElementById('requestPrintModal').classList.remove('open')">✕</button>
+        <button class="btn btn-primary btn-sm" onclick="window._printRequest()"> 인쇄</button>
+        <button class="modal-close" onclick="document.getElementById('requestPrintModal').classList.remove('open')">×</button>
       </div>
     </div>
     <div class="modal-body" style="padding:20px 24px;background:#444;" id="requestPrintContent"></div>
@@ -1412,7 +1412,7 @@
   <div class="modal" style="max-width:640px;">
     <div class="modal-header">
       <div class="modal-title">사용촉진 통지서 발행</div>
-      <button class="modal-close" onclick="document.getElementById('issueNoticeModal').classList.remove('open')">✕</button>
+      <button class="modal-close" onclick="document.getElementById('issueNoticeModal').classList.remove('open')">×</button>
     </div>
     <div class="modal-body" style="padding:20px 24px;">
       <div class="form-grid">
@@ -1487,11 +1487,11 @@
   <div class="modal" style="max-width:780px;">
     <div class="modal-header">
       <div class="modal-title">사용촉진 통지서 — 사용계획서 작성</div>
-      <button class="modal-close" onclick="document.getElementById('fillNoticeModal').classList.remove('open')">✕</button>
+      <button class="modal-close" onclick="document.getElementById('fillNoticeModal').classList.remove('open')">×</button>
     </div>
     <div class="modal-body" style="padding:20px 24px;">
       <div id="fillNoticeInfo" style="background:var(--surface2);padding:14px 16px;border-radius:8px;margin-bottom:16px;font-size:12px;line-height:1.7;"></div>
-      <div style="font-size:13px;font-weight:700;margin-bottom:8px;">📝 휴가 사용계획서 (최대 7행)</div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px;"> 휴가 사용계획서 (최대 7행)</div>
       <div class="table-wrap">
         <table>
           <thead><tr><th style="width:40px;">구분</th><th>시작일</th><th>종료일</th><th style="width:100px;">사용일수</th><th>비고</th></tr></thead>
@@ -1513,9 +1513,9 @@
     <div class="modal-header">
       <div class="modal-title">사용촉진 통지서 미리보기</div>
       <div style="display:flex;gap:6px;">
-        <button class="btn btn-primary btn-sm leave-admin-only" id="noticeApproveBtn" onclick="window._approveNotice()" style="display:none;">✅ 승인</button>
-        <button class="btn btn-primary btn-sm" onclick="window._printNotice()">🖨️ 인쇄</button>
-        <button class="modal-close" onclick="document.getElementById('noticePrintModal').classList.remove('open')">✕</button>
+        <button class="btn btn-primary btn-sm leave-admin-only" id="noticeApproveBtn" onclick="window._approveNotice()" style="display:none;"> 승인</button>
+        <button class="btn btn-primary btn-sm" onclick="window._printNotice()"> 인쇄</button>
+        <button class="modal-close" onclick="document.getElementById('noticePrintModal').classList.remove('open')">×</button>
       </div>
     </div>
     <div class="modal-body" style="padding:20px 24px;background:#444;" id="noticePrintContent"></div>
@@ -1527,7 +1527,7 @@
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="eventModalTitle">일정 추가</div>
-      <button class="modal-close" onclick="document.getElementById('eventModal').classList.remove('open')">✕</button>
+      <button class="modal-close" onclick="document.getElementById('eventModal').classList.remove('open')">×</button>
     </div>
     <div class="modal-body" style="padding:20px 24px;">
       <div class="form-grid">
@@ -1557,7 +1557,7 @@
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="dateDetailTitle">날짜 상세</div>
-      <button class="modal-close" onclick="document.getElementById('dateDetailModal').classList.remove('open')">✕</button>
+      <button class="modal-close" onclick="document.getElementById('dateDetailModal').classList.remove('open')">×</button>
     </div>
     <div class="modal-body" style="padding:20px 24px;" id="dateDetailContent"></div>
   </div>
@@ -1568,7 +1568,7 @@
   <div class="modal" style="max-width:680px;max-height:92vh;display:flex;flex-direction:column;">
     <div class="modal-header">
       <div class="modal-title" id="insuranceModalTitle">보험사 추가</div>
-      <button class="modal-close" onclick="document.getElementById('insuranceModal').classList.remove('open')">✕</button>
+      <button class="modal-close" onclick="document.getElementById('insuranceModal').classList.remove('open')">×</button>
     </div>
     <div class="modal-body" style="padding:20px 24px;overflow-y:auto;">
       <div class="form-group" style="margin-bottom:16px;">
@@ -1577,15 +1577,15 @@
       </div>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:1px;">🚗 국산차 담당</div>
-          <button type="button" class="btn btn-ghost btn-sm" onclick="window._addInsRow('domestic')">➕ 담당자 추가</button>
+          <div style="font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:1px;"> 국산차 담당</div>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="window._addInsRow('domestic')"> 담당자 추가</button>
         </div>
         <div id="ins-dom-rows" style="display:flex;flex-direction:column;gap:8px;"></div>
       </div>
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <div style="font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:1px;">🌍 외제차 담당</div>
-          <button type="button" class="btn btn-ghost btn-sm" onclick="window._addInsRow('foreign')">➕ 담당자 추가</button>
+          <div style="font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:1px;"> 외제차 담당</div>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="window._addInsRow('foreign')"> 담당자 추가</button>
         </div>
         <div id="ins-for-rows" style="display:flex;flex-direction:column;gap:8px;"></div>
       </div>
@@ -1601,12 +1601,12 @@
 <div class="modal-overlay" id="resModal">
   <div class="modal" style="max-width:520px;">
     <div class="modal-header">
-      <div class="modal-title" id="resModalTitle">📋 예약차 등록</div>
-      <button class="modal-close" onclick="document.getElementById('resModal').classList.remove('open')">✕</button>
+      <div class="modal-title" id="resModalTitle"> 예약차 등록</div>
+      <button class="modal-close" onclick="document.getElementById('resModal').classList.remove('open')">×</button>
     </div>
     <div class="modal-body" style="padding:20px 24px;">
       <div style="font-size:11px;color:var(--text-dim);line-height:1.6;margin-bottom:14px;background:var(--surface2);padding:10px 12px;border-radius:8px;border:1px solid var(--border);">
-        💡 예약차는 입출고 데이터와 완전히 분리됩니다.<br>
+         예약차는 입출고 데이터와 완전히 분리됩니다.<br>
         대시보드/입출고목록/월별통계 등에 영향 없음. 실제 입고되면 따로 차량 등록하세요.
       </div>
       <div class="form-grid">
@@ -1648,17 +1648,17 @@
 <div class="modal-overlay" id="photoModal">
   <div class="modal" style="max-width:880px;max-height:92vh;display:flex;flex-direction:column;">
     <div class="modal-header">
-      <div class="modal-title" id="photoModalTitle">📷 차량 사진</div>
-      <button class="modal-close" onclick="document.getElementById('photoModal').classList.remove('open')">✕</button>
+      <div class="modal-title" id="photoModalTitle"> 차량 사진</div>
+      <button class="modal-close" onclick="document.getElementById('photoModal').classList.remove('open')">×</button>
     </div>
     <div class="modal-body" style="padding:20px 24px;overflow-y:auto;">
       <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
         <input type="file" id="photoPicker" accept="image/*" multiple style="display:none" onchange="window._handlePhotoFiles(this.files)">
         <input type="file" id="photoCamera" accept="image/*" capture="environment" style="display:none" onchange="window._handlePhotoFiles(this.files)">
-        <button class="btn btn-primary btn-sm" id="photoCaptureBtn" onclick="document.getElementById('photoCamera').click()" style="flex:1;min-width:120px;">📷 촬영하기</button>
-        <button class="btn btn-ghost btn-sm" id="photoPickBtn" onclick="document.getElementById('photoPicker').click()" style="flex:1;min-width:120px;">📁 파일 선택</button>
-        <button class="btn btn-sm" id="photoShareAllBtn" onclick="window._shareAllPhotos()" style="flex:1;min-width:120px;background:#FEE500;color:#3C1E1E;border:1px solid #E0CC00;font-weight:700;">📤 카톡으로 전체 보내기</button>
-        <button class="btn btn-ghost btn-sm" id="photoDownloadAllBtn" onclick="window._downloadAllPhotos()" style="flex:1;min-width:120px;">📦 전체 다운로드</button>
+        <button class="btn btn-primary btn-sm" id="photoCaptureBtn" onclick="document.getElementById('photoCamera').click()" style="flex:1;min-width:120px;"> 촬영하기</button>
+        <button class="btn btn-ghost btn-sm" id="photoPickBtn" onclick="document.getElementById('photoPicker').click()" style="flex:1;min-width:120px;"> 파일 선택</button>
+        <button class="btn btn-sm" id="photoShareAllBtn" onclick="window._shareAllPhotos()" style="flex:1;min-width:120px;background:#FEE500;color:#3C1E1E;border:1px solid #E0CC00;font-weight:700;"> 카톡으로 전체 보내기</button>
+        <button class="btn btn-ghost btn-sm" id="photoDownloadAllBtn" onclick="window._downloadAllPhotos()" style="flex:1;min-width:120px;"> 전체 다운로드</button>
       </div>
       <div id="photoProgress" style="display:none;font-size:12px;color:var(--accent);margin-bottom:10px;padding:8px 12px;background:rgba(139,92,246,0.08);border-radius:6px;"></div>
       <div id="photoGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;"></div>
@@ -1670,10 +1670,10 @@
 <!-- 사진 라이트박스 (전체화면 보기) -->
 <div id="photoLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:300;align-items:center;justify-content:center;flex-direction:column;">
   <div style="position:absolute;top:14px;right:14px;display:flex;gap:8px;z-index:2;flex-wrap:wrap;justify-content:flex-end;">
-    <button class="btn btn-sm" onclick="window._lightboxShare()" style="background:#FEE500;color:#3C1E1E;border:1px solid #E0CC00;font-weight:700;">📤 카톡 보내기</button>
-    <button class="btn btn-ghost btn-sm" onclick="window._lightboxDownload()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);">⬇️ 다운로드</button>
-    <button class="btn btn-ghost btn-sm" id="lightboxDeleteBtn" onclick="window._lightboxDelete()" style="background:rgba(239,68,68,0.2);color:#fff;border:1px solid rgba(239,68,68,0.4);">🗑️ 삭제</button>
-    <button class="btn btn-ghost btn-sm" onclick="window._closeLightbox()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);">✕ 닫기</button>
+    <button class="btn btn-sm" onclick="window._lightboxShare()" style="background:#FEE500;color:#3C1E1E;border:1px solid #E0CC00;font-weight:700;"> 카톡 보내기</button>
+    <button class="btn btn-ghost btn-sm" onclick="window._lightboxDownload()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);"> 다운로드</button>
+    <button class="btn btn-ghost btn-sm" id="lightboxDeleteBtn" onclick="window._lightboxDelete()" style="background:rgba(239,68,68,0.2);color:#fff;border:1px solid rgba(239,68,68,0.4);"> 삭제</button>
+    <button class="btn btn-ghost btn-sm" onclick="window._closeLightbox()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);"> 닫기</button>
   </div>
   <button onclick="window._lightboxNav(-1)" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer;">‹</button>
   <button onclick="window._lightboxNav(1)" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer;">›</button>
@@ -1686,7 +1686,7 @@
   <!-- 상단 바: 차량 정보 + 닫기 -->
   <div style="position:absolute;top:0;left:0;right:0;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,rgba(0,0,0,0.7),transparent);z-index:2;">
     <div id="camTitle" style="color:#fff;font-size:14px;font-weight:700;"></div>
-    <button onclick="window._closeCameraModal()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);width:38px;height:38px;border-radius:50%;font-size:16px;cursor:pointer;">✕</button>
+    <button onclick="window._closeCameraModal()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);width:38px;height:38px;border-radius:50%;font-size:16px;cursor:pointer;">×</button>
   </div>
 
   <!-- 카메라 미리보기 -->
@@ -1711,8 +1711,8 @@
 <div class="modal-overlay" id="workOrderModal">
   <div class="modal" style="max-width:1280px;max-height:96vh;overflow:hidden;padding:0;background:#f5f5f7;">
     <div class="modal-header" style="background:#fff;border-bottom:1px solid #e0e0e0;color:#333;padding:14px 20px;">
-      <div class="modal-title" style="color:#1a1a1a;font-weight:700;">📋 작업지시서 인쇄</div>
-      <button class="modal-close" onclick="window._closeWorkOrder()" style="color:#888;border-color:#ddd;background:#f5f5f7;">✕</button>
+      <div class="modal-title" style="color:#1a1a1a;font-weight:700;"> 작업지시서 인쇄</div>
+      <button class="modal-close" onclick="window._closeWorkOrder()" style="color:#888;border-color:#ddd;background:#f5f5f7;">×</button>
     </div>
     <div class="wo-modal-inner">
       <div class="wo-form-panel">
@@ -1776,17 +1776,17 @@
         </div>
 
         <div class="wo-btn-row">
-          <button class="wo-btn wo-btn-outline" onclick="window._woClearInputs()">🗑️ 내용지우기</button>
-          <button class="wo-btn wo-btn-outline" onclick="window._woResetPositions()">📐 위치초기화</button>
+          <button class="wo-btn wo-btn-outline" onclick="window._woClearInputs()"> 내용지우기</button>
+          <button class="wo-btn wo-btn-outline" onclick="window._woResetPositions()"> 위치초기화</button>
         </div>
         <div class="wo-btn-row">
-          <button class="wo-btn wo-btn-primary" style="grid-column:1/3" onclick="window._woPrint()">🖨️ 인쇄</button>
+          <button class="wo-btn wo-btn-primary" style="grid-column:1/3" onclick="window._woPrint()"> 인쇄</button>
         </div>
       </div>
 
       <div class="wo-preview-container">
         <div class="wo-info-bar">
-          📋 <strong>4가지 모드</strong> · <b>미리보기</b>: 화면 확인 · <b>위치조정</b>: 필드 마우스 드래그 · <b>테스트인쇄</b>: 빈 종이에 양식+텍스트 함께 출력 · <b>실인쇄</b>: 양식지에 텍스트만
+           <strong>4가지 모드</strong> · <b>미리보기</b>: 화면 확인 · <b>위치조정</b>: 필드 마우스 드래그 · <b>테스트인쇄</b>: 빈 종이에 양식+텍스트 함께 출력 · <b>실인쇄</b>: 양식지에 텍스트만
         </div>
         <div class="wo-preview-wrap">
           <div class="wo-page" id="wo-page"></div>
@@ -1800,14 +1800,14 @@
 <div id="page-board" class="page">
   <div class="main">
     <div class="section-header">
-      <div class="section-title">📝 게시판 · 일정</div>
+      <div class="section-title"> 게시판 · 일정</div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <div class="cal-toggle">
-          <button id="bv-cal" onclick="window._setBoardView('calendar')">📅 달력</button>
-          <button id="bv-board" onclick="window._setBoardView('board')">📝 게시판</button>
+          <button id="bv-cal" onclick="window._setBoardView('calendar')"> 달력</button>
+          <button id="bv-board" onclick="window._setBoardView('board')"> 게시판</button>
           <button id="bv-all" class="active" onclick="window._setBoardView('all')">전체</button>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="if(window._renderBoard)window._renderBoard();if(window._renderCalendar)window._renderCalendar();">🔄</button>
+        <button class="btn btn-ghost btn-sm" onclick="if(window._renderBoard)window._renderBoard();if(window._renderCalendar)window._renderCalendar();">새로고침</button>
       </div>
     </div>
 
@@ -1820,7 +1820,7 @@
           <button class="btn btn-ghost btn-sm" onclick="window._calNext()" style="padding:6px 10px;font-size:14px;">›</button>
           <button class="btn btn-ghost btn-sm" onclick="window._calToday()" style="margin-left:6px;">오늘</button>
         </div>
-        <button class="btn btn-primary btn-sm cal-admin-only" onclick="window._openEventModal()">➕ 일정 추가</button>
+        <button class="btn btn-primary btn-sm cal-admin-only" onclick="window._openEventModal()"> 일정 추가</button>
       </div>
       <div class="cal-header-row">
         <div class="cal-header-cell" style="color:var(--red);">일</div>
@@ -1843,7 +1843,7 @@
         </div>
       </div>
       <div id="board-list"></div>
-      <div id="board-empty" class="empty" style="display:none;"><div class="empty-icon">📝</div><div>작성된 메모가 없습니다</div></div>
+      <div id="board-empty" class="empty" style="display:none;"><div class="empty-icon"></div><div>작성된 메모가 없습니다</div></div>
     </div>
   </div>
 </div>
@@ -1852,22 +1852,22 @@
 <div id="page-insurance" class="page" data-filter="all">
   <div class="main">
     <div class="section-header">
-      <div class="section-title">📞 보험사 연락처</div>
+      <div class="section-title"> 보험사 연락처</div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <div class="cal-toggle" id="insurance-filter">
           <button id="if-all" class="active" onclick="window._setInsuranceFilter('all')">전체</button>
-          <button id="if-domestic" onclick="window._setInsuranceFilter('domestic')">🚗 국산차</button>
-          <button id="if-foreign" onclick="window._setInsuranceFilter('foreign')">🌍 외제차</button>
+          <button id="if-domestic" onclick="window._setInsuranceFilter('domestic')"> 국산차</button>
+          <button id="if-foreign" onclick="window._setInsuranceFilter('foreign')"> 외제차</button>
         </div>
-        <button class="btn btn-primary btn-sm ins-admin-only" onclick="window._openInsuranceModal()" style="display:none;">➕ 보험사 추가</button>
+        <button class="btn btn-primary btn-sm ins-admin-only" onclick="window._openInsuranceModal()" style="display:none;"> 보험사 추가</button>
       </div>
     </div>
     <div style="margin-bottom:14px;">
-      <input id="insurance-search" type="search" placeholder="🔍 보험사명, 담당자 이름, 전화번호 검색" oninput="window._setInsuranceSearch(this.value)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;font-family:inherit;outline:none;">
+      <input id="insurance-search" type="search" placeholder=" 보험사명, 담당자 이름, 전화번호 검색" oninput="window._setInsuranceSearch(this.value)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;font-family:inherit;outline:none;">
     </div>
     <div id="insurance-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;"></div>
-    <div id="insurance-empty" class="empty" style="display:none;"><div class="empty-icon">📞</div><div>등록된 보험사가 없습니다</div></div>
-    <div id="insurance-noresult" class="empty" style="display:none;"><div class="empty-icon">🔎</div><div>검색 결과가 없습니다</div></div>
+    <div id="insurance-empty" class="empty" style="display:none;"><div class="empty-icon"></div><div>등록된 보험사가 없습니다</div></div>
+    <div id="insurance-noresult" class="empty" style="display:none;"><div class="empty-icon"></div><div>검색 결과가 없습니다</div></div>
   </div>
 </div>
 
@@ -1875,11 +1875,11 @@
 <div id="page-blacklist" class="page">
   <div class="main">
     <div class="section-header">
-      <div class="section-title">🚫 블랙리스트</div>
+      <div class="section-title"> 블랙리스트</div>
       <div style="font-size:11px;color:var(--text-dim);">악성·미납·요주의 고객 차량 관리 — 관리자 전용</div>
     </div>
     <div style="margin-bottom:14px;">
-      <input class="search-box" type="text" id="searchBlacklist" placeholder="🔍  차량번호 / 고객명 / 사유 검색..." oninput="window._renderBlacklist&&window._renderBlacklist()" style="width:100%;max-width:400px;">
+      <input class="search-box" type="text" id="searchBlacklist" placeholder="  차량번호 / 고객명 / 사유 검색..." oninput="window._renderBlacklist&&window._renderBlacklist()" style="width:100%;max-width:400px;">
     </div>
     <div class="table-wrap">
       <table class="data-table">
@@ -1887,7 +1887,7 @@
         <tbody id="blacklistBody"></tbody>
       </table>
     </div>
-    <div id="blacklist-empty" class="empty" style="display:none;"><div class="empty-icon">✅</div><div>등록된 블랙 차량이 없습니다</div></div>
+    <div id="blacklist-empty" class="empty" style="display:none;"><div class="empty-icon"></div><div>등록된 블랙 차량이 없습니다</div></div>
   </div>
 </div>
 
@@ -1895,8 +1895,8 @@
 <div class="modal-overlay" id="blacklistRegModal">
   <div class="modal" style="max-width:480px;">
     <div class="modal-header">
-      <div class="modal-title">🚫 블랙 등록 후 출고</div>
-      <button class="modal-close" onclick="document.getElementById('blacklistRegModal').classList.remove('open')">✕</button>
+      <div class="modal-title"> 블랙 등록 후 출고</div>
+      <button class="modal-close" onclick="document.getElementById('blacklistRegModal').classList.remove('open')">×</button>
     </div>
     <div class="modal-body">
       <div style="background:rgba(232,68,42,.08);border-left:3px solid #e8442a;padding:10px 12px;border-radius:4px;margin-bottom:14px;font-size:12px;color:rgba(250,250,250,.85);">
@@ -1915,9 +1915,9 @@
         <div class="form-group">
           <label class="form-label">심각도</label>
           <select class="form-select" id="bl-severity">
-            <option value="high">🔴 높음 (재입고 거절 권고)</option>
-            <option value="medium" selected>🟠 중간 (신중 응대)</option>
-            <option value="low">🟡 낮음 (단순 참고)</option>
+            <option value="high"> 높음 (재입고 거절 권고)</option>
+            <option value="medium" selected> 중간 (신중 응대)</option>
+            <option value="low"> 낮음 (단순 참고)</option>
           </select>
         </div>
         <div class="form-group" style="grid-column: 1 / -1;">
@@ -1937,13 +1937,13 @@
 <div id="page-usermgmt" class="page">
   <div class="main">
     <div class="section-header">
-      <div class="section-title">👤 사용자 관리</div>
-      <button class="btn btn-ghost btn-sm" onclick="if(window.loadUserMgmt)window.loadUserMgmt();">🔄 새로고침</button>
+      <div class="section-title"> 사용자 관리</div>
+      <button class="btn btn-ghost btn-sm" onclick="if(window.loadUserMgmt)window.loadUserMgmt();"> 새로고침</button>
     </div>
 
     <!-- 디지털 명함 링크 -->
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px;">
-      <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px;">💳 디지털 명함 링크</div>
+      <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px;"> 디지털 명함 링크</div>
       <div style="display:flex;flex-direction:column;gap:8px;" id="digital-card-links">
         <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;">
           <div style="font-size:13px;"><strong>양은주</strong> 대표이사</div>
@@ -1979,21 +1979,21 @@
     <!-- 역할 안내 -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:20px;">
       <div style="padding:12px 16px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:10px;">
-        <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px;">👑 관리자 (admin)</div>
+        <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px;"> 관리자 (admin)</div>
         <div style="font-size:11px;color:var(--text-dim);line-height:1.6;">대시보드, 입출고, 수리완료, 출고, 통계, 보험미결, 연차, 게시판·일정, 견적, 사용자관리<br><b style="color:var(--text);">→ 전체 메뉴 접근</b></div>
       </div>
       <div style="padding:12px 16px;background:rgba(91,163,245,.08);border:1px solid rgba(91,163,245,.2);border-radius:10px;">
-        <div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:6px;">🔧 Staff 1단계 (staff)</div>
+        <div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:6px;"> Staff 1단계 (staff)</div>
         <div style="font-size:11px;color:var(--text-dim);line-height:1.6;">대시보드, 수리완료, 연차, 게시판·일정, 견적<br><b style="color:var(--text);">→ 입출고·출고·통계·보험미결 제외</b></div>
       </div>
       <div style="padding:12px 16px;background:rgba(163,163,163,.08);border:1px solid rgba(163,163,163,.2);border-radius:10px;">
-        <div style="font-size:13px;font-weight:700;color:var(--text-dim);margin-bottom:6px;">👤 Staff 2단계 (viewer)</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text-dim);margin-bottom:6px;"> Staff 2단계 (viewer)</div>
         <div style="font-size:11px;color:var(--text-dim);line-height:1.6;">대시보드, 수리완료, 연차, 게시판·일정<br><b style="color:var(--text);">→ Staff 1단계에서 견적 추가 제외</b></div>
       </div>
     </div>
 
     <!-- 승인된 사용자 목록 -->
-    <div style="font-size:14px;font-weight:700;margin-bottom:10px;">✅ 승인된 사용자</div>
+    <div style="font-size:14px;font-weight:700;margin-bottom:10px;"> 승인된 사용자</div>
     <div class="table-wrap" style="margin-bottom:20px;">
       <table>
         <thead>
@@ -2012,7 +2012,7 @@
     </div>
 
     <!-- 대기 중인 요청 -->
-    <div style="font-size:14px;font-weight:700;margin-bottom:10px;">🔔 접근 요청 (대기중)</div>
+    <div style="font-size:14px;font-weight:700;margin-bottom:10px;"> 접근 요청 (대기중)</div>
     <div class="table-wrap">
       <table>
         <thead>
@@ -2031,7 +2031,7 @@
 
     <!-- 조직도 -->
     <div class="section-header" style="margin-top:24px;">
-      <div class="section-title">🏢 조직도</div>
+      <div class="section-title"> 조직도</div>
       <div style="font-size:11px;color:var(--text-dim);">연차관리 직원 정보 기준 자동 생성</div>
     </div>
     <div id="orgChartContainer" class="org-wrap"></div>
@@ -2043,7 +2043,7 @@
     <div style="padding:12px 20px;background:#1f1f1f;display:flex;align-items:center;justify-content:space-between;">
       <span style="color:#fff;font-weight:700;font-size:14px;">견적서 미리보기</span>
       <div style="display:flex;gap:8px;">
-        <button onclick="doPrint()" style="padding:6px 16px;background:#8b5cf6;border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;">🖨️ 인쇄 / PDF</button>
+        <button onclick="doPrint()" style="padding:6px 16px;background:#8b5cf6;border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;"> 인쇄 / PDF</button>
         <button onclick="document.getElementById('printModal').style.display='none'" style="padding:6px 12px;background:#333;border:none;border-radius:6px;color:#aaa;font-size:12px;cursor:pointer;">닫기</button>
       </div>
     </div>

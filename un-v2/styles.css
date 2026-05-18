@@ -1,6 +1,6 @@
 /* ==========================================================================
-   🔧 KGM 성수 프리미엄 엔터프라이즈 다크 테마 (Overhaul 개조 버전)
-   ⚠️ 중요: JS 연동을 위해 모든 기존 ID 및 기능 클래스 규격 완벽 대응 완료
+    KGM 성수 프리미엄 엔터프라이즈 다크 테마 (Overhaul 개조 버전)
+    중요: JS 연동을 위해 모든 기존 ID 및 기능 클래스 규격 완벽 대응 완료
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
@@ -43,7 +43,7 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   ✨ 레이아웃 및 내비게이션 (글래스모피즘 탭 디자인)
+    레이아웃 및 내비게이션 (글래스모피즘 탭 디자인)
    -------------------------------------------------------------------------- */
 .header {
   background: rgba(9, 9, 11, 0.8);
@@ -104,7 +104,7 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   📊 프리미엄 대시보드 위젯 & 스태츠 카드
+    프리미엄 대시보드 위젯 & 스태츠 카드
    -------------------------------------------------------------------------- */
 .stats-grid {
   display: grid;
@@ -179,7 +179,7 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   📈 차트 레이아웃
+    차트 레이아웃
    -------------------------------------------------------------------------- */
 .chart-card {
   background: var(--surface);
@@ -207,7 +207,7 @@ body {
 }
 
 /* --------------------------------------------------------------------------
-   📋 데이터 테이블 그리드
+    데이터 테이블 그리드
    -------------------------------------------------------------------------- */
 .table-wrap {
   width: 100%;
@@ -261,7 +261,7 @@ tbody tr:last-child td { border-bottom: none; }
 .status-pill.done { background: rgba(16, 185, 129, 0.15); color: var(--green); }
 
 /* --------------------------------------------------------------------------
-   🔍 컨트롤 (검색·필터)
+    컨트롤 (검색·필터)
    -------------------------------------------------------------------------- */
 .control-panel {
   display: flex;
@@ -325,7 +325,7 @@ tbody tr:last-child td { border-bottom: none; }
 }
 
 /* --------------------------------------------------------------------------
-   🚨 블랙리스트 위험 배너
+    블랙리스트 위험 배너
    -------------------------------------------------------------------------- */
 #blacklistAlertBanner {
   background: linear-gradient(90deg, rgba(244, 63, 94, 0.15), rgba(9, 9, 11, 0.4));
@@ -351,7 +351,7 @@ tbody tr:last-child td { border-bottom: none; }
 }
 
 /* --------------------------------------------------------------------------
-   💳 매출 등록 및 정산 보고 페이지 입력 스킨
+    매출 등록 및 정산 보고 페이지 입력 스킨
    -------------------------------------------------------------------------- */
 #sales-page-input-parts, #sales-page-input-function, #sales-page-input-kgm, #deposit-input {
   font-family: 'JetBrains Mono', monospace;
@@ -369,7 +369,7 @@ tbody tr:last-child td { border-bottom: none; }
 }
 
 /* --------------------------------------------------------------------------
-   🔒 보안 로그인 스크린
+    보안 로그인 스크린
    -------------------------------------------------------------------------- */
 #loginScreen {
   position: fixed;
@@ -428,7 +428,7 @@ tbody tr:last-child td { border-bottom: none; }
 }
 
 /* ==========================================================================
-   📦 보강 패치 — 누락 클래스/요소 추가 스타일
+    보강 패치 — 누락 클래스/요소 추가 스타일
    ========================================================================== */
 
 /* 12. 빨간 테스트 배너 (un-v2 전용 최상단 고정 규칙) */
@@ -1654,19 +1654,35 @@ body:has(.page.active) .nav-tabs {
 
 body:has(.page.active) .nav-group {
   width: 100%;
+  border-radius: 10px;
 }
 
 body:has(.page.active) .nav-subtabs {
-  display: none;
+  display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-top: 6px;
-  padding-left: 10px;
-  border-left: 1px solid rgba(139, 92, 246, .28);
+  max-height: 0;
+  margin-top: 0;
+  padding-left: 12px;
+  overflow: hidden;
+  opacity: 0;
+  border-left: 1px solid transparent;
+  transform: translateY(-4px);
+  transition:
+    max-height .28s cubic-bezier(.22, 1, .36, 1),
+    opacity .18s ease,
+    margin-top .18s ease,
+    border-color .18s ease,
+    transform .22s ease;
 }
 
 body:has(.page.active) .nav-group.nav-group-open .nav-subtabs {
   display: flex;
+  max-height: 190px;
+  margin-top: 7px;
+  opacity: 1;
+  border-left-color: rgba(139, 92, 246, .34);
+  transform: translateY(0);
 }
 
 body:has(.page.active) .nav-tab {
@@ -1686,6 +1702,8 @@ body:has(.page.active) .nav-parent::after {
   content: "▾";
   float: right;
   color: #8b5cf6;
+  transform: rotate(0deg);
+  transition: transform .2s ease;
 }
 
 body:has(.page.active) .nav-group:not(.nav-group-open) .nav-parent::after {
@@ -1693,10 +1711,30 @@ body:has(.page.active) .nav-group:not(.nav-group-open) .nav-parent::after {
 }
 
 body:has(.page.active) .nav-subtab {
+  position: relative;
   min-height: 32px;
-  padding: 7px 10px;
+  padding: 7px 10px 7px 14px;
   font-size: 11px;
   color: #8793aa;
+  background: rgba(15, 23, 42, .28);
+  border-color: rgba(148, 163, 184, .06);
+}
+
+body:has(.page.active) .nav-subtab::before {
+  content: "";
+  position: absolute;
+  left: -13px;
+  top: 50%;
+  width: 10px;
+  height: 1px;
+  background: rgba(139, 92, 246, .38);
+}
+
+body:has(.page.active) .nav-subtab.active {
+  color: #ffffff;
+  background:
+    linear-gradient(90deg, rgba(124, 58, 237, .22), rgba(30, 41, 59, .26));
+  border-color: rgba(139, 92, 246, .24);
 }
 
 body:has(.page.active) .nav-tab.active,
@@ -1909,6 +1947,63 @@ body:has(.page.active) .page.active > .main {
   min-width: 112px;
 }
 
+.ops-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 104px;
+  min-height: 34px;
+  padding: 6px 9px 6px 11px;
+  border: 1px solid rgba(148, 163, 184, .14);
+  border-radius: 9px;
+  color: #e5edf8;
+  background:
+    linear-gradient(135deg, rgba(15, 23, 42, .84), rgba(3, 7, 18, .58));
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.ops-chip::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 999px;
+  background: var(--chip-color, #8b5cf6);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--chip-color, #8b5cf6) 14%, transparent);
+}
+
+.ops-chip span {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.ops-chip b {
+  color: #8793aa;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.ops-chip:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--chip-color, #8b5cf6) 52%, rgba(148,163,184,.18));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--chip-color, #8b5cf6) 13%, transparent);
+}
+
+.ops-location { --chip-color: #8b5cf6; }
+.ops-location.empty { --chip-color: #94a3b8; border-style: dashed; color: #a8b3c7; }
+.ops-status.status-입고 { --chip-color: #fb923c; }
+.ops-status.status-수리대기 { --chip-color: #a78bfa; }
+.ops-status.status-수리중 { --chip-color: #3b82f6; }
+.ops-status.status-수리완료 { --chip-color: #10b981; }
+.ops-status.status-출고 { --chip-color: #64748b; }
+
 #page-complete .btn-success {
   background: rgba(16, 185, 129, .16);
   border: 1px solid rgba(16, 185, 129, .30);
@@ -1922,7 +2017,7 @@ body:has(.page.active) .page.active > .main {
   border-radius: 8px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 760px) {
   body:has(.page.active) {
     min-width: 0;
   }

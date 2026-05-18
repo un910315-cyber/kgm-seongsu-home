@@ -16,7 +16,7 @@ eAK.addEventListener('change',function(){
 
 function eSetAS(ok){
   var e=document.getElementById('eAS');
-  e.textContent=ok?'✓':'미입력';
+  e.textContent=ok?'\uC785\uB825\uB428':'\uBBF8\uC785\uB825';
   e.className='east'+(ok?' ok':'');
 }
 function eLC(){try{return JSON.parse(localStorage.getItem('kgm_custom')||'[]');}catch(e){return[];}}
@@ -173,10 +173,10 @@ function doPrint(){
 function eRst(){
   eImg=null;
   var t=document.getElementById('eThumb');
-  t.innerHTML='<input type="file" id="eFile" accept="image/*" style="display:none" onchange="eOI(this)"><span id="eThIc" style="font-size:16px;opacity:.4">📸</span>';
+  t.innerHTML='<input type="file" id="eFile" accept="image/*" style="display:none" onchange="eOI(this)">';
   ['eMd','eYr','ePl','eVn'].forEach(function(id){var e=document.getElementById(id);e.textContent='—';e.className='efv em';});
   eClrAll();eRes2=[];eEI=null;
-  document.getElementById('eRes').innerHTML='<div class="eem"><div style="font-size:30px;opacity:.3">🚗</div><div style="font-size:12px;font-weight:500">부위 선택 후 추출하세요</div></div>';
+  document.getElementById('eRes').innerHTML='<div class="eem"><div style="font-size:30px;opacity:.3"></div><div style="font-size:12px;font-weight:500">부위 선택 후 추출하세요</div></div>';
   document.getElementById('eSBar').style.display='none';
   document.getElementById('eSumBody').innerHTML='<div class="esum-empty">부위 선택 → 추출 후<br>여기에 표시됩니다</div>';
   document.getElementById('eSumFoot').style.display='none';
@@ -251,10 +251,10 @@ var ACLS={
   '라지에타 교환':'aex','콘덴서 교환(신냉매 18년~)':'aex','콘덴서 교환(구냉매 ~17년)':'aex','쿨링팬 교환':'aex'
 };
 var ICONS={
-  '교환도장':'🔴','판금도장':'🔵','수리도장':'🟡','교환':'🔴','탈부착':'🔵',
-  '빔 교환':'🔴','백판넬 판금':'🔵','백판넬 교환':'🔴',
-  '휠 교환':'🔴','타이어 교환':'🔴','타이어/휠 탈부착':'🔵',
-  '라지에타 교환':'🔴','콘덴서 교환(신냉매 18년~)':'🔴','콘덴서 교환(구냉매 ~17년)':'🟡','쿨링팬 교환':'🔴'
+  '교환도장':'','판금도장':'','수리도장':'','교환':'','탈부착':'',
+  '빔 교환':'','백판넬 판금':'','백판넬 교환':'',
+  '휠 교환':'','타이어 교환':'','타이어/휠 탈부착':'',
+  '라지에타 교환':'','콘덴서 교환(신냉매 18년~)':'','콘덴서 교환(구냉매 ~17년)':'','쿨링팬 교환':''
 };
 var MCLS={
   '교환도장':'ex','판금도장':'pm','수리도장':'rp','교환':'ex','탈부착':'pm',
@@ -266,9 +266,9 @@ var MCLS={
 function eShowPop(cx,cy,name,methods){
   var p=document.getElementById('ePop');
   var btns=methods.map(function(m){
-    var ic=ICONS[m]||'🔵', cs=MCLS[m]||'pm';
+    var ic=ICONS[m]||'', cs=MCLS[m]||'pm';
     // data-m 속성에 저장, onclick 없이 이벤트 위임 사용
-    return '<button class="emth '+cs+'" data-m="'+m+'">'+ic+' '+m+'</button>';
+    return '<button class="emth '+cs+'" data-m="'+m+'">'+(ic ? ic+' ' : '')+m+'</button>';
   }).join('');
   p.innerHTML='<div class="epopt">'+name+'</div>'+btns+'<button class="epcan">취소</button>';
   var px=cx+14,py=cy-10;
@@ -407,7 +407,7 @@ function eSetPM(m){
 
 function eRR(items){
   eRes2=items;var a=document.getElementById('eRes');
-  if(!items.length){a.innerHTML='<div class="eem"><div style="font-size:30px;opacity:.3">⚠️</div></div>';document.getElementById('eSBar').style.display='none';return;}
+  if(!items.length){a.innerHTML='<div class="eem"><div style="font-size:30px;opacity:.3"></div></div>';document.getElementById('eSBar').style.display='none';return;}
   var tp=0,tc=0,n=0,rows='';
   items.forEach(function(item,idx){
     var codes=item.codes||[];
@@ -430,8 +430,8 @@ function eRR(items){
     rows+='<tr class="etbl-foot-row">'
       +'<td></td><td colspan="4">'
       +'<button class="etbl-add-btn" data-add-idx="'+idx+'">+ 행 추가</button>'
-      +'<button class="etbl-sv-btn" data-sv-idx="'+idx+'">⭐ 저장</button>'
-      +(item.note?'<span style="margin-left:8px;font-size:10px;color:var(--text-dim)">💡 '+item.note+'</span>':'')
+      +'<button class="etbl-sv-btn" data-sv-idx="'+idx+'"> 저장</button>'
+      +(item.note?'<span style="margin-left:8px;font-size:10px;color:var(--text-dim)"> '+item.note+'</span>':'')
       +'</td><td></td><td></td>'
       +'</tr>';
   });
@@ -563,13 +563,13 @@ async function eCSave(){
   if(window.fsSaveEst){
     var id=await window.fsSaveEst(est);
     if(id){
-      eTst2('☁️견적저장완료!');
+      eTst2('견적저장완료!');
       // 연동된 차량이 있으면 수리비용(cost)과 estimateId 자동 반영
       if(window._estimateLinkedRecordId && window._fbUpdate && window._fbRef && window._fbDb){
         try{
           var recRef=window._fbRef(window._fbDb,'records/'+window._estimateLinkedRecordId);
           await window._fbUpdate(recRef,{cost:tp,estimateId:id,updatedAt:new Date().toISOString()});
-          eTst2('☁️견적저장+수리비용 '+tp.toLocaleString()+'원 자동반영!');
+          eTst2('견적저장+수리비용 '+tp.toLocaleString()+'원 자동반영!');
         }catch(e){
           console.error('수리비용 자동반영 실패:',e);
           eTst2('견적저장완료 (수리비용 반영 실패)');
@@ -583,7 +583,7 @@ async function eHist(){
   if(!window.fsLoadEst){eTst2('Firestore 연결 대기');return;}
   var es=await window.fsLoadEst();
   var msg=es.length?es.map(function(e){var v=e.vehicle||{};return(v.plate||v.model||'차량')+' ('+e.date+') ₩'+(e.totalPrice||0).toLocaleString();}).join('\n'):'저장된 견적 없음';
-  alert('📋 견적내역\n\n'+msg);
+  alert(' 견적내역\n\n'+msg);
 }
 function eCopyAll(){
   var cs=[];eRes2.forEach(function(r){(r.codes||[]).forEach(function(c){if(c.code)cs.push(c.code);});});
@@ -911,7 +911,7 @@ function eTst2(msg){
     currentStage = stage || 'intake';
     var r = getRecord();
     if (!r) return;
-    document.getElementById('photoModalTitle').textContent = '📷 ' + STAGE_LABEL[currentStage] + '사진 — ' + (r.carNum || '');
+    document.getElementById('photoModalTitle').textContent = ' ' + STAGE_LABEL[currentStage] + '사진 — ' + (r.carNum || '');
     document.getElementById('photoProgress').style.display = 'none';
     document.getElementById('photoProgress').textContent = '';
     var isAdmin = (window._userRole === 'admin');
@@ -1021,12 +1021,12 @@ function eTst2(msg){
       text: carNum + ' (' + currentStage + ')',
       ts: Date.now(),
       restoreBtn: function() {
-        if (btn) { btn.disabled = false; btn.textContent = origLabel || '📤 카톡으로 전체 보내기'; btn.style.background = origBg || '#FEE500'; }
+        if (btn) { btn.disabled = false; btn.textContent = origLabel || ' 카톡으로 전체 보내기'; btn.style.background = origBg || '#FEE500'; }
       }
     };
     if (btn) {
       btn.disabled = false;
-      btn.textContent = '👇 한 번 더 눌러서 카톡으로 보내기';
+      btn.textContent = ' 한 번 더 눌러서 카톡으로 보내기';
       btn.style.background = '#34c759';
       btn.style.color = '#fff';
     }
@@ -1160,7 +1160,7 @@ function eTst2(msg){
         pendingEl.innerHTML = camPendingBlobs.map(function(item, idx){
           return '<div style="display:inline-block;position:relative;width:64px;height:64px;margin-right:6px;border-radius:6px;overflow:hidden;border:2px solid rgba(255,255,255,0.4);vertical-align:middle;">'
             + '<img src="'+esc(item.thumbUrl)+'" style="width:100%;height:100%;object-fit:cover;">'
-            + '<button onclick="window._camRemovePending('+idx+')" style="position:absolute;top:0;right:0;background:rgba(0,0,0,0.7);color:#fff;border:none;width:20px;height:20px;font-size:11px;cursor:pointer;border-radius:0 0 0 6px;">✕</button>'
+            + '<button onclick="window._camRemovePending('+idx+')" style="position:absolute;top:0;right:0;background:rgba(0,0,0,0.7);color:#fff;border:none;width:20px;height:20px;font-size:11px;cursor:pointer;border-radius:0 0 0 6px;">×</button>'
             + '</div>';
         }).join('');
       }
@@ -1178,7 +1178,7 @@ function eTst2(msg){
     if (window._userRole !== 'admin') return;
     var r = getRecord();
     if (!r) return;
-    document.getElementById('camTitle').textContent = '📷 ' + STAGE_LABEL[currentStage] + '사진 — ' + (r.carNum || '');
+    document.getElementById('camTitle').textContent = ' ' + STAGE_LABEL[currentStage] + '사진 — ' + (r.carNum || '');
     var modal = document.getElementById('cameraModal');
     var video = document.getElementById('camVideo');
     var errEl = document.getElementById('camError');
@@ -1346,11 +1346,11 @@ function eTst2(msg){
     overlay.onclick = function(e){ if (e.target === overlay) document.body.removeChild(overlay); };
     overlay.innerHTML = ''
       + '<div style="background:#1f1f1f;border:1px solid #444;border-radius:12px;padding:24px;max-width:90vw;color:#fff;font-size:14px;line-height:1.6;">'
-      +   '<div style="font-size:18px;font-weight:700;margin-bottom:14px;color:#ef4444;">🚫 공유 실패 (' + stage + ')</div>'
+      +   '<div style="font-size:18px;font-weight:700;margin-bottom:14px;color:#ef4444;"> 공유 실패 (' + stage + ')</div>'
       +   '<div style="margin-bottom:6px;"><b style="color:#fbbf24;">유형:</b> ' + nm + '</div>'
       +   '<div style="margin-bottom:14px;word-break:break-word;"><b style="color:#fbbf24;">메시지:</b> ' + msg + '</div>'
       +   '<div style="font-size:12px;color:#a3a3a3;line-height:1.7;">'
-      +     '이 화면을 캡처해서 관리자에게 보내주세요. 한 장씩 공유 시도해보거나, "📦 전체 다운로드" 후 갤러리에서 카톡으로 보내는 방법도 있습니다.'
+      +     '이 화면을 캡처해서 관리자에게 보내주세요. 한 장씩 공유 시도해보거나, " 전체 다운로드" 후 갤러리에서 카톡으로 보내는 방법도 있습니다.'
       +   '</div>'
       +   '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="margin-top:18px;padding:10px 20px;background:#444;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;width:100%;">닫기</button>'
       + '</div>';
@@ -1404,11 +1404,11 @@ function eTst2(msg){
         title: carNum + ' 입출고 사진', text: carNum + ' (' + currentStage + ')',
         ts: Date.now(),
         restoreBtn: function() {
-          if (btn) { btn.textContent = origLabel || '📤 카톡 보내기'; btn.style.background = origBg || '#FEE500'; btn.disabled = false; }
+          if (btn) { btn.textContent = origLabel || ' 카톡 보내기'; btn.style.background = origBg || '#FEE500'; btn.disabled = false; }
         }
       };
       if (btn) {
-        btn.textContent = '👇 한 번 더 눌러 보내기';
+        btn.textContent = ' 한 번 더 눌러 보내기';
         btn.style.background = '#34c759';
         btn.style.color = '#fff';
         btn.disabled = false;
@@ -1548,7 +1548,7 @@ function eTst2(msg){
 
   handle.addEventListener('mousedown', function(e){
     if (e.button !== 0) return; // 좌클릭만
-    if (e.target && e.target.classList && e.target.classList.contains('dash-out-close')) return; // ✕ 버튼은 드래그 X
+    if (e.target && e.target.classList && e.target.classList.contains('dash-out-close')) return; //  버튼은 드래그 X
     e.preventDefault();
     dragging = true;
     sx = e.clientX; sy = e.clientY;
@@ -1660,8 +1660,8 @@ function eTst2(msg){
       var id = en[0], r = en[1];
       var carLabel = (r.carNum && r.carModel) ? (esc(r.carNum) + ' · ' + esc(r.carModel))
                    : (r.carNum ? esc(r.carNum) : (r.carModel ? esc(r.carModel) : '(차량 미입력)'));
-      var phone = r.phone ? '<a href="tel:'+esc(String(r.phone).replace(/[^0-9+]/g,''))+'" onclick="event.stopPropagation();" style="color:var(--text);text-decoration:none;">📞 '+esc(r.phone)+'</a>' : '';
-      var dateLine = r.reserveDate ? ('<span style="color:var(--accent);">📅 '+esc(r.reserveDate)+'</span>') : '';
+      var phone = r.phone ? '<a href="tel:'+esc(String(r.phone).replace(/[^0-9+]/g,''))+'" onclick="event.stopPropagation();" style="color:var(--text);text-decoration:none;"> '+esc(r.phone)+'</a>' : '';
+      var dateLine = r.reserveDate ? ('<span style="color:var(--accent);"> '+esc(r.reserveDate)+'</span>') : '';
       var meta = [
         r.name ? '<span class="nm">'+esc(r.name)+'</span>' : '',
         phone,
@@ -1678,7 +1678,7 @@ function eTst2(msg){
 
   function resetForm() {
     editingResId = null;
-    document.getElementById('resModalTitle').textContent = '📋 예약차 등록';
+    document.getElementById('resModalTitle').textContent = ' 예약차 등록';
     document.getElementById('resDeleteBtn').style.display = 'none';
     ['res-carnum','res-carmodel','res-name','res-phone','res-memo'].forEach(function(k){
       var el = document.getElementById(k); if (el) el.value = '';
@@ -1694,7 +1694,7 @@ function eTst2(msg){
   window._editRes = function(id) {
     var r = reservations[id]; if (!r) return;
     editingResId = id;
-    document.getElementById('resModalTitle').textContent = '📋 예약차 수정';
+    document.getElementById('resModalTitle').textContent = ' 예약차 수정';
     document.getElementById('resDeleteBtn').style.display = '';
     document.getElementById('res-carnum').value = r.carNum || '';
     document.getElementById('res-carmodel').value = r.carModel || '';
