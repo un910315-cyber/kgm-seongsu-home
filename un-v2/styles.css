@@ -715,8 +715,11 @@
   /* 통계 카드 상단 액센트 라인은 모서리 0 */
   .stat-card::before { border-radius: 0 !important; }
 
-  /* 14. 정비차량 섹션 — 가로 절반 고정 (모바일·데스크톱 동일) */
-  .kgm-section { max-width: 50%; min-width: 280px; }
+  /* 14. 대시보드 사이드바이드 (정비차량 + 위치별 도넛) */
+  .dashboard-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .kgm-section { flex: 1 1 320px; max-width: 50%; min-width: 280px; }
+  .location-section { flex: 1 1 320px; min-width: 280px; }
+  /* min-width 280px라 화면 너무 좁으면 자동으로 wrap → 세로 배치 */
   /* 끝 */
 
   /* PWA 설치 안내 (로그인 화면 배너 + 헤더 작은 아이콘) */

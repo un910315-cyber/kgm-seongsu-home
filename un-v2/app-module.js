@@ -626,6 +626,7 @@
     setText('stat-kgm-today', kgmList.filter(r => r.inDate === today).length);
     setText('stat-kgm-month', kgmList.filter(r => (r.inDate || '').startsWith(thisMonth)).length);
     renderKgmIntakeChart(kgmList);
+    renderLocationDonut(active);
 
     // 월별 통계도 대시보드로 통합됨 → 같이 렌더
     if (typeof initYearSelect === 'function') { try { initYearSelect(); } catch(e){} }
@@ -726,6 +727,62 @@
     `</svg>`;
   }
   window._renderKgmIntakeChart = renderKgmIntakeChart;
+
+  // ── 위치별 차량 분포 도넛 ──
+  function renderLocationDonut(activeList) {
+    const el = document.getElementById('locationDonut');
+    const totalEl = document.getElementById('loc-total');
+    if (!el) return;
+    const COLORS = { '1층':'#a78bfa', '판금':'#f472b6', '도장':'#fb923c', '정비':'#34d399',
+                     '도장대기중':'#fbbf24', '조립대기중':'#2dd4bf', '조립중':'#84cc16',
+                     '5층':'#60a5fa', '지하':'#94a3b8', '미지정':'#6b7280' };
+    const counts = {};
+    activeList.forEach(r => {
+      const loc = (r.location || '').trim() || '미지정';
+      counts[loc] = (counts[loc] || 0) + 1;
+    });
+    const total = activeList.length;
+    if (totalEl) totalEl.textContent = total;
+
+    if (total === 0) {
+      el.innerHTML = '<div style="width:100%;text-align:center;padding:36px 10px;color:var(--text-dim);font-size:13px;">현재 입고된 차량이 없습니다</div>';
+      return;
+    }
+
+    const entries = Object.entries(counts).sort((a,b) => b[1] - a[1]);
+    const SIZE = 168, R = 62, STROKE = 22, CX = SIZE/2, CY = SIZE/2;
+    const CIRC = 2 * Math.PI * R;
+
+    let offset = 0;
+    const arcs = entries.map(([loc, cnt]) => {
+      const frac = cnt / total;
+      const dashLen = frac * CIRC;
+      const color = COLORS[loc] || '#6b7280';
+      const arc = `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="${color}" stroke-width="${STROKE}" stroke-dasharray="${dashLen.toFixed(2)} ${(CIRC - dashLen).toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}" transform="rotate(-90 ${CX} ${CY})"/>`;
+      offset += dashLen;
+      return arc;
+    }).join('');
+
+    const centerText =
+      `<text x="${CX}" y="${CY-2}" text-anchor="middle" font-size="22" font-weight="800" fill="#fff" font-family="JetBrains Mono,monospace">${total}</text>` +
+      `<text x="${CX}" y="${CY+18}" text-anchor="middle" font-size="11" fill="#a0a4ac">대</text>`;
+
+    const legend = entries.map(([loc, cnt]) => {
+      const pct = ((cnt/total)*100).toFixed(0);
+      const color = COLORS[loc] || '#6b7280';
+      return `<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#e7e9ec;">` +
+        `<span style="width:10px;height:10px;background:${color};border-radius:2px;display:inline-block;flex-shrink:0;"></span>` +
+        `<span style="font-weight:600;flex:1;">${esc(loc)}</span>` +
+        `<span style="color:#a0a4ac;font-family:JetBrains Mono,monospace;font-size:11px;">${pct}%</span>` +
+        `<span style="color:#fff;font-family:JetBrains Mono,monospace;font-weight:700;min-width:22px;text-align:right;">${cnt}</span>` +
+      `</div>`;
+    }).join('');
+
+    el.innerHTML =
+      `<svg viewBox="0 0 ${SIZE} ${SIZE}" style="width:${SIZE}px;height:${SIZE}px;flex-shrink:0;">${arcs}${centerText}</svg>` +
+      `<div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:8px;">${legend}</div>`;
+  }
+  window._renderLocationDonut = renderLocationDonut;
 
   // ---- LIST ----
   function renderList() {
