@@ -877,6 +877,14 @@
     color: #fff; text-align: right;
   }
   .sales-value.zero { color: #4a4d54; font-weight: 500; }
+  /* 읽기 전용 매출(대시보드) — 입력 없이 큰 숫자만 */
+  .sales-rows.readonly .sales-row { grid-template-columns: 80px 1fr; }
+  .sales-value-big {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800; font-size: 16px;
+    color: #fff; text-align: right;
+  }
+  .sales-value-big.zero { color: #4a4d54; font-weight: 500; }
   @media (max-width: 480px) {
     .sales-row { grid-template-columns: 60px 1fr auto; }
     .sales-value { grid-column: 2 / span 2; text-align: right; padding-top: 2px; font-size: 12px; }

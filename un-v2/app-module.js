@@ -49,8 +49,8 @@
 
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
-    admin: ['dashboard','list','status','complete','out','migyeol','leave','board','estimate','insurance','usermgmt'],
-    staff: ['dashboard','status','complete','leave','board','estimate','insurance'],
+    admin: ['dashboard','list','status','complete','out','migyeol','leave','board','estimate','insurance','sales','usermgmt'],
+    staff: ['dashboard','status','complete','leave','board','estimate','insurance','sales'],
     viewer: ['dashboard','status','complete','leave','board']
   };
   // 'blacklist' 페이지는 ROLE_MENUS에 포함하지 않음 — 출고완료 페이지의 작은 버튼으로만 진입 (admin 전용 가드)
@@ -491,26 +491,39 @@
   function renderSalesWidget() {
     const mo = _salesMonthStr();
     const monthData = salesMap[mo] || {};
+    const monthLabel = mo.replace('-', '년 ') + '월';
     const labelEl = document.getElementById('sales-month-label');
-    if (labelEl) labelEl.textContent = mo.replace('-', '년 ') + '월';
+    if (labelEl) labelEl.textContent = monthLabel;
+    const pageLabelEl = document.getElementById('sales-input-month-label');
+    if (pageLabelEl) pageLabelEl.textContent = monthLabel;
     let total = 0;
     SALES_CATS.forEach(cat => {
       const v = Number(monthData[cat]) || 0;
       total += v;
+      // 대시보드 읽기 전용
       const valEl = document.getElementById('sales-value-' + cat);
       if (valEl) {
         valEl.textContent = _fmtKRW(v);
         valEl.classList.toggle('zero', v === 0);
       }
+      // 입력 페이지의 저장된 값 표시
+      const pgValEl = document.getElementById('sales-page-value-' + cat);
+      if (pgValEl) {
+        pgValEl.textContent = _fmtKRW(v);
+        pgValEl.classList.toggle('zero', v === 0);
+      }
     });
     const totalEl = document.getElementById('sales-total');
     if (totalEl) totalEl.textContent = _fmtKRW(total);
+    const pageTotalEl = document.getElementById('sales-page-total');
+    if (pageTotalEl) pageTotalEl.textContent = _fmtKRW(total);
   }
   window._renderSalesWidget = renderSalesWidget;
 
-  window._salesSave = async function(cat) {
+  // 매출 저장 — 입력 페이지에서 호출
+  window._salesSavePage = async function(cat) {
     if (SALES_CATS.indexOf(cat) < 0) return;
-    const inp = document.getElementById('sales-input-' + cat);
+    const inp = document.getElementById('sales-page-input-' + cat);
     if (!inp) return;
     const raw = String(inp.value || '').trim();
     if (raw === '') { showNotif('금액을 입력해주세요', true); inp.focus(); return; }

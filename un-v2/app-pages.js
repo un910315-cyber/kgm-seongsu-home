@@ -21,6 +21,7 @@
       if (name==='board') { if(window._renderBoard) window._renderBoard(); if(window._renderCalendar) window._renderCalendar(); }
       if (name==='insurance' && window._renderInsurance) window._renderInsurance();
       if (name==='blacklist' && window._renderBlacklist) window._renderBlacklist();
+      if (name==='sales' && window._renderSalesWidget) window._renderSalesWidget();
     } catch(e) {
       alert('switchPage 에러: ' + e.message);
     }

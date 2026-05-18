@@ -86,6 +86,7 @@
   <div class="nav-tab" onclick="switchPage('migyeol')">보험 미결</div>
   <div class="nav-tab" onclick="switchPage('leave')" id="tab-leave">연차관리</div>
   <div class="nav-tab" onclick="switchPage('board')" id="tab-board">게시판 · 일정</div>
+  <div class="nav-tab" onclick="switchPage('sales')" id="tab-sales">매출 보고</div>
   <div class="nav-tab" onclick="switchPage('estimate')">견적 도우미</div>
   <div class="nav-tab" onclick="switchPage('insurance')" id="tab-insurance">보험사 연락처</div>
   <div class="nav-tab" onclick="switchPage('usermgmt')" id="tab-usermgmt" style="display:none">사용자 관리</div>
@@ -258,7 +259,7 @@
     </div><!-- /stats-section -->
 
       <div class="sales-section">
-        <!-- 매출 입력 위젯 카드 -->
+        <!-- 매출 위젯 (대시보드는 읽기 전용) -->
         <div class="chart-card widget-card">
           <div class="chart-header" style="justify-content:space-between;">
             <div style="display:flex;align-items:baseline;gap:10px;">
@@ -267,34 +268,26 @@
             </div>
             <div class="chart-subtitle">합계 <span id="sales-total" style="color:#fff;font-weight:800;font-family:'JetBrains Mono',monospace;">₩0</span></div>
           </div>
-          <div class="sales-rows">
+          <div class="sales-rows readonly">
             <div class="sales-row">
               <div class="sales-label" style="--cat-color:#fb923c;"><span class="sales-dot"></span>부품</div>
-              <input type="number" class="sales-input" id="sales-input-parts" min="0" placeholder="0" inputmode="numeric">
-              <button class="sales-save-btn" onclick="window._salesSave('parts')">저장</button>
-              <div class="sales-value" id="sales-value-parts">₩0</div>
+              <div class="sales-value-big" id="sales-value-parts">₩0</div>
             </div>
             <div class="sales-row">
               <div class="sales-label" style="--cat-color:#34d399;"><span class="sales-dot"></span>기능팀</div>
-              <input type="number" class="sales-input" id="sales-input-function" min="0" placeholder="0" inputmode="numeric">
-              <button class="sales-save-btn" onclick="window._salesSave('function')">저장</button>
-              <div class="sales-value" id="sales-value-function">₩0</div>
+              <div class="sales-value-big" id="sales-value-function">₩0</div>
             </div>
             <div class="sales-row">
               <div class="sales-label" style="--cat-color:#f472b6;"><span class="sales-dot"></span>판금팀</div>
-              <input type="number" class="sales-input" id="sales-input-panel" min="0" placeholder="0" inputmode="numeric">
-              <button class="sales-save-btn" onclick="window._salesSave('panel')">저장</button>
-              <div class="sales-value" id="sales-value-panel">₩0</div>
+              <div class="sales-value-big" id="sales-value-panel">₩0</div>
             </div>
             <div class="sales-row">
               <div class="sales-label" style="--cat-color:#a78bfa;"><span class="sales-dot"></span>도장팀</div>
-              <input type="number" class="sales-input" id="sales-input-paint" min="0" placeholder="0" inputmode="numeric">
-              <button class="sales-save-btn" onclick="window._salesSave('paint')">저장</button>
-              <div class="sales-value" id="sales-value-paint">₩0</div>
+              <div class="sales-value-big" id="sales-value-paint">₩0</div>
             </div>
           </div>
-          <div style="font-size:11px;color:var(--text-dim);margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06);">
-            한 항목씩 입력 후 저장. 비워두면 ₩0으로 저장. 매월 누적이 아니라 해당 달 총 매출.
+          <div style="font-size:11px;color:var(--text-dim);margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06);text-align:right;">
+            <a href="#" onclick="switchPage('sales');return false;" style="color:#c4b5fd;text-decoration:none;font-weight:600;">매출 입력 →</a>
           </div>
         </div>
       </div>
@@ -467,6 +460,55 @@
 
 <!-- STATS -->
 <!-- (월별 통계 페이지는 대시보드에 통합됨 — page-stats div 제거) -->
+
+<!-- SALES 매출 보고 페이지 -->
+<div id="page-sales" class="page">
+  <div class="main">
+    <div class="chart-card widget-card">
+      <div class="chart-header" style="justify-content:space-between;">
+        <div style="display:flex;align-items:baseline;gap:10px;">
+          <div class="chart-title">매출 보고</div>
+          <div class="chart-subtitle" id="sales-input-month-label">—</div>
+        </div>
+        <div class="chart-subtitle">담당자가 매주 한 번씩 작성</div>
+      </div>
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;padding:10px 12px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.18);border-radius:4px;line-height:1.6;">
+        💡 각 팀 담당자가 본인 영역의 <b>이번 달 누적 매출</b>을 입력하고 저장하세요. 저장된 값은 대시보드에 즉시 반영됩니다.<br>
+        <span style="opacity:0.85;">매월 자동으로 새 달로 넘어가며, 같은 달 안에서는 마지막에 저장한 값이 최신값입니다.</span>
+      </div>
+      <div class="sales-rows">
+        <div class="sales-row">
+          <div class="sales-label" style="--cat-color:#fb923c;"><span class="sales-dot"></span>부품</div>
+          <input type="number" class="sales-input" id="sales-page-input-parts" min="0" placeholder="0" inputmode="numeric">
+          <button class="sales-save-btn" onclick="window._salesSavePage('parts')">저장</button>
+          <div class="sales-value" id="sales-page-value-parts">₩0</div>
+        </div>
+        <div class="sales-row">
+          <div class="sales-label" style="--cat-color:#34d399;"><span class="sales-dot"></span>기능팀</div>
+          <input type="number" class="sales-input" id="sales-page-input-function" min="0" placeholder="0" inputmode="numeric">
+          <button class="sales-save-btn" onclick="window._salesSavePage('function')">저장</button>
+          <div class="sales-value" id="sales-page-value-function">₩0</div>
+        </div>
+        <div class="sales-row">
+          <div class="sales-label" style="--cat-color:#f472b6;"><span class="sales-dot"></span>판금팀</div>
+          <input type="number" class="sales-input" id="sales-page-input-panel" min="0" placeholder="0" inputmode="numeric">
+          <button class="sales-save-btn" onclick="window._salesSavePage('panel')">저장</button>
+          <div class="sales-value" id="sales-page-value-panel">₩0</div>
+        </div>
+        <div class="sales-row">
+          <div class="sales-label" style="--cat-color:#a78bfa;"><span class="sales-dot"></span>도장팀</div>
+          <input type="number" class="sales-input" id="sales-page-input-paint" min="0" placeholder="0" inputmode="numeric">
+          <button class="sales-save-btn" onclick="window._salesSavePage('paint')">저장</button>
+          <div class="sales-value" id="sales-page-value-paint">₩0</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06);">
+        <div style="font-size:12px;color:var(--text-dim);">이달 합계</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:800;font-size:20px;color:#fff;" id="sales-page-total">₩0</div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL -->
 <div class="modal-overlay" id="formModal">
