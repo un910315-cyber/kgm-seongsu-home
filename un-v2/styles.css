@@ -717,7 +717,8 @@
 
   /* 14. 대시보드 사이드바이드 (정비차량 + 위치별 건물) */
   .dashboard-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
-  .kgm-section { flex: 1 1 320px; max-width: 50%; min-width: 280px; }
+  /* 데스크톱: flex: 1 → 자동 50/50. 모바일(wrap): 둘 다 풀폭. max-width 제거 */
+  .kgm-section { flex: 1 1 320px; min-width: 280px; }
   .location-section { flex: 1 1 320px; min-width: 280px; }
 
   /* 15. 건물 모양 위치 분포 */
