@@ -728,59 +728,72 @@
   }
   window._renderKgmIntakeChart = renderKgmIntakeChart;
 
-  // ── 위치별 차량 분포 도넛 ──
+  // ── 건물 모양 위치 분포 (5층 + 도장팀 + 판금팀 + 정비팀 + 지하) ──
+  // 실제 location 값들을 5개 층으로 그룹핑
+  const FLOOR_MAP = {
+    '5층':         { floor: '5층',   sub: '경량 보관' },
+    '도장':        { floor: '도장팀', sub: '도장 작업' },
+    '도장대기중':  { floor: '도장팀', sub: '도장 대기' },
+    '판금':        { floor: '판금팀', sub: '판금 작업' },
+    '정비':        { floor: '정비팀', sub: '정비 작업' },
+    '1층':         { floor: '정비팀', sub: '1층' },
+    '조립대기중':  { floor: '정비팀', sub: '조립 대기' },
+    '조립중':      { floor: '정비팀', sub: '조립 작업' },
+    '지하':        { floor: '지하',   sub: '하부 작업' },
+  };
+  const FLOOR_ORDER = ['5층', '도장팀', '판금팀', '정비팀', '지하'];
+  const FLOOR_COLORS = {
+    '5층':   '#60a5fa',
+    '도장팀': '#fb923c',
+    '판금팀': '#f472b6',
+    '정비팀': '#34d399',
+    '지하':   '#94a3b8',
+    '미지정': '#6b7280',
+  };
+
   function renderLocationDonut(activeList) {
-    const el = document.getElementById('locationDonut');
+    const el = document.getElementById('locationBuilding');
     const totalEl = document.getElementById('loc-total');
     if (!el) return;
-    const COLORS = { '1층':'#a78bfa', '판금':'#f472b6', '도장':'#fb923c', '정비':'#34d399',
-                     '도장대기중':'#fbbf24', '조립대기중':'#2dd4bf', '조립중':'#84cc16',
-                     '5층':'#60a5fa', '지하':'#94a3b8', '미지정':'#6b7280' };
-    const counts = {};
+
+    // 층별 카운트 + 미지정 위치
+    const floorCounts = { '5층':0, '도장팀':0, '판금팀':0, '정비팀':0, '지하':0 };
+    let unmapped = 0;
     activeList.forEach(r => {
-      const loc = (r.location || '').trim() || '미지정';
-      counts[loc] = (counts[loc] || 0) + 1;
+      const loc = (r.location || '').trim();
+      const mapped = FLOOR_MAP[loc];
+      if (mapped) floorCounts[mapped.floor]++;
+      else unmapped++;
     });
     const total = activeList.length;
     if (totalEl) totalEl.textContent = total;
 
     if (total === 0) {
-      el.innerHTML = '<div style="width:100%;text-align:center;padding:36px 10px;color:var(--text-dim);font-size:13px;">현재 입고된 차량이 없습니다</div>';
+      el.innerHTML = '<div style="text-align:center;padding:36px 10px;color:var(--text-dim);font-size:13px;">현재 입고된 차량이 없습니다</div>';
       return;
     }
 
-    const entries = Object.entries(counts).sort((a,b) => b[1] - a[1]);
-    const SIZE = 168, R = 62, STROKE = 22, CX = SIZE/2, CY = SIZE/2;
-    const CIRC = 2 * Math.PI * R;
-
-    let offset = 0;
-    const arcs = entries.map(([loc, cnt]) => {
-      const frac = cnt / total;
-      const dashLen = frac * CIRC;
-      const color = COLORS[loc] || '#6b7280';
-      const arc = `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="${color}" stroke-width="${STROKE}" stroke-dasharray="${dashLen.toFixed(2)} ${(CIRC - dashLen).toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}" transform="rotate(-90 ${CX} ${CY})"/>`;
-      offset += dashLen;
-      return arc;
-    }).join('');
-
-    const centerText =
-      `<text x="${CX}" y="${CY-2}" text-anchor="middle" font-size="22" font-weight="800" fill="#fff" font-family="JetBrains Mono,monospace">${total}</text>` +
-      `<text x="${CX}" y="${CY+18}" text-anchor="middle" font-size="11" fill="#a0a4ac">대</text>`;
-
-    const legend = entries.map(([loc, cnt]) => {
-      const pct = ((cnt/total)*100).toFixed(0);
-      const color = COLORS[loc] || '#6b7280';
-      return `<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#e7e9ec;">` +
-        `<span style="width:10px;height:10px;background:${color};border-radius:2px;display:inline-block;flex-shrink:0;"></span>` +
-        `<span style="font-weight:600;flex:1;">${esc(loc)}</span>` +
-        `<span style="color:#a0a4ac;font-family:JetBrains Mono,monospace;font-size:11px;">${pct}%</span>` +
-        `<span style="color:#fff;font-family:JetBrains Mono,monospace;font-weight:700;min-width:22px;text-align:right;">${cnt}</span>` +
+    const floors = FLOOR_ORDER.map(name => {
+      const cnt = floorCounts[name];
+      const color = FLOOR_COLORS[name];
+      const dots = Array.from({length: cnt}, () => `<span class="car-dot" style="--car-color:${color};"></span>`).join('');
+      const countCls = cnt === 0 ? 'floor-count zero' : 'floor-count';
+      return `<div class="floor">` +
+        `<div class="floor-name">${name}<span class="floor-sub" style="color:${color};opacity:0.85;">●</span></div>` +
+        `<div class="floor-cars">${dots}</div>` +
+        `<div class="${countCls}">${cnt}</div>` +
       `</div>`;
     }).join('');
 
-    el.innerHTML =
-      `<svg viewBox="0 0 ${SIZE} ${SIZE}" style="width:${SIZE}px;height:${SIZE}px;flex-shrink:0;">${arcs}${centerText}</svg>` +
-      `<div style="flex:1;min-width:160px;display:flex;flex-direction:column;gap:8px;">${legend}</div>`;
+    // 매핑 안 된 차량(미지정 등) 있으면 추가 표시
+    let unmappedFloor = '';
+    if (unmapped > 0) {
+      const color = FLOOR_COLORS['미지정'];
+      const dots = Array.from({length: unmapped}, () => `<span class="car-dot" style="--car-color:${color};"></span>`).join('');
+      unmappedFloor = `<div class="floor"><div class="floor-name">미지정<span class="floor-sub" style="color:${color};opacity:0.85;">●</span></div><div class="floor-cars">${dots}</div><div class="floor-count">${unmapped}</div></div>`;
+    }
+
+    el.innerHTML = floors + unmappedFloor;
   }
   window._renderLocationDonut = renderLocationDonut;
 
