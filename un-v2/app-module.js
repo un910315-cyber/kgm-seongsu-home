@@ -1813,35 +1813,57 @@
       monthlyData.push({m,mKgm:b.mKgm,mDom:b.mDom,mFor:b.mFor,mUn:b.mUn,mOut:b.mOut,total:b.total,prefix:pfx});
     }
 
-    // 월별 바 차트
+    // 월별 리본 차트 — 총량 흐름 + 차종 비중 스트립
     const chart = document.getElementById('stats-chart');
     if(chart){
       const curMonth = new Date().toISOString().slice(0,7);
       const selPrefix = isMonthly ? prefix : '';
-      const chartH = 140; // 막대 최대 높이 px (컨테이너 180px - 라벨 약 40px 여유)
-      chart.innerHTML = monthlyData.map(d=>{
-        const barH = maxMonth>0 ? Math.max(3, Math.round(d.total/maxMonth*chartH)) : 3;
+      const W = 760, H = 150, padL = 34, padR = 18, padT = 18, padB = 34;
+      const innerW = W - padL - padR;
+      const innerH = H - padT - padB;
+      const maxV = Math.max(1, maxMonth);
+      const pts = monthlyData.map((d, i) => {
+        const x = padL + (monthlyData.length === 1 ? innerW / 2 : i / (monthlyData.length - 1) * innerW);
+        const y = padT + innerH - (d.total / maxV) * innerH;
+        return { x, y, d };
+      });
+      const linePath = pts.map((p, i) => (i ? 'L' : 'M') + p.x.toFixed(1) + ' ' + p.y.toFixed(1)).join(' ');
+      const areaPath = linePath + ` L ${pts[pts.length-1].x.toFixed(1)} ${padT+innerH} L ${pts[0].x.toFixed(1)} ${padT+innerH} Z`;
+      const dots = pts.map(p => {
+        const d = p.d;
         const isCur = d.prefix===curMonth;
         const isSel = selPrefix && d.prefix===selPrefix;
         const highlight = isSel||isCur;
-        const opacity = selPrefix&&!isSel ? 'opacity:.25;' : '';
-        // 각 구분별 실제 px 높이
-        const kgmPx = d.total>0 ? Math.round(d.mKgm/d.total*barH) : 0;
-        const domPx = d.total>0 ? Math.round(d.mDom/d.total*barH) : 0;
-        const forPx = d.total>0 ? Math.round(d.mFor/d.total*barH) : 0;
-        const unPx = Math.max(0, barH-kgmPx-domPx-forPx);
-        return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;'+opacity+'">'
-          +'<div style="font-size:12px;font-weight:800;color:'+(highlight?'var(--accent)':'var(--text-dim)')+';">'+(d.total||'')+'</div>'
-          +'<div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;border-radius:6px;overflow:hidden;'+(isSel?'box-shadow:0 0 12px rgba(139,92,246,.4);':'')+';">'
-          +(d.mUn>0?'<div style="height:'+unPx+'px;background:var(--border);"></div>':'')
-          +(d.mFor>0?'<div style="height:'+forPx+'px;background:var(--red);"></div>':'')
-          +(d.mDom>0?'<div style="height:'+domPx+'px;background:var(--blue);"></div>':'')
-          +(d.mKgm>0?'<div style="height:'+kgmPx+'px;background:var(--accent);"></div>':'')
-          +(d.total===0?'<div style="height:3px;background:var(--border);opacity:.3;border-radius:2px;"></div>':'')
-          +'</div>'
-          +'<div style="font-size:11px;font-weight:'+(highlight?'800':'500')+';color:'+(highlight?'var(--accent)':'var(--text-dim)')+';">'+(d.m)+'월</div>'
-          +'</div>';
+        return `<g opacity="${selPrefix&&!isSel ? '.28' : '1'}">`
+          + `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${highlight ? 5 : 3.5}" fill="${highlight ? '#c4b5fd' : '#8b5cf6'}" stroke="#0b1020" stroke-width="2"/>`
+          + (d.total ? `<text x="${p.x.toFixed(1)}" y="${Math.max(12, p.y - 9).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="800" fill="${highlight ? '#ffffff' : '#9aa6bd'}">${d.total}</text>` : '')
+          + `<text x="${p.x.toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="10" font-weight="${highlight ? '800' : '600'}" fill="${highlight ? '#c4b5fd' : '#7c879d'}">${d.m}월</text>`
+          + `</g>`;
       }).join('');
+      const strips = monthlyData.map((d, i) => {
+        const x = padL + i * (innerW / monthlyData.length) + 2;
+        const w = Math.max(14, innerW / monthlyData.length - 5);
+        const y = H - 25;
+        if (!d.total) return `<rect x="${x.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="5" rx="3" fill="rgba(148,163,184,.18)"/>`;
+        const kgmW = w * d.mKgm / d.total;
+        const domW = w * d.mDom / d.total;
+        const forW = w * d.mFor / d.total;
+        const unW = Math.max(0, w - kgmW - domW - forW);
+        let xx = x;
+        const seg = (ww, color) => {
+          const out = ww > 0 ? `<rect x="${xx.toFixed(1)}" y="${y}" width="${Math.max(1, ww).toFixed(1)}" height="5" rx="2" fill="${color}"/>` : '';
+          xx += ww;
+          return out;
+        };
+        return seg(kgmW, '#8b5cf6') + seg(domW, '#3b82f6') + seg(forW, '#f43f5e') + seg(unW, '#475569');
+      }).join('');
+      chart.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="monthly-ribbon-svg">`
+        + `<defs><linearGradient id="monthlyRibbonArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8b5cf6" stop-opacity=".34"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity=".015"/></linearGradient><filter id="monthlyRibbonGlow"><feGaussianBlur stdDeviation="2.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`
+        + `<line x1="${padL}" y1="${padT+innerH}" x2="${W-padR}" y2="${padT+innerH}" stroke="rgba(255,255,255,.08)"/>`
+        + `<line x1="${padL}" y1="${padT+innerH/2}" x2="${W-padR}" y2="${padT+innerH/2}" stroke="rgba(255,255,255,.06)" stroke-dasharray="3,5"/>`
+        + `<path d="${areaPath}" fill="url(#monthlyRibbonArea)"/>`
+        + `<path d="${linePath}" fill="none" stroke="#8b5cf6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#monthlyRibbonGlow)"/>`
+        + dots + strips + `</svg>`;
     }
 
     // 월별 테이블

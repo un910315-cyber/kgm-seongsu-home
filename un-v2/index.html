@@ -2091,9 +2091,21 @@
     }
     var stats = document.getElementById('stats-chart');
     if (stats) {
-      var months = [20,27,12,9,14,10,18,20,19,28,17,8,6,9,26,11,16,19,18,10,26,7,19,12,23,6,11,18,28,4,24];
-      var mmax = Math.max.apply(null, months);
-      stats.innerHTML = months.map(function(v,i){ var h = Math.max(4, Math.round(v / mmax * 120)); return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;"><div style="width:100%;height:'+h+'px;border-radius:4px 4px 2px 2px;background:linear-gradient(180deg,#8b5cf6,#4c1d95);box-shadow:0 0 18px rgba(139,92,246,.18);"></div>'+(i%2===0?'<div style="font-size:10px;color:#8b95a8;">'+(i+1)+'</div>':'<div style="height:12px;"></div>')+'</div>'; }).join('');
+      var monthly = [20,27,12,9,14,18,20,19,28,17,23,26];
+      var maxMonth = Math.max.apply(null, [1].concat(monthly));
+      var W = 760, H = 150, padL = 34, padR = 18, padT = 18, padB = 34;
+      var innerW = W - padL - padR, innerH = H - padT - padB;
+      var ptsM = monthly.map(function(v, i){
+        return { x: padL + i / (monthly.length - 1) * innerW, y: padT + innerH - (v / maxMonth) * innerH, v: v };
+      });
+      var lineM = ptsM.map(function(p, i){ return (i ? 'L' : 'M') + p.x.toFixed(1) + ' ' + p.y.toFixed(1); }).join(' ');
+      var areaM = lineM + ' L ' + ptsM[ptsM.length-1].x.toFixed(1) + ' ' + (padT+innerH) + ' L ' + ptsM[0].x.toFixed(1) + ' ' + (padT+innerH) + ' Z';
+      stats.innerHTML = '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" class="monthly-ribbon-svg"><defs><linearGradient id="monthlyRibbonAreaPreview" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8b5cf6" stop-opacity=".34"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity=".015"/></linearGradient></defs>'
+        + '<line x1="'+padL+'" y1="'+(padT+innerH)+'" x2="'+(W-padR)+'" y2="'+(padT+innerH)+'" stroke="rgba(255,255,255,.08)"/><line x1="'+padL+'" y1="'+(padT+innerH/2)+'" x2="'+(W-padR)+'" y2="'+(padT+innerH/2)+'" stroke="rgba(255,255,255,.06)" stroke-dasharray="3,5"/>'
+        + '<path d="'+areaM+'" fill="url(#monthlyRibbonAreaPreview)"/><path d="'+lineM+'" fill="none" stroke="#8b5cf6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>'
+        + ptsM.map(function(p,i){ return '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3.5" fill="#8b5cf6" stroke="#0b1020" stroke-width="2"/><text x="'+p.x.toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#7c879d">'+(i+1)+'월</text>'; }).join('')
+        + monthly.map(function(v,i){ var x = padL + i * (innerW / monthly.length) + 2; var w = Math.max(14, innerW / monthly.length - 5); var y = H - 25; return '<rect x="'+x.toFixed(1)+'" y="'+y+'" width="'+(w*.45).toFixed(1)+'" height="5" rx="2" fill="#8b5cf6"/><rect x="'+(x+w*.45).toFixed(1)+'" y="'+y+'" width="'+(w*.35).toFixed(1)+'" height="5" rx="2" fill="#3b82f6"/><rect x="'+(x+w*.8).toFixed(1)+'" y="'+y+'" width="'+(w*.2).toFixed(1)+'" height="5" rx="2" fill="#f43f5e"/>'; }).join('')
+        + '</svg>';
     }
     setText('cum-sales-total','18,640,000원'); setText('cum-sales-parts','11,820,000원'); setText('cum-sales-function','6,820,000원');
     var cum = document.getElementById('cumSalesChart');
