@@ -14,12 +14,12 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<!-- 기존 스타일 먼저 → Tabler가 뒤에서 덮어쓰기 -->
-<link rel="stylesheet" href="styles.css">
+<!-- Tabler CDN (대시보드만 사용. styles.css가 뒤에 와서 기존 페이지 우선) -->
 <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/tabler-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 <style>
-  /* ── Tabler 다크 모드 대비 강화 ── */
+  /* Tabler 다크 모드 대비 강화 (대시보드에서 사용) */
   [data-bs-theme="dark"] .text-secondary { color: #c1c5cc !important; }
   [data-bs-theme="dark"] .text-muted { color: #a0a4ac !important; }
   [data-bs-theme="dark"] .subheader { color: #c1c5cc !important; }
@@ -29,30 +29,9 @@
   [data-bs-theme="dark"] .badge.bg-orange-lt { color: #ffb366 !important; background-color: rgba(255,179,102,.18) !important; }
   [data-bs-theme="dark"] .badge.bg-purple-lt { color: #b197fc !important; background-color: rgba(177,151,252,.18) !important; }
   [data-bs-theme="dark"] .badge.bg-red-lt { color: #ff8787 !important; background-color: rgba(255,135,135,.18) !important; }
-
-  /* ── 다른 페이지(list/complete/out/leave/board 등) 보호: Tabler가 .header/.nav-tabs/.stat-card 등에 영향 안 가게 ── */
-  /* 기존 .header(상단 네비)는 Tabler navbar와 다른 디자인이라 보호 */
-  body > .header { background: rgba(10,10,10,.95) !important; min-height: calc(90px + env(safe-area-inset-top, 0px)) !important; }
-  /* 기존 nav-tabs는 페이지 탭. Tabler nav-tabs와 충돌 안 나게 */
-  body > .nav-tabs { display: flex !important; }
-  /* 기존 .btn 보호 */
-  .page:not(#page-dashboard) .btn:not(.btn-primary):not(.btn-secondary):not(.btn-outline-secondary):not(.btn-sm):not(.btn-ghost):not(.btn-danger):not(.btn-success) { /* 기존 사용자 정의 .btn은 일부만 통과 */ }
-
-  /* ── 대시보드 카드 톤 (기본 white → 다크) ── */
-  #page-dashboard .card { background: #1a1a1f !important; border: 1px solid #2a2a2e !important; color: #e7e9ec; }
-  #page-dashboard .card-header { background: transparent !important; border-bottom: 1px solid #2a2a2e !important; }
-  #page-dashboard .card-table { background: transparent !important; }
-  #page-dashboard .table { color: #e7e9ec !important; }
-  #page-dashboard .table > :not(caption) > * > * { background-color: transparent !important; border-bottom-color: #2a2a2e !important; padding: 0.85rem 0.75rem; vertical-align: middle; }
-  #page-dashboard .table thead th { color: #a0a4ac !important; font-size: 11px !important; text-transform: uppercase; letter-spacing: 0.3px; font-weight: 600; background: rgba(255,255,255,.02) !important; }
-  #page-dashboard .table tbody tr:hover { background: rgba(255,255,255,.02) !important; }
+  /* 대시보드 안 Tabler 카드 톤 (기존 다크 톤과 어울리게) */
+  #page-dashboard .card { background: var(--surface); border-color: var(--border); }
   #page-dashboard .stat-card-icon { width: 44px; height: 44px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; }
-  #page-dashboard .form-control, #page-dashboard .form-select { background: #16181d !important; border-color: #2a2a2e !important; color: #e7e9ec !important; }
-  #page-dashboard .form-control:focus, #page-dashboard .form-select:focus { border-color: #8b5cf6 !important; box-shadow: 0 0 0 0.15rem rgba(139,92,246,.25) !important; }
-  #page-dashboard .input-icon-addon { color: #a0a4ac !important; }
-  #page-dashboard .btn-outline-secondary { color: #c1c5cc !important; border-color: #2a2a2e !important; }
-  #page-dashboard .btn-outline-secondary:hover { background: rgba(255,255,255,.05) !important; color: #fff !important; }
-  #page-dashboard .h1 { color: #ffffff !important; }
 </style>
 </head>
 <body>
