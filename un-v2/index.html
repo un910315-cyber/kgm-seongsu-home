@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko" data-bs-theme="dark">
+<html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -14,25 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<!-- Tabler CDN (대시보드만 사용. styles.css가 뒤에 와서 기존 페이지 우선) -->
-<link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/tabler-icons.min.css" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
-<style>
-  /* Tabler 다크 모드 대비 강화 (대시보드에서 사용) */
-  [data-bs-theme="dark"] .text-secondary { color: #c1c5cc !important; }
-  [data-bs-theme="dark"] .text-muted { color: #a0a4ac !important; }
-  [data-bs-theme="dark"] .subheader { color: #c1c5cc !important; }
-  [data-bs-theme="dark"] .card-title { color: #ffffff; font-weight: 700; }
-  [data-bs-theme="dark"] .badge.bg-blue-lt { color: #74c0fc !important; background-color: rgba(116,192,252,.18) !important; }
-  [data-bs-theme="dark"] .badge.bg-green-lt { color: #69db7c !important; background-color: rgba(105,219,124,.18) !important; }
-  [data-bs-theme="dark"] .badge.bg-orange-lt { color: #ffb366 !important; background-color: rgba(255,179,102,.18) !important; }
-  [data-bs-theme="dark"] .badge.bg-purple-lt { color: #b197fc !important; background-color: rgba(177,151,252,.18) !important; }
-  [data-bs-theme="dark"] .badge.bg-red-lt { color: #ff8787 !important; background-color: rgba(255,135,135,.18) !important; }
-  /* 대시보드 안 Tabler 카드 톤 (기존 다크 톤과 어울리게) */
-  #page-dashboard .card { background: var(--surface); border-color: var(--border); }
-  #page-dashboard .stat-card-icon { width: 44px; height: 44px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; }
-</style>
 </head>
 <body>
 
@@ -132,142 +114,65 @@
   </aside>
 
   <div class="main">
-    <!-- 블랙 차량 입고 알림 (관리자만) — Tabler 재설계 -->
-    <div id="blacklistAlertBanner" class="card mb-3" style="display:none;background:linear-gradient(135deg,#2a0e10 0%,#3a1014 100%);border:1px solid #d63939;border-left:5px solid #ff4d4d;">
-      <div class="card-body p-3">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-          <div class="d-flex align-items-center gap-2">
-            <span style="display:inline-flex;width:36px;height:36px;background:rgba(255,77,77,.18);border:1px solid rgba(255,77,77,.4);border-radius:8px;align-items:center;justify-content:center;">
-              <i class="ti ti-alert-octagon" style="font-size:20px;color:#ff6b6b;"></i>
-            </span>
-            <div>
-              <div style="font-size:15px;font-weight:800;color:#fff;letter-spacing:-0.3px;">🚫 블랙 차량 입고 중</div>
-              <div id="blacklistAlertCount" style="font-size:12px;color:#ffb3b3;font-weight:600;"></div>
-            </div>
-          </div>
-          <button onclick="switchPage('blacklist')" class="btn btn-sm" style="background:#fff;color:#a01b1b;border:none;font-weight:700;padding:7px 14px;">
-            블랙 관리 <i class="ti ti-arrow-right ms-1"></i>
-          </button>
-        </div>
-        <div id="blacklistAlertList" class="d-flex flex-wrap gap-2"></div>
+    <!-- 블랙 차량 입고 알림 (관리자만) -->
+    <div id="blacklistAlertBanner" style="display:none;margin-bottom:16px;padding:14px 18px;background:rgba(232,68,42,.12);border:1px solid rgba(232,68,42,.45);border-left:4px solid #e8442a;border-radius:8px;">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:20px;">🚫</span>
+        <span style="font-size:14px;font-weight:800;color:#e8442a;letter-spacing:0.3px;">블랙 차량 입고 중</span>
+        <span id="blacklistAlertCount" style="font-size:12px;color:rgba(250,250,250,.7);"></span>
+        <button onclick="switchPage('blacklist')" style="margin-left:auto;background:transparent;border:1px solid rgba(232,68,42,.45);color:#e8442a;padding:5px 12px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">블랙 관리 →</button>
       </div>
+      <div id="blacklistAlertList" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;"></div>
     </div>
-
     <!-- 접근 요청 알림 (관리자만) -->
-    <div id="accessRequests" class="card mb-3" style="display:none;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.3);border-left:4px solid #8b5cf6;">
-      <div class="card-body p-3">
-        <div class="d-flex align-items-center gap-2 mb-2">
-          <i class="ti ti-bell" style="font-size:18px;color:#a78bfa;"></i>
-          <span style="font-size:14px;font-weight:700;color:#fff;">접근 요청</span>
-          <span id="arCount" style="font-size:12px;color:#c4b5fd;"></span>
-        </div>
-        <div id="arList"></div>
+    <div id="accessRequests" style="display:none;margin-bottom:16px;padding:14px 18px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.25);border-radius:12px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:16px;">🔔</span>
+        <span style="font-size:13px;font-weight:700;color:var(--accent);">접근 요청</span>
+        <span id="arCount" style="font-size:11px;color:var(--text-dim);"></span>
+      </div>
+      <div id="arList"></div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card orange"><div class="stat-label">현재 입고</div><div class="stat-value" id="stat-total">0</div><div class="stat-sub">공업사 내 차량</div></div>
+      <div class="stat-card purple"><div class="stat-label">수리 대기</div><div class="stat-value" id="stat-wait">0</div><div class="stat-sub">작업 대기 중</div></div>
+      <div class="stat-card blue"><div class="stat-label">수리 중</div><div class="stat-value" id="stat-repair">0</div><div class="stat-sub">작업 진행 중</div></div>
+      <div class="stat-card green"><div class="stat-label">수리 완료</div><div class="stat-value" id="stat-done">0</div><div class="stat-sub">출고 대기</div></div>
+      <div class="stat-card red"><div class="stat-label">오늘 입고</div><div class="stat-value" id="stat-today">0</div><div class="stat-sub">금일 접수</div></div>
+    </div>
+    <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div class="section-title">📋 현황 목록</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button id="dashOutToggleBtn" class="dash-out-toggle-btn" onclick="window._toggleDashOutSide()" title="이번주/다음주 출고 예정 사이드바 열기/닫기">📅 출고일정</button>
+        <button id="dashResToggleBtn" class="dash-out-toggle-btn" onclick="window._toggleDashResSide()" title="예약차 사이드바 열기/닫기">📋 예약차</button>
+        <input class="form-input" id="dashSearchInput" type="text" placeholder="차량번호 / 고객명 / 연락처 검색" oninput="renderDashboard()" style="width:260px;padding:8px 12px;font-size:13px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);">
+        <select class="form-input" id="dashFilterLoc" onchange="renderDashboard()" style="width:100px;padding:8px 10px;font-size:13px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);">
+          <option value="">전체 위치</option>
+          <option value="1층">1층</option>
+          <option value="판금">판금</option>
+          <option value="도장">도장</option>
+          <option value="정비">정비</option>
+          <option value="도장대기중">도장대기중</option>
+          <option value="조립대기중">조립대기중</option>
+          <option value="조립중">조립중</option>
+          <option value="5층">5층</option>
+          <option value="지하">지하</option>
+        </select>
+        <select class="form-input" id="dashFilterStatus" onchange="renderDashboard()" style="width:100px;padding:8px 10px;font-size:13px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);">
+          <option value="">전체 상태</option>
+          <option value="입고">입고</option>
+          <option value="수리대기">수리대기</option>
+          <option value="수리중">수리중</option>
+          <option value="수리완료">수리완료</option>
+        </select>
       </div>
     </div>
-
-    <!-- 통계 카드 5개 (Tabler row/col) -->
-    <div class="row row-deck row-cards mb-3">
-      <div class="col-sm-6 col-lg col-md-4">
-        <div class="card">
-          <div class="card-body p-3">
-            <div class="d-flex align-items-center mb-2">
-              <div class="subheader text-uppercase" style="font-size:11px;">현재 입고</div>
-              <span class="stat-card-icon ms-auto" style="background:rgba(251,146,60,.18);color:#fb923c;"><i class="ti ti-car"></i></span>
-            </div>
-            <div class="h1 mb-0" id="stat-total" style="font-weight:700;font-size:32px;">0</div>
-            <div class="text-secondary small mt-1">공업사 내 차량</div>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-6 col-lg col-md-4">
-        <div class="card">
-          <div class="card-body p-3">
-            <div class="d-flex align-items-center mb-2">
-              <div class="subheader text-uppercase" style="font-size:11px;">수리 대기</div>
-              <span class="stat-card-icon ms-auto" style="background:rgba(167,139,250,.18);color:#a78bfa;"><i class="ti ti-hourglass"></i></span>
-            </div>
-            <div class="h1 mb-0" id="stat-wait" style="font-weight:700;font-size:32px;">0</div>
-            <div class="text-secondary small mt-1">작업 대기 중</div>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-6 col-lg col-md-4">
-        <div class="card">
-          <div class="card-body p-3">
-            <div class="d-flex align-items-center mb-2">
-              <div class="subheader text-uppercase" style="font-size:11px;">수리 중</div>
-              <span class="stat-card-icon ms-auto" style="background:rgba(116,192,252,.18);color:#74c0fc;"><i class="ti ti-tools"></i></span>
-            </div>
-            <div class="h1 mb-0" id="stat-repair" style="font-weight:700;font-size:32px;">0</div>
-            <div class="text-secondary small mt-1">작업 진행 중</div>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-6 col-lg col-md-4">
-        <div class="card">
-          <div class="card-body p-3">
-            <div class="d-flex align-items-center mb-2">
-              <div class="subheader text-uppercase" style="font-size:11px;">수리 완료</div>
-              <span class="stat-card-icon ms-auto" style="background:rgba(105,219,124,.18);color:#69db7c;"><i class="ti ti-circle-check"></i></span>
-            </div>
-            <div class="h1 mb-0" id="stat-done" style="font-weight:700;font-size:32px;">0</div>
-            <div class="text-secondary small mt-1">출고 대기</div>
-          </div>
-        </div>
-      </div>
-      <div class="col-sm-6 col-lg col-md-4">
-        <div class="card">
-          <div class="card-body p-3">
-            <div class="d-flex align-items-center mb-2">
-              <div class="subheader text-uppercase" style="font-size:11px;">오늘 입고</div>
-              <span class="stat-card-icon ms-auto" style="background:rgba(255,135,135,.18);color:#ff8787;"><i class="ti ti-arrow-down-right"></i></span>
-            </div>
-            <div class="h1 mb-0" id="stat-today" style="font-weight:700;font-size:32px;">0</div>
-            <div class="text-secondary small mt-1">금일 신규</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 현황 목록 (Tabler card + table) -->
-    <div class="card">
-      <div class="card-header" style="flex-wrap:wrap;gap:8px;">
-        <h3 class="card-title" style="font-size:16px;font-weight:700;color:#fff;">📋 현황 목록</h3>
-        <div class="ms-auto d-flex flex-wrap gap-2 align-items-center">
-          <button id="dashOutToggleBtn" class="btn btn-sm btn-outline-secondary" onclick="window._toggleDashOutSide()" title="이번주/다음주 출고 예정"><i class="ti ti-calendar me-1"></i>출고일정</button>
-          <button id="dashResToggleBtn" class="btn btn-sm btn-outline-secondary" onclick="window._toggleDashResSide()" title="예약차"><i class="ti ti-bookmark me-1"></i>예약차</button>
-          <div class="input-icon">
-            <span class="input-icon-addon"><i class="ti ti-search"></i></span>
-            <input class="form-control form-control-sm" id="dashSearchInput" type="text" placeholder="차량번호/고객명/연락처" oninput="renderDashboard()" style="width:220px;">
-          </div>
-          <select class="form-select form-select-sm" id="dashFilterLoc" onchange="renderDashboard()" style="width:120px;">
-            <option value="">전체 위치</option>
-            <option value="1층">1층</option>
-            <option value="판금">판금</option>
-            <option value="도장">도장</option>
-            <option value="정비">정비</option>
-            <option value="도장대기중">도장대기중</option>
-            <option value="조립대기중">조립대기중</option>
-            <option value="조립중">조립중</option>
-            <option value="5층">5층</option>
-            <option value="지하">지하</option>
-          </select>
-          <select class="form-select form-select-sm" id="dashFilterStatus" onchange="renderDashboard()" style="width:120px;">
-            <option value="">전체 상태</option>
-            <option value="입고">입고</option>
-            <option value="수리대기">수리대기</option>
-            <option value="수리중">수리중</option>
-            <option value="수리완료">수리완료</option>
-          </select>
-        </div>
-      </div>
-      <div id="dashSearchResult" class="px-3 py-2 text-secondary small" style="display:none;border-bottom:1px solid var(--tblr-border-color);"></div>
-      <div class="table-responsive">
-        <table class="table table-vcenter table-hover card-table">
-          <thead><tr><th>차량번호</th><th>차종</th><th>연락처</th><th>위치</th><th>상태</th><th>대물보험</th><th>자차보험</th><th>수리내용</th><th>렌트카</th><th>입고일</th><th>출고예정</th><th>관리</th></tr></thead>
-          <tbody id="dashboard-tbody"></tbody>
-        </table>
-      </div>
+    <div id="dashSearchResult" style="display:none;margin-bottom:8px;font-size:12px;color:var(--text-dim);"></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>차량번호</th><th>차종</th><th>연락처</th><th>위치</th><th>상태</th><th>대물보험</th><th>자차보험</th><th>수리내용</th><th>렌트카</th><th>입고일</th><th>출고예정</th><th>관리</th></tr></thead>
+        <tbody id="dashboard-tbody"></tbody>
+      </table>
     </div>
   </div>
 </div>
