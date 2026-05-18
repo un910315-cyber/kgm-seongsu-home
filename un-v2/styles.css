@@ -720,9 +720,9 @@
   .location-section,
   .stats-section,
   .sales-section { flex: 1 1 320px; min-width: 280px; }
-  /* KGM 정비 현황은 가로 좁게 (왼쪽 1/3), 오른쪽 매출 보고가 넓게 (2/3) */
-  .kgm-section { flex: 0 1 320px; min-width: 280px; max-width: 36%; }
-  .daily-sales-section { flex: 2 1 400px; min-width: 280px; }
+  /* KGM 정비 현황 + 매출 보고 = 50/50 */
+  .kgm-section { flex: 1 1 320px; min-width: 280px; }
+  .daily-sales-section { flex: 1 1 320px; min-width: 280px; }
 
   /* 15. 건물 모양 위치 분포 */
   .building-wrap {
