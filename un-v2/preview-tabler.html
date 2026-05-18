@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ko" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>KGM 성수 — Tabler 디자인 프리뷰</title>
+<!-- Tabler CSS (Bootstrap 5 기반) -->
+<link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/tabler-icons.min.css" rel="stylesheet">
+<style>
+  body { font-family: 'Inter', -apple-system, 'Noto Sans KR', sans-serif; }
+  .preview-ribbon {
+    position: fixed; top: 12px; right: 12px; z-index: 9999;
+    background: #d63939; color: white;
+    padding: 6px 14px; border-radius: 999px;
+    font-size: 12px; font-weight: 700;
+    box-shadow: 0 4px 12px rgba(0,0,0,.3);
+    pointer-events: none;
+  }
+  .car-num { font-family: 'JetBrains Mono', 'Courier New', monospace; font-weight: 700; letter-spacing: 0.3px; }
+  .table > :not(caption) > * > * { padding: 0.85rem 0.75rem; vertical-align: middle; }
+  .stat-card-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+</style>
+</head>
+<body>
+
+<div class="preview-ribbon">디자인 프리뷰 · 모킹 데이터</div>
+
+<div class="page">
+  <!-- ─── NAVBAR ─── -->
+  <header class="navbar navbar-expand-md d-print-none">
+    <div class="container-xl">
+      <h1 class="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
+        <a href=".">
+          <span class="d-inline-flex align-items-center" style="gap:10px;">
+            <span style="width:34px;height:34px;background:linear-gradient(135deg,#36385b,#1a2438);color:#fff;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;letter-spacing:0.5px;">KGM</span>
+            <span style="font-weight:700;letter-spacing:-0.3px;">성수 <span class="text-secondary fw-normal" style="font-size:13px;">서비스센터</span></span>
+          </span>
+        </a>
+      </h1>
+      <div class="navbar-nav flex-row order-md-last">
+        <div class="d-none d-md-flex">
+          <a href="#" class="nav-link px-0" aria-label="알림">
+            <i class="ti ti-bell"></i>
+            <span class="badge bg-red"></span>
+          </a>
+          <a href="#" class="nav-link px-0" aria-label="검색">
+            <i class="ti ti-search"></i>
+          </a>
+        </div>
+        <div class="nav-item dropdown ms-2">
+          <a href="#" class="nav-link d-flex lh-1 p-0 px-2" data-bs-toggle="dropdown">
+            <span class="avatar avatar-sm" style="background-image:linear-gradient(135deg,#FF6B6B,#FFA94D);color:#fff;font-weight:700;">유</span>
+            <div class="d-none d-xl-block ps-2">
+              <div>유현</div>
+              <div class="mt-1 small text-secondary">관리자</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── TAB NAV ─── -->
+  <header class="navbar-expand-md">
+    <div class="collapse navbar-collapse" id="navbar-menu">
+      <div class="navbar">
+        <div class="container-xl">
+          <ul class="navbar-nav">
+            <li class="nav-item active"><a class="nav-link" href="#"><span class="nav-link-icon"><i class="ti ti-dashboard"></i></span><span class="nav-link-title">대시보드</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="#"><span class="nav-link-icon"><i class="ti ti-car"></i></span><span class="nav-link-title">입출고 목록</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="#"><span class="nav-link-icon"><i class="ti ti-checks"></i></span><span class="nav-link-title">수리완료 대기</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="#"><span class="nav-link-icon"><i class="ti ti-flag"></i></span><span class="nav-link-title">출고완료</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="#"><span class="nav-link-icon"><i class="ti ti-chart-line"></i></span><span class="nav-link-title">월별 통계</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="#"><span class="nav-link-icon"><i class="ti ti-folder"></i></span><span class="nav-link-title">보험 미결</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="#"><span class="nav-link-icon"><i class="ti ti-calendar"></i></span><span class="nav-link-title">연차관리</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="#"><span class="nav-link-icon"><i class="ti ti-notes"></i></span><span class="nav-link-title">게시판</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="#"><span class="nav-link-icon"><i class="ti ti-calculator"></i></span><span class="nav-link-title">견적</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="#"><span class="nav-link-icon"><i class="ti ti-phone"></i></span><span class="nav-link-title">보험사 연락처</span></a></li>
+            <li class="nav-item"><a class="nav-link" href="#"><span class="nav-link-icon"><i class="ti ti-users"></i></span><span class="nav-link-title">사용자 관리</span></a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── PAGE BODY ─── -->
+  <div class="page-wrapper">
+    <!-- PAGE HEADER -->
+    <div class="page-header d-print-none">
+      <div class="container-xl">
+        <div class="row g-2 align-items-center">
+          <div class="col">
+            <h2 class="page-title">대시보드</h2>
+            <div class="text-secondary mt-1">2026년 5월 18일 (월) · 현재 입고된 차량과 진행 상황</div>
+          </div>
+          <div class="col-auto ms-auto d-print-none">
+            <div class="btn-list">
+              <button class="btn btn-outline-secondary"><i class="ti ti-calendar me-1"></i> 출고일정</button>
+              <button class="btn btn-outline-secondary"><i class="ti ti-bookmark me-1"></i> 예약차</button>
+              <button class="btn btn-primary"><i class="ti ti-plus me-1"></i> 차량 등록</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <div class="container-xl">
+
+        <!-- BLACKLIST ALERT -->
+        <div class="alert alert-important alert-danger alert-dismissible mb-3" role="alert">
+          <div class="d-flex">
+            <div>
+              <i class="ti ti-alert-octagon me-2" style="font-size:22px;"></i>
+            </div>
+            <div class="flex-fill">
+              <h4 class="alert-title mb-1">블랙 차량 입고 중 — 2대</h4>
+              <div class="text-secondary">즉시 확인 필요. 카드 클릭 시 차량 정보가 열립니다.</div>
+              <div class="mt-2 d-flex gap-2 flex-wrap">
+                <span class="badge bg-red-lt fs-6 px-3 py-2" style="cursor:pointer;">
+                  <i class="ti ti-circle-filled text-red me-1" style="font-size:8px;"></i>
+                  <span class="car-num">12가 3456</span>
+                  <span class="ms-2 text-secondary">홍길동</span>
+                </span>
+                <span class="badge bg-orange-lt fs-6 px-3 py-2" style="cursor:pointer;">
+                  <i class="ti ti-circle-filled text-orange me-1" style="font-size:8px;"></i>
+                  <span class="car-num">34나 7890</span>
+                  <span class="ms-2 text-secondary">박철수</span>
+                </span>
+              </div>
+            </div>
+            <div>
+              <button class="btn btn-sm btn-danger">블랙 관리 →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="row row-deck row-cards mb-4">
+          <div class="col-sm-6 col-lg col-md-4">
+            <div class="card">
+              <div class="card-body p-3">
+                <div class="d-flex align-items-center mb-2">
+                  <div class="subheader text-uppercase">현재 입고</div>
+                  <span class="stat-card-icon bg-orange-lt text-orange ms-auto"><i class="ti ti-car"></i></span>
+                </div>
+                <div class="h1 mb-0 me-2">12</div>
+                <div class="text-secondary mt-1 small">공업사 내 차량</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg col-md-4">
+            <div class="card">
+              <div class="card-body p-3">
+                <div class="d-flex align-items-center mb-2">
+                  <div class="subheader text-uppercase">수리 대기</div>
+                  <span class="stat-card-icon bg-purple-lt text-purple ms-auto"><i class="ti ti-hourglass"></i></span>
+                </div>
+                <div class="d-flex align-items-baseline">
+                  <div class="h1 mb-0 me-2">3</div>
+                  <div class="text-red small"><i class="ti ti-trending-down"></i> 2건 감소</div>
+                </div>
+                <div class="text-secondary mt-1 small">작업 대기 중</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg col-md-4">
+            <div class="card">
+              <div class="card-body p-3">
+                <div class="d-flex align-items-center mb-2">
+                  <div class="subheader text-uppercase">수리 중</div>
+                  <span class="stat-card-icon bg-blue-lt text-blue ms-auto"><i class="ti ti-tools"></i></span>
+                </div>
+                <div class="d-flex align-items-baseline">
+                  <div class="h1 mb-0 me-2">5</div>
+                  <div class="text-secondary small">— 변동 없음</div>
+                </div>
+                <div class="text-secondary mt-1 small">작업 진행 중</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg col-md-4">
+            <div class="card">
+              <div class="card-body p-3">
+                <div class="d-flex align-items-center mb-2">
+                  <div class="subheader text-uppercase">수리 완료</div>
+                  <span class="stat-card-icon bg-green-lt text-green ms-auto"><i class="ti ti-circle-check"></i></span>
+                </div>
+                <div class="d-flex align-items-baseline">
+                  <div class="h1 mb-0 me-2">4</div>
+                  <div class="text-green small"><i class="ti ti-trending-up"></i> 오늘 2대</div>
+                </div>
+                <div class="text-secondary mt-1 small">출고 대기</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg col-md-4">
+            <div class="card">
+              <div class="card-body p-3">
+                <div class="d-flex align-items-center mb-2">
+                  <div class="subheader text-uppercase">오늘 입고</div>
+                  <span class="stat-card-icon bg-red-lt text-red ms-auto"><i class="ti ti-arrow-down-right"></i></span>
+                </div>
+                <div class="d-flex align-items-baseline">
+                  <div class="h1 mb-0 me-2">2</div>
+                  <div class="text-green small"><i class="ti ti-trending-up"></i> 평균 +1</div>
+                </div>
+                <div class="text-secondary mt-1 small">금일 신규 접수</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">현황 목록</h3>
+            <div class="ms-auto d-flex gap-2">
+              <div class="input-icon">
+                <span class="input-icon-addon"><i class="ti ti-search"></i></span>
+                <input type="text" class="form-control form-control-sm" placeholder="차량번호 / 고객명 / 연락처" style="width:240px;">
+              </div>
+              <select class="form-select form-select-sm" style="width:110px;">
+                <option>모든 위치</option><option>본사</option><option>판금부</option><option>도장부</option>
+              </select>
+              <select class="form-select form-select-sm" style="width:110px;">
+                <option>모든 상태</option><option>입고</option><option>수리중</option><option>수리완료</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-vcenter table-hover card-table">
+              <thead>
+                <tr>
+                  <th>차량번호 / 차종</th>
+                  <th>연락처</th>
+                  <th>위치</th>
+                  <th>상태</th>
+                  <th>대물</th>
+                  <th>자차</th>
+                  <th>수리내용</th>
+                  <th>렌트카</th>
+                  <th>입고일</th>
+                  <th>출고예정</th>
+                  <th class="w-1"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="background:rgba(214,57,57,.06);">
+                  <td>
+                    <span class="car-num text-red">🚫 12가 3456</span>
+                    <div class="text-secondary small">토레스 · 홍길동</div>
+                  </td>
+                  <td class="text-secondary">010-1234-5678</td>
+                  <td><span class="badge bg-secondary-lt">판금부</span></td>
+                  <td><span class="badge bg-orange-lt text-orange"><i class="ti ti-circle-filled me-1" style="font-size:7px;"></i>수리중</span></td>
+                  <td><span class="badge bg-blue-lt text-blue">DB</span></td>
+                  <td><span class="text-secondary">—</span></td>
+                  <td>전면 범퍼 교환, 휀더 도색</td>
+                  <td class="text-secondary small">현대 아반떼<br><span class="text-muted">(S렌트카)</span></td>
+                  <td>05.15<div class="text-secondary small">3일 전</div></td>
+                  <td>05.20<div class="text-secondary small">3일 후</div></td>
+                  <td><a href="#" class="text-secondary"><i class="ti ti-dots-vertical"></i></a></td>
+                </tr>
+                <tr>
+                  <td>
+                    <span class="car-num">45다 1234</span>
+                    <div class="text-secondary small">렉스턴 · 김영희</div>
+                  </td>
+                  <td class="text-secondary">010-2345-6789</td>
+                  <td><span class="badge bg-secondary-lt">도장부</span></td>
+                  <td><span class="badge bg-green-lt text-green"><i class="ti ti-circle-filled me-1" style="font-size:7px;"></i>수리완료</span></td>
+                  <td><span class="badge bg-blue-lt text-blue">삼성</span></td>
+                  <td><span class="badge bg-blue-lt text-blue">DB</span></td>
+                  <td>측면 도장 복원</td>
+                  <td class="text-muted">없음</td>
+                  <td>05.10<div class="text-secondary small">7일 전</div></td>
+                  <td>05.17<div class="text-green small fw-bold">오늘</div></td>
+                  <td><a href="#" class="text-secondary"><i class="ti ti-dots-vertical"></i></a></td>
+                </tr>
+                <tr>
+                  <td>
+                    <span class="car-num">78라 5678</span>
+                    <div class="text-secondary small">티볼리 · 이민호</div>
+                  </td>
+                  <td class="text-secondary">010-3456-7890</td>
+                  <td><span class="badge bg-secondary-lt">기능부</span></td>
+                  <td><span class="badge bg-blue-lt text-blue"><i class="ti ti-circle-filled me-1" style="font-size:7px;"></i>입고</span></td>
+                  <td><span class="text-secondary">—</span></td>
+                  <td><span class="text-secondary">—</span></td>
+                  <td>엔진 점검 · 누유 확인</td>
+                  <td class="text-muted">없음</td>
+                  <td>05.18<div class="text-green small fw-bold">오늘</div></td>
+                  <td>05.19<div class="text-secondary small">1일 후</div></td>
+                  <td><a href="#" class="text-secondary"><i class="ti ti-dots-vertical"></i></a></td>
+                </tr>
+                <tr>
+                  <td>
+                    <span class="car-num">90마 1122</span>
+                    <div class="text-secondary small">코란도 · 정수진</div>
+                  </td>
+                  <td class="text-secondary">010-4567-8901</td>
+                  <td><span class="badge bg-secondary-lt">판금부</span></td>
+                  <td><span class="badge bg-purple-lt text-purple"><i class="ti ti-circle-filled me-1" style="font-size:7px;"></i>수리대기</span></td>
+                  <td><span class="badge bg-blue-lt text-blue">현대해상</span></td>
+                  <td><span class="text-secondary">—</span></td>
+                  <td>후방 추돌 · 트렁크 복원</td>
+                  <td class="text-secondary small">기아 K3</td>
+                  <td>05.16<div class="text-secondary small">2일 전</div></td>
+                  <td>05.22<div class="text-secondary small">4일 후</div></td>
+                  <td><a href="#" class="text-secondary"><i class="ti ti-dots-vertical"></i></a></td>
+                </tr>
+                <tr style="background:rgba(214,57,57,.06);">
+                  <td>
+                    <span class="car-num text-red">🚫 34나 7890</span>
+                    <div class="text-secondary small">렉스턴스포츠 · 박철수</div>
+                  </td>
+                  <td class="text-secondary">010-5678-9012</td>
+                  <td><span class="badge bg-secondary-lt">사무실</span></td>
+                  <td><span class="badge bg-purple-lt text-purple"><i class="ti ti-circle-filled me-1" style="font-size:7px;"></i>수리대기</span></td>
+                  <td><span class="text-secondary">—</span></td>
+                  <td><span class="badge bg-blue-lt text-blue">KB</span></td>
+                  <td>견적 협의 중</td>
+                  <td class="text-muted">없음</td>
+                  <td>05.18<div class="text-green small fw-bold">오늘</div></td>
+                  <td class="text-secondary">—</td>
+                  <td><a href="#" class="text-secondary"><i class="ti ti-dots-vertical"></i></a></td>
+                </tr>
+                <tr>
+                  <td>
+                    <span class="car-num">11바 3344</span>
+                    <div class="text-secondary small">G80 · 최지원</div>
+                  </td>
+                  <td class="text-secondary">010-6789-0123</td>
+                  <td><span class="badge bg-secondary-lt">도장부</span></td>
+                  <td><span class="badge bg-orange-lt text-orange"><i class="ti ti-circle-filled me-1" style="font-size:7px;"></i>수리중</span></td>
+                  <td><span class="badge bg-blue-lt text-blue">DB</span></td>
+                  <td><span class="badge bg-blue-lt text-blue">현대</span></td>
+                  <td>본넷 + 좌측 펜더 교환·도장</td>
+                  <td class="text-secondary small">제네시스 G70</td>
+                  <td>05.12<div class="text-secondary small">6일 전</div></td>
+                  <td>05.21<div class="text-secondary small">3일 후</div></td>
+                  <td><a href="#" class="text-secondary"><i class="ti ti-dots-vertical"></i></a></td>
+                </tr>
+                <tr>
+                  <td>
+                    <span class="car-num">22사 5566</span>
+                    <div class="text-secondary small">아반떼 · 한미영</div>
+                  </td>
+                  <td class="text-secondary">010-7890-1234</td>
+                  <td><span class="badge bg-secondary-lt">기능부</span></td>
+                  <td><span class="badge bg-green-lt text-green"><i class="ti ti-circle-filled me-1" style="font-size:7px;"></i>수리완료</span></td>
+                  <td><span class="text-secondary">—</span></td>
+                  <td><span class="text-secondary">—</span></td>
+                  <td>브레이크 패드 교환</td>
+                  <td class="text-muted">없음</td>
+                  <td>05.15<div class="text-secondary small">3일 전</div></td>
+                  <td>05.17<div class="text-secondary small">1일 전 · 지연</div></td>
+                  <td><a href="#" class="text-secondary"><i class="ti ti-dots-vertical"></i></a></td>
+                </tr>
+                <tr>
+                  <td>
+                    <span class="car-num">33아 7788</span>
+                    <div class="text-secondary small">스포티지 · 강진호</div>
+                  </td>
+                  <td class="text-secondary">010-8901-2345</td>
+                  <td><span class="badge bg-secondary-lt">판금부</span></td>
+                  <td><span class="badge bg-blue-lt text-blue"><i class="ti ti-circle-filled me-1" style="font-size:7px;"></i>입고</span></td>
+                  <td><span class="badge bg-blue-lt text-blue">메리츠</span></td>
+                  <td><span class="text-secondary">—</span></td>
+                  <td>측면 긁힘 보수</td>
+                  <td class="text-muted">없음</td>
+                  <td>05.18<div class="text-green small fw-bold">오늘</div></td>
+                  <td>05.19<div class="text-secondary small">1일 후</div></td>
+                  <td><a href="#" class="text-secondary"><i class="ti ti-dots-vertical"></i></a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer d-flex align-items-center">
+            <p class="m-0 text-secondary">전체 <span>12</span>대 중 <span>1-8</span> 표시</p>
+            <ul class="pagination m-0 ms-auto">
+              <li class="page-item disabled"><a class="page-link" href="#"><i class="ti ti-chevron-left"></i> 이전</a></li>
+              <li class="page-item active"><a class="page-link" href="#">1</a></li>
+              <li class="page-item"><a class="page-link" href="#">2</a></li>
+              <li class="page-item"><a class="page-link" href="#">다음 <i class="ti ti-chevron-right"></i></a></li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer footer-transparent d-print-none mt-4">
+      <div class="container-xl">
+        <div class="row text-center align-items-center flex-row-reverse">
+          <div class="col-12 col-lg-auto mt-3 mt-lg-0">
+            <ul class="list-inline list-inline-dots mb-0">
+              <li class="list-inline-item text-secondary">KGM 성수서비스센터 · 2026</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/js/tabler.min.js" defer></script>
+</body>
+</html>
