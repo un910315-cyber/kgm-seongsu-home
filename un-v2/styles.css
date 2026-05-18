@@ -822,25 +822,38 @@
   /* 블랙 알림 컴팩트 */
   #page-dashboard #blacklistAlertBanner { padding: 10px 14px !important; margin-bottom: 10px !important; }
 
-  /* 17. KGM 일일 카운터 버튼 (+/-) */
-  .kgm-cnt-btn {
-    width: 32px; height: 32px; border-radius: 4px;
-    background: rgba(255,255,255,.06);
-    border: 1px solid rgba(255,255,255,.12);
-    color: #fff; font-size: 18px; font-weight: 700;
-    cursor: pointer; line-height: 1;
-    transition: background .12s, border-color .12s, transform .08s;
-    font-family: inherit;
-    display: inline-flex; align-items: center; justify-content: center;
+  /* 17. KGM 일일 카운트 — 입력 + 저장 UI */
+  .kgm-today-input {
+    flex: 1; min-width: 0;
+    background: rgba(0,0,0,.25);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 4px;
+    padding: 7px 10px;
+    color: #fff; font-size: 14px; font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    text-align: center;
+    outline: none;
+    transition: border-color .12s, box-shadow .12s;
+  }
+  .kgm-today-input::placeholder { color: rgba(255,255,255,.3); font-weight: 400; }
+  .kgm-today-input:focus { border-color: #ff8787; box-shadow: 0 0 0 2px rgba(255,135,135,.2); }
+  /* 숫자 인풋의 화살표 제거 (모바일에선 inputmode=numeric으로 OK) */
+  .kgm-today-input::-webkit-outer-spin-button,
+  .kgm-today-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .kgm-today-input[type=number] { -moz-appearance: textfield; }
+  .kgm-save-btn {
+    background: rgba(239,68,68,.22);
+    border: 1px solid rgba(239,68,68,.45);
+    color: #ff8787;
+    border-radius: 4px;
+    padding: 7px 14px;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    transition: background .12s, transform .08s;
     flex-shrink: 0;
   }
-  .kgm-cnt-btn:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.2); }
-  .kgm-cnt-btn:active { transform: scale(.92); }
-  .kgm-cnt-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-  .kgm-cnt-btn.kgm-cnt-plus { background: rgba(239,68,68,.18); border-color: rgba(239,68,68,.4); color: #ff8787; }
-  .kgm-cnt-btn.kgm-cnt-plus:hover { background: rgba(239,68,68,.28); border-color: rgba(239,68,68,.55); }
-  .kgm-today-card .stat-value { transition: color .15s; }
-  .kgm-today-card .stat-value:hover { color: #ff8787; }
+  .kgm-save-btn:hover { background: rgba(239,68,68,.32); }
+  .kgm-save-btn:active { transform: scale(.96); }
   /* 끝 */
 
   /* PWA 설치 안내 (로그인 화면 배너 + 헤더 작은 아이콘) */

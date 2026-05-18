@@ -472,35 +472,27 @@
     if (typeof renderDashboard === 'function') { try { renderDashboard(); } catch(e){} }
   }, (err) => { console.warn('kgmDaily subscribe', err); });
 
-  // ── KGM 일일 카운트 조작 함수 ──
+  // ── KGM 일일 카운트 저장 — 입력값 → 오늘 자리에 덮어쓰기 ──
   function kgmTodayStr() { return new Date().toISOString().split('T')[0]; }
-  async function _kgmSetToday(newVal) {
-    const day = kgmTodayStr();
-    const n = Math.max(0, Math.min(999, Math.floor(Number(newVal) || 0)));
+  window._kgmDailySave = async function() {
+    const inp = document.getElementById('kgm-today-input');
+    if (!inp) return;
+    const raw = String(inp.value || '').trim();
+    if (raw === '') { showNotif('숫자를 입력해주세요', true); inp.focus(); return; }
+    const n = parseInt(raw, 10);
+    if (!Number.isFinite(n) || n < 0 || n > 999) {
+      showNotif('0 ~ 999 사이 숫자만 입력', true);
+      inp.focus(); inp.select();
+      return;
+    }
     try {
-      await update(ref(db, 'kgmDailyCount'), { [day]: n });
-      // showNotif는 너무 자주 뜨면 시끄러우니 생략
+      await update(ref(db, 'kgmDailyCount'), { [kgmTodayStr()]: n });
+      showNotif('오늘 정비 ' + n + '대 저장됨 ✓');
+      inp.value = '';  // 저장 후 입력란 비움
     } catch(e) {
       console.error('kgmDaily save fail', e);
       showNotif('저장 실패: ' + (e.message || e), true);
     }
-  }
-  window._kgmDailyInc = function() {
-    const cur = kgmDailyMap[kgmTodayStr()] || 0;
-    _kgmSetToday(cur + 1);
-  };
-  window._kgmDailyDec = function() {
-    const cur = kgmDailyMap[kgmTodayStr()] || 0;
-    if (cur <= 0) return;
-    _kgmSetToday(cur - 1);
-  };
-  window._kgmDailyEdit = function() {
-    const cur = kgmDailyMap[kgmTodayStr()] || 0;
-    const raw = prompt('오늘 정비차량 입고 대수 직접 입력:', String(cur));
-    if (raw === null) return;
-    const n = parseInt(String(raw).trim(), 10);
-    if (!Number.isFinite(n) || n < 0) { showNotif('숫자만 입력 (0 이상)', true); return; }
-    _kgmSetToday(n);
   };
 
   function getList() {
@@ -673,9 +665,9 @@
     Object.entries(kgmDailyMap).forEach(([day, cnt]) => { if (day.startsWith(thisMonth)) monthSum += cnt; });
     setText('stat-kgm-today', todayCount);
     setText('stat-kgm-month', monthSum);
-    // 메타: 마지막 갱신 시각이나 안내
+    // 메타: 저장 상태 안내
     const metaEl = document.getElementById('kgm-today-meta');
-    if (metaEl) metaEl.textContent = todayCount > 0 ? '오늘 ' + todayCount + '대 정비' : '탭하여 카운트';
+    if (metaEl) metaEl.textContent = todayCount > 0 ? '저장됨' : '하루 끝에 저장';
 
     renderKgmIntakeChart();  // kgmDailyMap 사용
     renderLocationDonut(active);
