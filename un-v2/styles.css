@@ -787,12 +787,14 @@ body > div[style*="position:fixed;top:0;"] {
   background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  display: flex;
+  /* 기본은 숨김. .open 클래스 붙어야 보임 (기존 JS 동작 보존) */
+  display: none;
   align-items: center;
   justify-content: center;
   z-index: 500;
   padding: 16px;
 }
+.modal-overlay.open { display: flex; }
 
 .modal {
   background: var(--surface);
