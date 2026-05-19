@@ -4,7 +4,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, onValue, push, update, remove, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getFirestore, collection, doc, setDoc, getDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject, listAll } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
   const firebaseConfig = {
@@ -24,6 +24,15 @@
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
   const storage = getStorage(app);
+  getRedirectResult(auth).catch(function(e){
+    var btn = document.getElementById('googleLoginBtn');
+    var err = document.getElementById('loginError');
+    if (btn) { btn.style.pointerEvents=''; btn.style.opacity=''; }
+    if (err && e && e.message) {
+      err.textContent = '로그인 실패: ' + e.message;
+      err.style.display = 'block';
+    }
+  });
   const LOCAL_DASHBOARD_PREVIEW =
     new URLSearchParams(location.search).get('preview') === 'dashboard' &&
     ['127.0.0.1', 'localhost', ''].includes(location.hostname);
@@ -366,6 +375,29 @@
     }
   });
 
+  window.authGoogleLogin = async function(){
+    var btn = document.getElementById('googleLoginBtn');
+    var err = document.getElementById('loginError');
+    var denied = document.getElementById('loginDenied');
+    try {
+      if (err) err.style.display='none';
+      if (denied) denied.style.display='none';
+      if (btn) { btn.style.pointerEvents='none'; btn.style.opacity='0.5'; }
+      await signInWithPopup(auth, provider);
+    } catch(e) {
+      try {
+        await signInWithRedirect(auth, provider);
+        return;
+      } catch (redirectError) {
+        e = redirectError;
+      }
+      if (btn) { btn.style.pointerEvents=''; btn.style.opacity=''; }
+      if (err) {
+        err.textContent = '로그인 실패: ' + (e && e.message ? e.message : e);
+        err.style.display='block';
+      }
+    }
+  };
   document.getElementById('googleLoginBtn').addEventListener('click', window.authGoogleLogin);
 
   // 관리자: 접근 요청 목록 로드
@@ -1085,18 +1117,35 @@
     }
   };
 
+  // 위치별 색 (시인성 — 위치마다 다른 색)
+  const LOC_CHIP_COLORS = {
+    '1층': '#a78bfa', '판금': '#f472b6', '도장': '#fb923c', '정비': '#34d399',
+    '도장대기중': '#fbbf24', '조립대기중': '#2dd4bf', '조립중': '#84cc16',
+    '5층': '#60a5fa', '지하': '#94a3b8'
+  };
+  // 상태별 색
+  const STATUS_CHIP_COLORS = {
+    '입고': '#fb923c', '수리대기': '#fbbf24', '수리중': '#3b82f6',
+    '수리완료': '#10b981', '출고': '#64748b', '미수리출고': '#ef4444'
+  };
+  function _chipStyle(c) {
+    return `--chip-color:${c};background:linear-gradient(135deg,${c}2e,${c}10);border-color:${c}66;color:${c};`;
+  }
+
   // 위치 빠른변경 셀
   function locationQuickCell(id, loc, status) {
     if (status === '출고' || status === '미수리 출고') return '-';
     const label = loc || '위치없음';
     const emptyClass = loc ? '' : ' empty';
-    return `<button class="ops-chip ops-location${emptyClass}" onclick="openLocPicker('${id}','${loc||''}')" type="button" title="클릭하여 위치 변경"><span>${esc(label)}</span><b>변경</b></button>`;
+    const styleAttr = loc ? ` style="${_chipStyle(LOC_CHIP_COLORS[loc] || '#94a3b8')}"` : '';
+    return `<button class="ops-chip ops-location${emptyClass}"${styleAttr} onclick="openLocPicker('${id}','${loc||''}')" type="button" title="클릭하여 위치 선택"><span>${esc(label)}</span></button>`;
   }
 
   // 상태 빠른변경 셀
   function statusQuickCell(id, status) {
     const key = (status || '').replace(/\s/g, '');
-    return `<button class="ops-chip ops-status status-${esc(key)}" onclick="openStatusPicker('${id}','${status}')" type="button" title="클릭하여 상태 변경"><span>${esc(status || '상태없음')}</span><b>변경</b></button>`;
+    const styleAttr = ` style="${_chipStyle(STATUS_CHIP_COLORS[key] || '#94a3b8')}"`;
+    return `<button class="ops-chip ops-status status-${esc(key)}"${styleAttr} onclick="openStatusPicker('${id}','${status}')" type="button" title="클릭하여 상태 선택"><span>${esc(status || '상태없음')}</span></button>`;
   }
 
   window.openStatusPicker = function(id, current) {
