@@ -1531,7 +1531,8 @@ body:has(#page-dashboard.active) .header-right {
 
 body:has(#page-dashboard.active) .logo-grad {
   width: 166px;
-  height: 48px;
+  height: auto;
+  min-height: 48px;
 }
 
 body:has(#page-dashboard.active) .logo-grad::before {
@@ -1636,7 +1637,8 @@ body:has(.page.active) .header-right {
 
 body:has(.page.active) .logo-grad {
   width: 166px;
-  height: 48px;
+  height: auto;
+  min-height: 48px;
 }
 
 body:has(.page.active) .logo-grad::before {
@@ -1653,12 +1655,12 @@ body:has(.page.active) .logo-grad::after {
 body:has(.page.active) .nav-tabs {
   position: fixed;
   z-index: 101;
-  top: 104px;
+  top: 128px;
   bottom: 16px;
   left: 18px;
   width: 168px;
   min-height: 0;
-  max-height: calc(100vh - 120px);
+  max-height: calc(100vh - 144px);
   display: flex;
   flex-direction: column;
   gap: 6px;
