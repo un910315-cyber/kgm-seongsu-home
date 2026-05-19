@@ -3974,6 +3974,96 @@ body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sal
 }
 
 /* ==========================================================================
+   Notices (게시판 페이지 상단 공지사항 섹션)
+   ========================================================================== */
+.notice-card {
+  position: relative;
+  padding: 14px 16px 16px;
+  margin-bottom: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid rgba(148, 163, 184, .25);
+  border-radius: 10px;
+  transition: border-color .12s ease;
+}
+
+.notice-card.notice-important {
+  border-left-color: #fb923c;
+  background: linear-gradient(95deg, rgba(251, 146, 60, .06), var(--surface) 40%);
+}
+
+.notice-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.notice-pin {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #fb923c;
+  background: rgba(251, 146, 60, .12);
+  border: 1px solid rgba(251, 146, 60, .35);
+  border-radius: 999px;
+  letter-spacing: .04em;
+}
+
+.notice-title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.notice-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.notice-actions button {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color .12s ease, border-color .12s ease;
+}
+
+.notice-actions button:hover {
+  color: var(--text);
+  border-color: rgba(139, 92, 246, .4);
+}
+
+.notice-actions button:last-child:hover {
+  color: var(--red, #e8442a);
+  border-color: rgba(232, 68, 42, .4);
+}
+
+.notice-meta {
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: .02em;
+}
+
+.notice-body {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ==========================================================================
    Sales report — POS keypad card + modal
    ========================================================================== */
 .sk-card-grid {

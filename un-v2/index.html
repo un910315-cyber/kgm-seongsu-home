@@ -90,7 +90,7 @@
   </div>
   <div class="nav-tab" onclick="switchPage('migyeol')">보험 미결</div>
   <div class="nav-tab" onclick="switchPage('leave')" id="tab-leave">연차관리</div>
-  <div class="nav-tab" onclick="switchPage('board')" id="tab-board">게시판 · 일정</div>
+  <div class="nav-tab" onclick="switchPage('board')" id="tab-board">공지 · 게시판</div>
   <div class="nav-tab" onclick="switchPage('sales')" id="tab-sales">매출 보고</div>
   <div class="nav-tab" onclick="switchPage('estimate')">견적 도우미</div>
   <div class="nav-tab" onclick="switchPage('insurance')" id="tab-insurance">보험사 연락처</div>
@@ -581,6 +581,57 @@
       <input type="hidden" id="deposit-input">
     </div>
 
+  </div>
+</div>
+
+<!-- 공지사항 작성 모달 -->
+<div class="modal-overlay" id="noticeModal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <div class="modal-title" id="noticeModalTitle">새 공지 작성</div>
+      <button class="modal-close" onclick="window._closeNoticeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">제목 *</label>
+        <input id="notice-title" class="form-input" placeholder="공지 제목" maxlength="80">
+      </div>
+      <div class="form-group">
+        <label class="form-label">내용 *</label>
+        <textarea id="notice-body" class="form-textarea" placeholder="공지 내용" rows="8" maxlength="2000" style="min-height:160px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;user-select:none;">
+          <input type="checkbox" id="notice-important" style="width:16px;height:16px;accent-color:#fb923c;cursor:pointer;">
+          <span>중요 공지 — 로그인 시 팝업으로 표시</span>
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="window._closeNoticeModal()">취소</button>
+      <button class="btn btn-primary" onclick="window._saveNotice()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 공지사항 자동 팝업 -->
+<div class="modal-overlay" id="noticePopupModal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:20px;">📢</span>
+        <div class="modal-title" id="noticePopupTitle">공지</div>
+      </div>
+      <button class="modal-close" onclick="window._closeNoticePopup(false)">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="noticePopupMeta" style="font-size:11px;color:var(--text-dim);margin-bottom:12px;letter-spacing:.02em;"></div>
+      <div id="noticePopupBody" style="white-space:pre-wrap;line-height:1.75;color:var(--text);font-size:13.5px;max-height:60vh;overflow-y:auto;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="window._closeNoticePopup(true)">다시 보지 않기</button>
+      <button class="btn btn-primary" onclick="window._closeNoticePopup(false)">확인</button>
+    </div>
   </div>
 </div>
 
@@ -1828,15 +1879,28 @@
 <div id="page-board" class="page">
   <div class="main">
     <div class="section-header">
-      <div class="section-title"> 게시판 · 일정</div>
+      <div class="section-title">공지 · 게시판 · 일정</div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <div class="cal-toggle">
           <button id="bv-cal" onclick="window._setBoardView('calendar')"> 달력</button>
           <button id="bv-board" onclick="window._setBoardView('board')"> 게시판</button>
           <button id="bv-all" class="active" onclick="window._setBoardView('all')">전체</button>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="if(window._renderBoard)window._renderBoard();if(window._renderCalendar)window._renderCalendar();">새로고침</button>
+        <button class="btn btn-ghost btn-sm" onclick="if(window._renderNotices)window._renderNotices();if(window._renderBoard)window._renderBoard();if(window._renderCalendar)window._renderCalendar();">새로고침</button>
       </div>
+    </div>
+
+    <!-- 공지사항 -->
+    <div id="notice-section" style="margin-bottom:18px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:16px;">📢</span>
+          <span style="font-size:14px;font-weight:800;color:var(--text);letter-spacing:.02em;">공지사항</span>
+        </div>
+        <button class="btn btn-primary btn-sm notice-admin-only" onclick="window._openNoticeModal()" style="display:none;">+ 새 공지</button>
+      </div>
+      <div id="notice-list"></div>
+      <div id="notice-empty" class="empty" style="display:none;padding:16px;text-align:center;color:var(--text-dim);font-size:12px;border:1px dashed var(--border);border-radius:10px;background:var(--surface);">등록된 공지가 없습니다</div>
     </div>
 
     <!-- 달력 -->

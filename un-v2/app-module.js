@@ -356,6 +356,10 @@
       if(window._matrixTimer){clearInterval(window._matrixTimer);window._matrixTimer=null;}
       var mc=document.getElementById('matrixBg');if(mc)mc.style.display='none';
 
+      // 공지사항 admin 버튼 가시화 + 중요 공지 팝업 트리거
+      try { if (window._renderNotices) window._renderNotices(); } catch(_) {}
+      setTimeout(function(){ try { if (window._maybeShowImportantNotice) window._maybeShowImportantNotice(); } catch(_) {} }, 600);
+
     } catch(e){
       document.getElementById('loginError').textContent='권한 확인 실패: '+e.message;
       document.getElementById('loginError').style.display='block';
@@ -2451,6 +2455,175 @@
     if (!confirm('\uc774 \uba54\ubaa8\ub97c \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?')) return;
     try { await remove(ref(db, 'board/' + id)); showNotif('\uc0ad\uc81c\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
     catch(e) { showNotif('\uc0ad\uc81c \uc2e4\ud328: ' + e.message, true); }
+  };
+
+  // ---- NOTICES (\uacf5\uc9c0\uc0ac\ud56d) ----
+  const noticesRef = ref(db, 'notices');
+  let noticesMap = {};
+  let editingNoticeId = null;
+
+  onValue(noticesRef, (snap) => {
+    noticesMap = snap.val() || {};
+    try { renderNotices(); } catch(e) { console.error('renderNotices', e); }
+    if (window._userEmail) setTimeout(maybeShowImportantNotice, 300);
+  }, (err) => { console.warn('notices subscribe', err); });
+
+  function renderNotices() {
+    const list = document.getElementById('notice-list');
+    const empty = document.getElementById('notice-empty');
+    if (!list) return;
+    const isAdmin = window._userRole === 'admin';
+    document.querySelectorAll('.notice-admin-only').forEach(el => {
+      el.style.display = isAdmin ? '' : 'none';
+    });
+    const entries = Object.entries(noticesMap).map(e => Object.assign({ id: e[0] }, e[1]));
+    entries.sort((a, b) => {
+      if (!!a.important !== !!b.important) return a.important ? -1 : 1;
+      return (b.createdAt || '').localeCompare(a.createdAt || '');
+    });
+    if (!entries.length) {
+      list.innerHTML = '';
+      if (empty) empty.style.display = 'block';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    list.innerHTML = entries.map(n => {
+      const dateStr = (n.createdAt || '').slice(0, 10);
+      const updated = n.updatedAt && n.updatedAt !== n.createdAt
+        ? ' \u00b7 \uc218\uc815 ' + n.updatedAt.slice(0, 10)
+        : '';
+      const pin = n.important
+        ? '<span class="notice-pin">\ud83d\udccc \uc911\uc694</span>'
+        : '';
+      const adminBtns = isAdmin
+        ? '<div class="notice-actions">'
+          + '<button onclick="window._openNoticeModal(\'' + esc(n.id) + '\')">\uc218\uc815</button>'
+          + '<button onclick="window._deleteNotice(\'' + esc(n.id) + '\')">\uc0ad\uc81c</button>'
+          + '</div>'
+        : '';
+      return '<div class="notice-card' + (n.important ? ' notice-important' : '') + '">'
+        + '<div class="notice-head">'
+        + pin
+        + '<div class="notice-title">' + esc(n.title || '') + '</div>'
+        + adminBtns
+        + '</div>'
+        + '<div class="notice-meta">' + esc(n.createdByName || '') + ' \u00b7 ' + esc(dateStr) + esc(updated) + '</div>'
+        + '<div class="notice-body">' + esc(n.body || '') + '</div>'
+        + '</div>';
+    }).join('');
+  }
+  window._renderNotices = renderNotices;
+
+  window._openNoticeModal = function(id) {
+    if (window._userRole !== 'admin') return;
+    editingNoticeId = id || null;
+    const titleEl = document.getElementById('notice-title');
+    const bodyEl  = document.getElementById('notice-body');
+    const impEl   = document.getElementById('notice-important');
+    const mt      = document.getElementById('noticeModalTitle');
+    if (id && noticesMap[id]) {
+      const n = noticesMap[id];
+      titleEl.value = n.title || '';
+      bodyEl.value  = n.body || '';
+      impEl.checked = !!n.important;
+      if (mt) mt.textContent = '\uacf5\uc9c0 \uc218\uc815';
+    } else {
+      titleEl.value = '';
+      bodyEl.value  = '';
+      impEl.checked = false;
+      if (mt) mt.textContent = '\uc0c8 \uacf5\uc9c0 \uc791\uc131';
+    }
+    document.getElementById('noticeModal').classList.add('open');
+    setTimeout(() => titleEl.focus(), 50);
+  };
+
+  window._closeNoticeModal = function() {
+    document.getElementById('noticeModal').classList.remove('open');
+    editingNoticeId = null;
+  };
+
+  window._saveNotice = async function() {
+    if (window._userRole !== 'admin') return;
+    const title = String(document.getElementById('notice-title').value || '').trim();
+    const body  = String(document.getElementById('notice-body').value || '').trim();
+    const important = document.getElementById('notice-important').checked;
+    if (!title || !body) { showNotif('\uc81c\ubaa9\uacfc \ub0b4\uc6a9\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694', true); return; }
+    if (title.length > 80)   { showNotif('\uc81c\ubaa9\uc740 80\uc790 \uc774\ub0b4', true); return; }
+    if (body.length > 2000)  { showNotif('\ub0b4\uc6a9\uc740 2000\uc790 \uc774\ub0b4', true); return; }
+    const now = new Date().toISOString();
+    try {
+      if (editingNoticeId) {
+        await update(ref(db, 'notices/' + editingNoticeId), {
+          title: title, body: body, important: !!important, updatedAt: now
+        });
+        showNotif('\uacf5\uc9c0\ub97c \uc218\uc815\ud588\uc2b5\ub2c8\ub2e4');
+      } else {
+        const newRef = push(noticesRef);
+        await update(newRef, {
+          title: title, body: body, important: !!important,
+          createdAt: now,
+          createdBy: window._userEmail || '',
+          createdByName: window._userName || ''
+        });
+        showNotif('\uacf5\uc9c0\ub97c \uc791\uc131\ud588\uc2b5\ub2c8\ub2e4');
+      }
+      window._closeNoticeModal();
+    } catch(e) {
+      console.error('notice save', e);
+      showNotif('\uc800\uc7a5 \uc2e4\ud328: ' + (e.message || e), true);
+    }
+  };
+
+  window._deleteNotice = async function(id) {
+    if (window._userRole !== 'admin') return;
+    if (!confirm('\uc774 \uacf5\uc9c0\ub97c \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?')) return;
+    try {
+      await remove(ref(db, 'notices/' + id));
+      showNotif('\uacf5\uc9c0\ub97c \uc0ad\uc81c\ud588\uc2b5\ub2c8\ub2e4');
+    } catch(e) {
+      console.error('notice delete', e);
+      showNotif('\uc0ad\uc81c \uc2e4\ud328: ' + (e.message || e), true);
+    }
+  };
+
+  function maybeShowImportantNotice() {
+    if (!window._userEmail) return;
+    const popup = document.getElementById('noticePopupModal');
+    if (!popup) return;
+    if (popup.classList.contains('open')) return;
+    let seen = [];
+    try { seen = JSON.parse(localStorage.getItem('seenNoticeIds') || '[]') || []; } catch(_) {}
+    const candidates = Object.entries(noticesMap)
+      .map(e => Object.assign({ id: e[0] }, e[1]))
+      .filter(n => n.important && !seen.includes(n.id))
+      .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    if (!candidates.length) return;
+    const n = candidates[0];
+    const t = document.getElementById('noticePopupTitle');
+    const m = document.getElementById('noticePopupMeta');
+    const b = document.getElementById('noticePopupBody');
+    if (t) t.textContent = n.title || '\uacf5\uc9c0';
+    if (m) m.textContent = (n.createdByName || '') + ' \u00b7 ' + (n.createdAt || '').slice(0, 10);
+    if (b) b.textContent = n.body || '';
+    popup.setAttribute('data-notice-id', n.id);
+    popup.classList.add('open');
+  }
+  window._maybeShowImportantNotice = maybeShowImportantNotice;
+
+  window._closeNoticePopup = function(markSeen) {
+    const popup = document.getElementById('noticePopupModal');
+    if (!popup) return;
+    if (markSeen) {
+      const id = popup.getAttribute('data-notice-id');
+      if (id) {
+        let seen = [];
+        try { seen = JSON.parse(localStorage.getItem('seenNoticeIds') || '[]') || []; } catch(_) {}
+        if (!seen.includes(id)) seen.push(id);
+        seen = seen.slice(-100);
+        try { localStorage.setItem('seenNoticeIds', JSON.stringify(seen)); } catch(_) {}
+      }
+    }
+    popup.classList.remove('open');
   };
 
   // ---- COMPANY EVENTS / CALENDAR ----

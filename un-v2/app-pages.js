@@ -25,7 +25,7 @@
       if (name==='out' && window._renderOut) window._renderOut();
       if (name==='usermgmt') { if(window.loadUserMgmt) window.loadUserMgmt(); if(window._renderOrgChart) window._renderOrgChart(); }
       if (name==='leave' && window._renderLeave) window._renderLeave();
-      if (name==='board') { if(window._renderBoard) window._renderBoard(); if(window._renderCalendar) window._renderCalendar(); }
+      if (name==='board') { if(window._renderNotices) window._renderNotices(); if(window._renderBoard) window._renderBoard(); if(window._renderCalendar) window._renderCalendar(); }
       if (name==='insurance' && window._renderInsurance) window._renderInsurance();
       if (name==='blacklist' && window._renderBlacklist) window._renderBlacklist();
       if (name==='sales' && window._renderSalesWidget) window._renderSalesWidget();
@@ -79,6 +79,11 @@
   var _photoMo = document.getElementById('photoModal');
   if (_photoMo) _photoMo.addEventListener('click', function(e) {
     if (e.target === this) this.classList.remove('open');
+  });
+  // 공지 작성 모달은 백드롭 클릭으로 닫지 않음 (실수 방지). 팝업은 백드롭 클릭 시 닫음.
+  var _ntcPop = document.getElementById('noticePopupModal');
+  if (_ntcPop) _ntcPop.addEventListener('click', function(e) {
+    if (e.target === this) window._closeNoticePopup && window._closeNoticePopup(false);
   });
 
   // ── 매출 보고 POS 키패드 모달 ──
