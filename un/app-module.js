@@ -4,7 +4,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, onValue, push, update, remove, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getFirestore, collection, doc, setDoc, getDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject, listAll } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
   const firebaseConfig = {
@@ -24,6 +24,15 @@
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
   const storage = getStorage(app);
+  getRedirectResult(auth).catch(function(e){
+    var btn = document.getElementById('googleLoginBtn');
+    var err = document.getElementById('loginError');
+    if (btn) { btn.style.pointerEvents=''; btn.style.opacity=''; }
+    if (err && e && e.message) {
+      err.textContent = '로그인 실패: ' + e.message;
+      err.style.display = 'block';
+    }
+  });
   const LOCAL_DASHBOARD_PREVIEW =
     new URLSearchParams(location.search).get('preview') === 'dashboard' &&
     ['127.0.0.1', 'localhost', ''].includes(location.hostname);
@@ -366,6 +375,29 @@
     }
   });
 
+  window.authGoogleLogin = async function(){
+    var btn = document.getElementById('googleLoginBtn');
+    var err = document.getElementById('loginError');
+    var denied = document.getElementById('loginDenied');
+    try {
+      if (err) err.style.display='none';
+      if (denied) denied.style.display='none';
+      if (btn) { btn.style.pointerEvents='none'; btn.style.opacity='0.5'; }
+      await signInWithPopup(auth, provider);
+    } catch(e) {
+      try {
+        await signInWithRedirect(auth, provider);
+        return;
+      } catch (redirectError) {
+        e = redirectError;
+      }
+      if (btn) { btn.style.pointerEvents=''; btn.style.opacity=''; }
+      if (err) {
+        err.textContent = '로그인 실패: ' + (e && e.message ? e.message : e);
+        err.style.display='block';
+      }
+    }
+  };
   document.getElementById('googleLoginBtn').addEventListener('click', window.authGoogleLogin);
 
   // 관리자: 접근 요청 목록 로드
