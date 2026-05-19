@@ -589,7 +589,7 @@
   <div class="modal" style="max-width:560px;">
     <div class="modal-header">
       <div class="modal-title" id="noticeModalTitle">새 공지 작성</div>
-      <button class="modal-close" onclick="window._closeNoticeModal()">×</button>
+      <button class="modal-close" onclick="window._closeBoardNoticeModal()">×</button>
     </div>
     <div class="modal-body">
       <div class="form-group">
@@ -608,8 +608,8 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="window._closeNoticeModal()">취소</button>
-      <button class="btn btn-primary" onclick="window._saveNotice()">저장</button>
+      <button class="btn btn-ghost" onclick="window._closeBoardNoticeModal()">취소</button>
+      <button class="btn btn-primary" onclick="window._saveBoardNotice()">저장</button>
     </div>
   </div>
 </div>
@@ -622,15 +622,15 @@
         <span style="font-size:20px;">📢</span>
         <div class="modal-title" id="noticePopupTitle">공지</div>
       </div>
-      <button class="modal-close" onclick="window._closeNoticePopup(false)">×</button>
+      <button class="modal-close" onclick="window._closeBoardNoticePopup(false)">×</button>
     </div>
     <div class="modal-body">
       <div id="noticePopupMeta" style="font-size:11px;color:var(--text-dim);margin-bottom:12px;letter-spacing:.02em;"></div>
       <div id="noticePopupBody" style="white-space:pre-wrap;line-height:1.75;color:var(--text);font-size:13.5px;max-height:60vh;overflow-y:auto;"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="window._closeNoticePopup(true)">다시 보지 않기</button>
-      <button class="btn btn-primary" onclick="window._closeNoticePopup(false)">확인</button>
+      <button class="btn btn-ghost" onclick="window._closeBoardNoticePopup(true)">다시 보지 않기</button>
+      <button class="btn btn-primary" onclick="window._closeBoardNoticePopup(false)">확인</button>
     </div>
   </div>
 </div>
@@ -1897,7 +1897,7 @@
           <span style="font-size:16px;">📢</span>
           <span style="font-size:14px;font-weight:800;color:var(--text);letter-spacing:.02em;">공지사항</span>
         </div>
-        <button class="btn btn-primary btn-sm notice-admin-only" onclick="window._openNoticeModal()" style="display:none;">+ 새 공지</button>
+        <button class="btn btn-primary btn-sm notice-admin-only" onclick="window._openBoardNoticeModal()" style="display:none;">+ 새 공지</button>
       </div>
       <div id="notice-list"></div>
       <div id="notice-empty" class="empty" style="display:none;padding:16px;text-align:center;color:var(--text-dim);font-size:12px;border:1px dashed var(--border);border-radius:10px;background:var(--surface);">등록된 공지가 없습니다</div>
