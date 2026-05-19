@@ -3239,7 +3239,7 @@ body:has(#page-dashboard.active) #page-dashboard .status-pill.wait {
 
 @media (max-height: 880px) {
   body:has(#page-dashboard.active) #page-dashboard .main {
-    padding-top: 50px;
+    padding-top: 92px;
   }
 
   body:has(#page-dashboard.active) .dashboard-hero {
@@ -3267,7 +3267,7 @@ body:has(#page-dashboard.active) #page-dashboard .status-pill.wait {
 
 @media (min-width: 1180px) and (max-height: 940px) {
   body:has(#page-dashboard.active) #page-dashboard .main {
-    padding-top: 48px;
+    padding-top: 92px;
     padding-bottom: 16px;
   }
 
