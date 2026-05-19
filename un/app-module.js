@@ -357,8 +357,8 @@
       var mc=document.getElementById('matrixBg');if(mc)mc.style.display='none';
 
       // 공지사항 admin 버튼 가시화 + 중요 공지 팝업 트리거
-      try { if (window._renderNotices) window._renderNotices(); } catch(_) {}
-      setTimeout(function(){ try { if (window._maybeShowImportantNotice) window._maybeShowImportantNotice(); } catch(_) {} }, 600);
+      try { if (window._renderBoardNotices) window._renderBoardNotices(); } catch(_) {}
+      setTimeout(function(){ try { if (window._maybeShowImportantBoardNotice) window._maybeShowImportantBoardNotice(); } catch(_) {} }, 600);
 
     } catch(e){
       document.getElementById('loginError').textContent='권한 확인 실패: '+e.message;
@@ -2457,18 +2457,19 @@
     catch(e) { showNotif('\uc0ad\uc81c \uc2e4\ud328: ' + e.message, true); }
   };
 
-  // ---- NOTICES (\uacf5\uc9c0\uc0ac\ud56d) ----
-  const noticesRef = ref(db, 'notices');
-  let noticesMap = {};
-  let editingNoticeId = null;
+  // ---- BOARD NOTICES (\uac8c\uc2dc\ud310 \uacf5\uc9c0\uc0ac\ud56d) ----
+  // \u26a0 leave \ubaa8\ub4c8\uc758 noticesRef/renderNotices/editingNoticeId\uc640 \ucda9\ub3cc \ubc29\uc9c0 \uc704\ud574 board \ud504\ub9ac\ud53d\uc2a4 \ud544\uc218
+  const boardNoticesRef = ref(db, 'notices');
+  let boardNoticesMap = {};
+  let editingBoardNoticeId = null;
 
-  onValue(noticesRef, (snap) => {
-    noticesMap = snap.val() || {};
-    try { renderNotices(); } catch(e) { console.error('renderNotices', e); }
-    if (window._userEmail) setTimeout(maybeShowImportantNotice, 300);
-  }, (err) => { console.warn('notices subscribe', err); });
+  onValue(boardNoticesRef, (snap) => {
+    boardNoticesMap = snap.val() || {};
+    try { renderBoardNotices(); } catch(e) { console.error('renderBoardNotices', e); }
+    if (window._userEmail) setTimeout(maybeShowImportantBoardNotice, 300);
+  }, (err) => { console.warn('boardNotices subscribe', err); });
 
-  function renderNotices() {
+  function renderBoardNotices() {
     const list = document.getElementById('notice-list');
     const empty = document.getElementById('notice-empty');
     if (!list) return;
@@ -2476,7 +2477,7 @@
     document.querySelectorAll('.notice-admin-only').forEach(el => {
       el.style.display = isAdmin ? '' : 'none';
     });
-    const entries = Object.entries(noticesMap).map(e => Object.assign({ id: e[0] }, e[1]));
+    const entries = Object.entries(boardNoticesMap).map(e => Object.assign({ id: e[0] }, e[1]));
     entries.sort((a, b) => {
       if (!!a.important !== !!b.important) return a.important ? -1 : 1;
       return (b.createdAt || '').localeCompare(a.createdAt || '');
@@ -2497,8 +2498,8 @@
         : '';
       const adminBtns = isAdmin
         ? '<div class="notice-actions">'
-          + '<button onclick="window._openNoticeModal(\'' + esc(n.id) + '\')">\uc218\uc815</button>'
-          + '<button onclick="window._deleteNotice(\'' + esc(n.id) + '\')">\uc0ad\uc81c</button>'
+          + '<button onclick="window._openBoardNoticeModal(\'' + esc(n.id) + '\')">\uc218\uc815</button>'
+          + '<button onclick="window._deleteBoardNotice(\'' + esc(n.id) + '\')">\uc0ad\uc81c</button>'
           + '</div>'
         : '';
       return '<div class="notice-card' + (n.important ? ' notice-important' : '') + '">'
@@ -2512,17 +2513,17 @@
         + '</div>';
     }).join('');
   }
-  window._renderNotices = renderNotices;
+  window._renderBoardNotices = renderBoardNotices;
 
-  window._openNoticeModal = function(id) {
+  window._openBoardNoticeModal = function(id) {
     if (window._userRole !== 'admin') return;
-    editingNoticeId = id || null;
+    editingBoardNoticeId = id || null;
     const titleEl = document.getElementById('notice-title');
     const bodyEl  = document.getElementById('notice-body');
     const impEl   = document.getElementById('notice-important');
     const mt      = document.getElementById('noticeModalTitle');
-    if (id && noticesMap[id]) {
-      const n = noticesMap[id];
+    if (id && boardNoticesMap[id]) {
+      const n = boardNoticesMap[id];
       titleEl.value = n.title || '';
       bodyEl.value  = n.body || '';
       impEl.checked = !!n.important;
@@ -2537,12 +2538,12 @@
     setTimeout(() => titleEl.focus(), 50);
   };
 
-  window._closeNoticeModal = function() {
+  window._closeBoardNoticeModal = function() {
     document.getElementById('noticeModal').classList.remove('open');
-    editingNoticeId = null;
+    editingBoardNoticeId = null;
   };
 
-  window._saveNotice = async function() {
+  window._saveBoardNotice = async function() {
     if (window._userRole !== 'admin') return;
     const title = String(document.getElementById('notice-title').value || '').trim();
     const body  = String(document.getElementById('notice-body').value || '').trim();
@@ -2552,13 +2553,13 @@
     if (body.length > 2000)  { showNotif('\ub0b4\uc6a9\uc740 2000\uc790 \uc774\ub0b4', true); return; }
     const now = new Date().toISOString();
     try {
-      if (editingNoticeId) {
-        await update(ref(db, 'notices/' + editingNoticeId), {
+      if (editingBoardNoticeId) {
+        await update(ref(db, 'notices/' + editingBoardNoticeId), {
           title: title, body: body, important: !!important, updatedAt: now
         });
         showNotif('\uacf5\uc9c0\ub97c \uc218\uc815\ud588\uc2b5\ub2c8\ub2e4');
       } else {
-        const newRef = push(noticesRef);
+        const newRef = push(boardNoticesRef);
         await update(newRef, {
           title: title, body: body, important: !!important,
           createdAt: now,
@@ -2567,33 +2568,33 @@
         });
         showNotif('\uacf5\uc9c0\ub97c \uc791\uc131\ud588\uc2b5\ub2c8\ub2e4');
       }
-      window._closeNoticeModal();
+      window._closeBoardNoticeModal();
     } catch(e) {
-      console.error('notice save', e);
+      console.error('boardNotice save', e);
       showNotif('\uc800\uc7a5 \uc2e4\ud328: ' + (e.message || e), true);
     }
   };
 
-  window._deleteNotice = async function(id) {
+  window._deleteBoardNotice = async function(id) {
     if (window._userRole !== 'admin') return;
     if (!confirm('\uc774 \uacf5\uc9c0\ub97c \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?')) return;
     try {
       await remove(ref(db, 'notices/' + id));
       showNotif('\uacf5\uc9c0\ub97c \uc0ad\uc81c\ud588\uc2b5\ub2c8\ub2e4');
     } catch(e) {
-      console.error('notice delete', e);
+      console.error('boardNotice delete', e);
       showNotif('\uc0ad\uc81c \uc2e4\ud328: ' + (e.message || e), true);
     }
   };
 
-  function maybeShowImportantNotice() {
+  function maybeShowImportantBoardNotice() {
     if (!window._userEmail) return;
     const popup = document.getElementById('noticePopupModal');
     if (!popup) return;
     if (popup.classList.contains('open')) return;
     let seen = [];
     try { seen = JSON.parse(localStorage.getItem('seenNoticeIds') || '[]') || []; } catch(_) {}
-    const candidates = Object.entries(noticesMap)
+    const candidates = Object.entries(boardNoticesMap)
       .map(e => Object.assign({ id: e[0] }, e[1]))
       .filter(n => n.important && !seen.includes(n.id))
       .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
@@ -2608,9 +2609,9 @@
     popup.setAttribute('data-notice-id', n.id);
     popup.classList.add('open');
   }
-  window._maybeShowImportantNotice = maybeShowImportantNotice;
+  window._maybeShowImportantBoardNotice = maybeShowImportantBoardNotice;
 
-  window._closeNoticePopup = function(markSeen) {
+  window._closeBoardNoticePopup = function(markSeen) {
     const popup = document.getElementById('noticePopupModal');
     if (!popup) return;
     if (markSeen) {
