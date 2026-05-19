@@ -714,6 +714,27 @@
   function _fmtKRW(n) {
     return '₩' + (Number(n)||0).toLocaleString('ko-KR');
   }
+  // 매출 보고 페이지 활성 날짜·월 (사용자가 input에서 선택; 없으면 오늘/이번달)
+  function _getActiveSalesDate() {
+    return (window._activeSalesDate && /^\d{4}-\d{2}-\d{2}$/.test(window._activeSalesDate))
+      ? window._activeSalesDate : _todayStr();
+  }
+  function _getActiveSalesMonth() {
+    return (window._activeSalesMonth && /^\d{4}-\d{2}$/.test(window._activeSalesMonth))
+      ? window._activeSalesMonth : _thisMonthStr();
+  }
+  window._setSalesDate = function(d) {
+    window._activeSalesDate = (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) ? d : null;
+    var inp = document.getElementById('sales-page-date');
+    if (inp && !window._activeSalesDate) inp.value = '';
+    if (typeof renderSalesWidget === 'function') { try { renderSalesWidget(); } catch(_) {} }
+  };
+  window._setSalesMonth = function(m) {
+    window._activeSalesMonth = (m && /^\d{4}-\d{2}$/.test(m)) ? m : null;
+    var inp = document.getElementById('sales-page-month');
+    if (inp && !window._activeSalesMonth) inp.value = '';
+    if (typeof renderSalesWidget === 'function') { try { renderSalesWidget(); } catch(_) {} }
+  };
   // 14일치 일자별 값 추출 (오래된 → 최신)
   function _last14Days() {
     const days = [];
@@ -859,31 +880,55 @@
       functionText: _fmtKRW(funcRun)
     });
 
-    // 매출 보고 페이지 — 저장된 값 표시
+    // ── 매출 보고 페이지 — 활성 날짜·월로 표시 ──
+    const pageDay = _getActiveSalesDate();
+    const pageMo  = _getActiveSalesMonth();
+    const pageData = salesDailyMap[pageDay] || {};
+    const pageDeposit = Number(depositMap[pageMo]) || 0;
+    const pageDateLabel = pageDay.replace(/^\d{4}-/, '').replace('-', '/');
+    const pageMonthLabel = pageMo.replace('-', '년 ') + '월';
+    const isToday = pageDay === today;
+    const isThisMonth = pageMo === mo;
+
+    // 헤더 라벨 + input 동기화
     const dailyReportDate = document.getElementById('daily-report-date');
-    if (dailyReportDate) dailyReportDate.textContent = today;
+    if (dailyReportDate) {
+      dailyReportDate.textContent = isToday ? (pageDay + ' (오늘)') : pageDay;
+    }
     const monthlyReportMonth = document.getElementById('monthly-report-month');
-    if (monthlyReportMonth) monthlyReportMonth.textContent = monthLabel;
+    if (monthlyReportMonth) {
+      monthlyReportMonth.textContent = isThisMonth ? (pageMonthLabel + ' (이번달)') : pageMonthLabel;
+    }
+    const salesDateInp = document.getElementById('sales-page-date');
+    if (salesDateInp && !salesDateInp.value && window._activeSalesDate) {
+      salesDateInp.value = window._activeSalesDate;
+    }
+    const salesMonthInp = document.getElementById('sales-page-month');
+    if (salesMonthInp && !salesMonthInp.value && window._activeSalesMonth) {
+      salesMonthInp.value = window._activeSalesMonth;
+    }
+
+    // 부품·기능 카드 값 (활성 날짜)
     SALES_CATS.forEach(cat => {
-      const v = Number(todayData[cat]) || 0;
+      const v = Number(pageData[cat]) || 0;
       const pgValEl = document.getElementById('sales-page-value-' + cat);
       if (pgValEl) {
         pgValEl.textContent = _fmtKRW(v);
         pgValEl.classList.toggle('zero', v === 0);
       }
     });
-    // KGM 오늘 정비 대수 (매출 보고 페이지)
-    const kgmTodayCnt = kgmDailyMap[today] || 0;
+    // KGM 정비 대수 (활성 날짜)
+    const kgmPgCnt = kgmDailyMap[pageDay] || 0;
     const kgmPgEl = document.getElementById('sales-page-value-kgm');
     if (kgmPgEl) {
-      kgmPgEl.textContent = kgmTodayCnt + '대';
-      kgmPgEl.classList.toggle('zero', kgmTodayCnt === 0);
+      kgmPgEl.textContent = kgmPgCnt + '대';
+      kgmPgEl.classList.toggle('zero', kgmPgCnt === 0);
     }
-    // 보증금 (매출 보고 페이지)
+    // 보증 (활성 월)
     const depPgEl = document.getElementById('deposit-value');
     if (depPgEl) {
-      depPgEl.textContent = _fmtKRW(depositVal);
-      depPgEl.classList.toggle('zero', depositVal === 0);
+      depPgEl.textContent = _fmtKRW(pageDeposit);
+      depPgEl.classList.toggle('zero', pageDeposit === 0);
     }
   }
   window._renderSalesWidget = renderSalesWidget;
@@ -901,10 +946,10 @@
       inp.focus(); inp.select();
       return;
     }
-    const day = _todayStr();
+    const day = _getActiveSalesDate();
     try {
       await update(ref(db, 'salesDaily/' + day), { [cat]: n });
-      showNotif(SALES_LABELS[cat] + ' ' + _fmtKRW(n) + ' 저장 ');
+      showNotif(SALES_LABELS[cat] + ' ' + day + ' ' + _fmtKRW(n) + ' 저장 ');
       inp.value = '';
     } catch(e) {
       console.error('salesDaily save fail', e);
@@ -924,10 +969,10 @@
       inp.focus(); inp.select();
       return;
     }
-    const day = _todayStr();
+    const day = _getActiveSalesDate();
     try {
       await update(ref(db, 'kgmDailyCount'), { [day]: n });
-      showNotif('KGM 정비 ' + n + '대 저장 ');
+      showNotif('KGM 정비 ' + day + ' ' + n + '대 저장 ');
       inp.value = '';
     } catch(e) {
       console.error('kgmDaily save fail', e);
@@ -947,10 +992,10 @@
       inp.focus(); inp.select();
       return;
     }
-    const mo = _thisMonthStr();
+    const mo = _getActiveSalesMonth();
     try {
       await update(ref(db, 'monthlyDeposit'), { [mo]: n });
-      showNotif('이달 보증 ' + _fmtKRW(n) + ' 저장 ');
+      showNotif(mo + ' 보증 ' + _fmtKRW(n) + ' 저장 ');
       inp.value = '';
     } catch(e) {
       console.error('deposit save fail', e);
