@@ -3950,6 +3950,126 @@ body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sal
 }
 
 /* ==========================================================================
+   모바일(<=760px) 강제 정리: 가로 헤더 + 가로 스크롤 네비
+   여러 미디어쿼리 충돌로 사이드바가 어중간하게 보이는 문제 fix.
+   :has() 미지원 환경 포함 모든 모바일에 강제.
+   ========================================================================== */
+@media (max-width: 760px) {
+  body,
+  body[data-page] {
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+  }
+  body .header,
+  body[data-page] .header {
+    position: sticky !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 56px !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px 14px !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(148, 163, 184, .14) !important;
+    box-shadow: none !important;
+    z-index: 100 !important;
+  }
+  body .header::before,
+  body .header::after,
+  body[data-page] .header::before,
+  body[data-page] .header::after {
+    display: none !important;
+  }
+  body .header-right,
+  body[data-page] .header-right {
+    display: flex !important;
+  }
+  body .logo-grad,
+  body[data-page] .logo-grad {
+    width: auto !important;
+    height: 32px !important;
+  }
+  body .nav-tabs,
+  body[data-page] .nav-tabs {
+    position: sticky !important;
+    top: 56px !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: auto !important;
+    width: 100% !important;
+    max-height: none !important;
+    height: auto !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 8px 12px !important;
+    gap: 6px !important;
+    background: rgba(7, 11, 20, .96) !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(148, 163, 184, .14) !important;
+    z-index: 99 !important;
+    scrollbar-width: none !important;
+  }
+  body .nav-tabs::-webkit-scrollbar,
+  body[data-page] .nav-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+  body .nav-tab,
+  body .nav-subtab,
+  body[data-page] .nav-tab,
+  body[data-page] .nav-subtab {
+    width: auto !important;
+    min-width: max-content !important;
+    flex: 0 0 auto !important;
+    min-height: 36px !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+    border-radius: 8px !important;
+  }
+  body .nav-group,
+  body[data-page] .nav-group {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+    width: auto !important;
+  }
+  body .nav-group .nav-subtabs,
+  body .nav-group.nav-group-open .nav-subtabs,
+  body[data-page] .nav-group .nav-subtabs,
+  body[data-page] .nav-group.nav-group-open .nav-subtabs {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+    margin-top: 0 !important;
+    padding-left: 0 !important;
+    border-left: 0 !important;
+    width: auto !important;
+  }
+  body .page.active > .main,
+  body[data-page] .page.active > .main,
+  body:has(.page.active) .page.active > .main {
+    margin: 0 !important;
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 16px 12px 24px !important;
+    transform: none !important;
+  }
+}
+
+/* ==========================================================================
    :has() 미지원 브라우저 안전망 (구형 iOS/Android 등)
    사이드바 모드 룰이 :has 의존 → 미지원 시 룰 전체 미적용 → sticky .header가
    가로로 펼쳐지면서 page 제목이 그 영역에 침범하는 문제 fallback.
