@@ -533,7 +533,7 @@
           <div class="chart-subtitle" id="daily-report-date">—</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <input type="date" id="sales-page-date" onchange="window._setSalesDate&&window._setSalesDate(this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-size:12px;font-family:inherit;cursor:pointer;">
+          <input type="date" id="sales-page-date" onclick="this.showPicker&&this.showPicker()" onchange="window._setSalesDate&&window._setSalesDate(this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-size:12px;font-family:inherit;cursor:pointer;">
           <button type="button" class="btn btn-ghost btn-sm" onclick="window._setSalesDate&&window._setSalesDate('')">오늘</button>
         </div>
       </div>
@@ -571,7 +571,7 @@
           <div class="chart-subtitle" id="monthly-report-month">—</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <input type="month" id="sales-page-month" onchange="window._setSalesMonth&&window._setSalesMonth(this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-size:12px;font-family:inherit;cursor:pointer;">
+          <input type="month" id="sales-page-month" onclick="this.showPicker&&this.showPicker()" onchange="window._setSalesMonth&&window._setSalesMonth(this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-size:12px;font-family:inherit;cursor:pointer;">
           <button type="button" class="btn btn-ghost btn-sm" onclick="window._setSalesMonth&&window._setSalesMonth('')">이번달</button>
         </div>
       </div>
