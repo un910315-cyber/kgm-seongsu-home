@@ -1604,7 +1604,7 @@ body:has(#page-dashboard.active) .nav-tabs {
   position: fixed;
   z-index: 101;
   top: 132px;
-  bottom: 322px;
+  bottom: 360px;
   left: 18px;
   width: 168px;
   min-height: 0;
@@ -1710,11 +1710,11 @@ body:has(.page.active) .nav-tabs {
   position: fixed;
   z-index: 101;
   top: 128px;
-  bottom: 322px;
+  bottom: 360px;
   left: 18px;
   width: 168px;
   min-height: 0;
-  max-height: calc(100vh - 450px);
+  max-height: calc(100vh - 488px);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -4049,7 +4049,10 @@ body:has(.page.active) .sidebar-links a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 11px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 40px;
+  padding: 10px 12px;
   border: 1px solid rgba(148, 163, 184, .14);
   border-radius: 8px;
   background: rgba(15, 23, 42, .6);
@@ -4057,6 +4060,7 @@ body:has(.page.active) .sidebar-links a {
   font-size: 11px;
   font-weight: 700;
   text-decoration: none;
+  cursor: pointer;
   transition: border-color .14s ease, background .14s ease, color .14s ease;
 }
 
