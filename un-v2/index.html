@@ -241,7 +241,7 @@
           <!-- 이달 보증금 -->
           <div class="daily-stat-row deposit-row" style="--row-color:#fbbf24;">
             <div class="dsr-top">
-              <div class="dsr-label"><span class="dsr-dot"></span>이달 보증금</div>
+              <div class="dsr-label"><span class="dsr-dot"></span>이달 보증</div>
               <div class="dsr-trend" id="deposit-status"></div>
             </div>
             <div class="dsr-value" id="monthly-deposit-value">₩0</div>
@@ -327,7 +327,7 @@
       <div class="chart-header" style="justify-content:space-between;">
         <div>
           <div class="chart-title">누적 매출 보고</div>
-          <div class="chart-subtitle">부품 · 기능 · 보증금 흐름</div>
+          <div class="chart-subtitle">부품 · 기능 · 보증 흐름</div>
         </div>
         <a href="#" onclick="switchPage('sales');return false;" style="color:#c4b5fd;text-decoration:none;font-size:11px;font-weight:600;">상세 보기 →</a>
       </div>
@@ -341,14 +341,14 @@
         <div class="cum-sales-mix-copy">
           <span>매출 구성</span>
           <strong id="cum-sales-mix-main">부품 중심</strong>
-          <em id="cum-sales-mix-sub">부품 · 기능 · 보증금 비율</em>
+          <em id="cum-sales-mix-sub">부품 · 기능 · 보증 비율</em>
         </div>
       </div>
       <div id="cumSalesChart" class="cum-sales-chart"></div>
       <div class="cum-sales-legend">
         <span style="--legend-color:#fb923c;">부품</span>
         <span style="--legend-color:#34d399;">기능</span>
-        <span style="--legend-color:#fbbf24;">보증금</span>
+        <span style="--legend-color:#fbbf24;">보증</span>
       </div>
     </div>
     </div>
@@ -573,7 +573,7 @@
       <div class="sk-card-grid">
         <button type="button" class="sk-card" data-cat="deposit" onclick="window.openSalesKeypad('deposit')">
           <span class="sk-card-dot" style="background:#fbbf24"></span>
-          <span class="sk-card-label">이달 보증금</span>
+          <span class="sk-card-label">이달 보증</span>
           <span class="sk-card-value" id="deposit-value">₩0</span>
           <span class="sk-card-hint">탭하여 입력</span>
         </button>

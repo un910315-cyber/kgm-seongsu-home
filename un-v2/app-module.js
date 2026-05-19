@@ -220,7 +220,7 @@
     const top = [
       { name: '부품 중심', value: partsAmount, pct: partsAmount / Math.max(1, partsAmount + funcAmount + depositAmount) },
       { name: '기능 중심', value: funcAmount, pct: funcAmount / Math.max(1, partsAmount + funcAmount + depositAmount) },
-      { name: '보증금 중심', value: depositAmount, pct: depositAmount / Math.max(1, partsAmount + funcAmount + depositAmount) }
+      { name: '보증 중심', value: depositAmount, pct: depositAmount / Math.max(1, partsAmount + funcAmount + depositAmount) }
     ].sort((a,b) => b.value - a.value)[0];
     if (mixMain) mixMain.textContent = top.name;
     if (mixSub) mixSub.textContent = '최대 비중 ' + Math.round(top.pct * 100) + '%';
@@ -946,7 +946,7 @@
     const mo = _thisMonthStr();
     try {
       await update(ref(db, 'monthlyDeposit'), { [mo]: n });
-      showNotif('이달 보증금 ' + _fmtKRW(n) + ' 저장 ');
+      showNotif('이달 보증 ' + _fmtKRW(n) + ' 저장 ');
       inp.value = '';
     } catch(e) {
       console.error('deposit save fail', e);

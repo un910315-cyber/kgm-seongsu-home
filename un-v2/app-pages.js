@@ -88,7 +88,7 @@
       kgm:      { label: 'KGM 정비 대수', color: '#ff8787', unit: '대', max: 999,       quick: [{l:'+1',d:1},{l:'+5',d:5},{l:'+10',d:10}] },
       parts:    { label: '부품 매출',     color: '#fb923c', unit: '원', max: 999999999, quick: [{l:'+1만',d:10000},{l:'+10만',d:100000},{l:'+100만',d:1000000}] },
       function: { label: '기능 매출',     color: '#34d399', unit: '원', max: 999999999, quick: [{l:'+1만',d:10000},{l:'+10만',d:100000},{l:'+100만',d:1000000}] },
-      deposit:  { label: '이달 보증금',   color: '#fbbf24', unit: '원', max: 999999999, quick: [{l:'+10만',d:100000},{l:'+100만',d:1000000},{l:'+1000만',d:10000000}] }
+      deposit:  { label: '이달 보증',     color: '#fbbf24', unit: '원', max: 999999999, quick: [{l:'+10만',d:100000},{l:'+100만',d:1000000},{l:'+1000만',d:10000000}] }
     };
     var INPUT_ID = { kgm:'sales-page-input-kgm', parts:'sales-page-input-parts', function:'sales-page-input-function', deposit:'deposit-input' };
 
