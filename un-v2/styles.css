@@ -2826,31 +2826,6 @@ body:has(.page.active) .page.active > .main {
 @media (max-width: 760px) {
   body:has(.page.active) {
     min-width: 0;
-  }
-
-  body:has(.page.active) .header {
-    width: 148px;
-    padding: 18px 12px !important;
-  }
-
-  body:has(.page.active) .nav-tabs {
-    left: 12px;
-    bottom: auto;
-    width: 124px;
-  }
-
-  body:has(.page.active) .page.active > .main {
-    width: calc((100vw - 148px) / .58);
-    margin-left: 148px;
-    padding: 28px 22px 20px;
-    transform: scale(.58);
-    transform-origin: top left;
-  }
-}
-
-@media (max-width: 760px) {
-  body:has(.page.active) {
-    min-width: 0;
     overflow-x: hidden;
   }
 
@@ -2945,10 +2920,11 @@ body:has(.page.active) .page.active > .main {
 
   body:has(.page.active) .page.active > .main,
   body.dashboard-preview:has(#page-dashboard.active) #page-dashboard .main {
-    width: 100%;
-    margin-left: 0;
-    padding: 16px 12px 24px;
-    transform: none;
+    width: 100% !important;
+    margin-left: 0 !important;
+    padding: 16px 12px 24px !important;
+    transform: none !important;
+    transform-origin: initial !important;
   }
 
   #page-list .main::before,
