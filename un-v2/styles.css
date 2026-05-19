@@ -3787,3 +3787,173 @@ body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sal
     border-top: 1px solid rgba(148, 163, 184, .10);
   }
 }
+
+/* Dashboard floating side panels: prevent reservation/out-schedule content from leaking at page top. */
+#page-dashboard .dash-out-side,
+#page-dashboard .dash-res-side {
+  position: fixed;
+  top: 108px;
+  right: 24px;
+  z-index: 180;
+  width: min(300px, calc(100vw - 32px));
+  max-height: min(640px, calc(100vh - 132px));
+  overflow: hidden auto;
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, .18);
+  border-radius: 10px;
+  color: #e5e7eb;
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, .96), rgba(8, 13, 24, .96)),
+    #0b1020;
+  box-shadow: 0 22px 70px rgba(0, 0, 0, .45);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+#page-dashboard .dash-out-side.hidden,
+#page-dashboard .dash-res-side.hidden {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+#page-dashboard .dash-out-side:not(.hidden),
+#page-dashboard .dash-res-side:not(.hidden) {
+  display: block;
+}
+
+#page-dashboard .dash-out-drag {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 34px;
+  margin: -2px -2px 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: #9aa6bd;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: move;
+  background: rgba(148, 163, 184, .08);
+  border: 1px solid rgba(148, 163, 184, .10);
+  user-select: none;
+}
+
+#page-dashboard .dash-out-close {
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(148, 163, 184, .18);
+  border-radius: 7px;
+  color: #cbd5e1;
+  background: rgba(15, 23, 42, .76);
+  cursor: pointer;
+}
+
+#page-dashboard .dash-out-close:hover {
+  color: #fff;
+  border-color: rgba(248, 113, 113, .45);
+  background: rgba(127, 29, 29, .36);
+}
+
+#page-dashboard .dash-out-side h4,
+#page-dashboard .dash-res-side h4 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 10px 2px 8px;
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+#page-dashboard .dash-out-side .cnt,
+#page-dashboard .dash-res-side .cnt {
+  min-width: 24px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  color: #c4b5fd;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-align: center;
+  background: rgba(139, 92, 246, .14);
+  border: 1px solid rgba(139, 92, 246, .22);
+}
+
+#page-dashboard .dash-out-side .group + .group {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(148, 163, 184, .10);
+}
+
+#page-dashboard .dash-out-side .item,
+#page-dashboard .dash-res-side .item {
+  margin-bottom: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(3, 7, 18, .34);
+  border: 1px solid rgba(148, 163, 184, .10);
+  cursor: pointer;
+}
+
+#page-dashboard .dash-out-side .item:hover,
+#page-dashboard .dash-res-side .item:hover {
+  background: rgba(30, 41, 59, .52);
+  border-color: rgba(139, 92, 246, .28);
+}
+
+#page-dashboard .dash-out-side .car,
+#page-dashboard .dash-res-side .car {
+  color: #f8fafc;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+#page-dashboard .dash-out-side .meta,
+#page-dashboard .dash-res-side .meta,
+#page-dashboard .empty-mini {
+  color: #9aa6bd;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+#page-dashboard .empty-mini {
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(148, 163, 184, .06);
+  border: 1px dashed rgba(148, 163, 184, .16);
+}
+
+#page-dashboard .dash-res-add {
+  width: 100%;
+  min-height: 34px;
+  margin: 2px 0 10px;
+  border: 1px solid rgba(139, 92, 246, .30);
+  border-radius: 8px;
+  color: #f5f3ff;
+  font-size: 12px;
+  font-weight: 900;
+  background: linear-gradient(135deg, rgba(124, 58, 237, .32), rgba(59, 130, 246, .18));
+  cursor: pointer;
+}
+
+#page-dashboard .dash-res-add:hover {
+  border-color: rgba(196, 181, 253, .52);
+  background: linear-gradient(135deg, rgba(124, 58, 237, .42), rgba(59, 130, 246, .24));
+}
+
+#page-dashboard .dash-out-side.dragging,
+#page-dashboard .dash-res-side.dragging {
+  opacity: .92;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, .55);
+}
+
+@media (max-width: 760px) {
+  #page-dashboard .dash-out-side,
+  #page-dashboard .dash-res-side {
+    top: 142px;
+    right: 12px;
+    left: 12px !important;
+    width: auto;
+    max-height: calc(100vh - 162px);
+  }
+}

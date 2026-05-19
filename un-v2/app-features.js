@@ -1506,7 +1506,8 @@ function eTst2(msg){
   function applyPos(left, top) {
     var w = aside.offsetWidth || 220;
     var headerEl = document.querySelector('.header');
-    var minTop = (headerEl ? headerEl.offsetHeight : 90) + 8; // 헤더 아래 8px 여백
+    var headerH = headerEl ? headerEl.offsetHeight : 90;
+    var minTop = (headerH > window.innerHeight * 0.55 ? 84 : headerH) + 8; // 좌측 고정 헤더는 전체 높이라 보정
     var maxX = window.innerWidth - w;
     var maxY = window.innerHeight - 40; // 핸들 최소 노출
     aside.style.left = clamp(left, 0, Math.max(0, maxX)) + 'px';
@@ -1516,11 +1517,8 @@ function eTst2(msg){
   }
 
   // 표시 상태 복원 (기본: 숨김)
-  try {
-    var vis = localStorage.getItem(LS_VIS);
-    if (vis === '1') aside.classList.remove('hidden');
-    else aside.classList.add('hidden');
-  } catch(e) { aside.classList.add('hidden'); }
+  aside.classList.add('hidden');
+  try { localStorage.setItem(LS_VIS, '0'); } catch(e) {}
   syncToggleBtn();
 
   function syncToggleBtn() {
@@ -1593,7 +1591,8 @@ function eTst2(msg){
   function applyPos(left, top) {
     var w = aside.offsetWidth || 240;
     var headerEl = document.querySelector('.header');
-    var minTop = (headerEl ? headerEl.offsetHeight : 90) + 8;
+    var headerH = headerEl ? headerEl.offsetHeight : 90;
+    var minTop = (headerH > window.innerHeight * 0.55 ? 84 : headerH) + 8;
     var maxX = window.innerWidth - w;
     var maxY = window.innerHeight - 40;
     aside.style.left = clamp(left, 0, Math.max(0, maxX)) + 'px';
@@ -1602,11 +1601,8 @@ function eTst2(msg){
     aside.style.bottom = 'auto';
   }
 
-  try {
-    var vis = localStorage.getItem(LS_VIS);
-    if (vis === '1') aside.classList.remove('hidden');
-    else aside.classList.add('hidden');
-  } catch(e) { aside.classList.add('hidden'); }
+  aside.classList.add('hidden');
+  try { localStorage.setItem(LS_VIS, '0'); } catch(e) {}
   syncToggleBtn();
 
   function syncToggleBtn() {
