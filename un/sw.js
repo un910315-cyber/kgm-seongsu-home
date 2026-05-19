@@ -1,7 +1,7 @@
 // KGM 성수 내부 페이지 — Service Worker
 // /un/ 경로만 가로챔. un-v2/ 테스트 환경과 캐시 분리.
 
-const CACHE_VERSION = 'v18-2026-05-19-sales-date-picker';
+const CACHE_VERSION = 'v19-2026-05-19-dashboard-main-padding';
 const CACHE_NAME = `kgm-seongsu-un-${CACHE_VERSION}`;
 
 const APP_SHELL = [
