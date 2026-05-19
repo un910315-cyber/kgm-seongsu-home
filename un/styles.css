@@ -1604,7 +1604,7 @@ body:has(#page-dashboard.active) .nav-tabs {
   position: fixed;
   z-index: 101;
   top: 132px;
-  bottom: 188px;
+  bottom: 150px;
   left: 18px;
   width: 168px;
   min-height: 0;
@@ -1710,11 +1710,11 @@ body:has(.page.active) .nav-tabs {
   position: fixed;
   z-index: 101;
   top: 128px;
-  bottom: 16px;
+  bottom: 150px;
   left: 18px;
   width: 168px;
   min-height: 0;
-  max-height: calc(100vh - 144px);
+  max-height: calc(100vh - 278px);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -4003,6 +4003,36 @@ body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sal
     width: auto;
     max-height: calc(100vh - 162px);
   }
+}
+
+/* ==========================================================================
+   사이드바 하단 상태 (날짜·실시간연결) — 대시보드 hero 대체
+   ========================================================================== */
+.sidebar-status { display: none; }
+
+body:has(.page.active) .sidebar-status {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  position: fixed;
+  z-index: 101;
+  left: 18px;
+  width: 168px;
+  bottom: 92px;
+}
+
+body:has(.page.active) .sidebar-status .online-badge,
+body:has(.page.active) .sidebar-status .date-badge {
+  width: 100%;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+/* 대시보드 모토 박스 제거 — 날짜·실시간연결이 그 자리를 대체 */
+body:has(#page-dashboard.active) .header::after { display: none !important; }
+
+@media (max-width: 1180px) {
+  .sidebar-status { display: none !important; }
 }
 
 /* ==========================================================================
