@@ -1604,7 +1604,7 @@ body:has(#page-dashboard.active) .nav-tabs {
   position: fixed;
   z-index: 101;
   top: 132px;
-  bottom: 150px;
+  bottom: 322px;
   left: 18px;
   width: 168px;
   min-height: 0;
@@ -1710,11 +1710,11 @@ body:has(.page.active) .nav-tabs {
   position: fixed;
   z-index: 101;
   top: 128px;
-  bottom: 150px;
+  bottom: 322px;
   left: 18px;
   width: 168px;
   min-height: 0;
-  max-height: calc(100vh - 278px);
+  max-height: calc(100vh - 450px);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -4031,8 +4031,50 @@ body:has(.page.active) .sidebar-status .date-badge {
 /* 대시보드 모토 박스 제거 — 날짜·실시간연결이 그 자리를 대체 */
 body:has(#page-dashboard.active) .header::after { display: none !important; }
 
+/* 사이드바 하단 외부 링크 버튼 (카톡 상담·EPC·볼트·KGM 홈) */
+.sidebar-links { display: none; }
+
+body:has(.page.active) .sidebar-links {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  position: fixed;
+  z-index: 101;
+  left: 18px;
+  width: 168px;
+  bottom: 170px;
+}
+
+body:has(.page.active) .sidebar-links a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 11px;
+  border: 1px solid rgba(148, 163, 184, .14);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, .6);
+  color: #cbd5e1;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-color .14s ease, background .14s ease, color .14s ease;
+}
+
+body:has(.page.active) .sidebar-links a::after {
+  content: "↗";
+  font-size: 10px;
+  opacity: .5;
+}
+
+body:has(.page.active) .sidebar-links a:hover {
+  border-color: rgba(139, 92, 246, .42);
+  background: rgba(139, 92, 246, .14);
+  color: #fff;
+}
+
 @media (max-width: 1180px) {
-  .sidebar-status { display: none !important; }
+  .sidebar-status,
+  .sidebar-links { display: none !important; }
 }
 
 /* ==========================================================================
