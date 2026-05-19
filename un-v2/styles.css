@@ -1489,15 +1489,15 @@ body:has(#page-dashboard.active) .header::after {
   position: absolute;
   left: 18px;
   right: 18px;
-  bottom: 112px;
-  min-height: 132px;
-  padding: 16px;
+  bottom: 92px;
+  min-height: 84px;
+  padding: 12px 14px;
   border: 1px solid rgba(139, 92, 246, .28);
   border-radius: 8px;
   color: #c4b5fd;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
-  line-height: 1.7;
+  line-height: 1.55;
   background:
     linear-gradient(160deg, transparent 54%, rgba(139, 92, 246, .20) 54.5% 56%, transparent 56.5%),
     linear-gradient(145deg, rgba(88, 28, 135, .38), rgba(17, 24, 39, .82)),
@@ -1549,17 +1549,29 @@ body:has(#page-dashboard.active) .nav-tabs {
   position: fixed;
   z-index: 101;
   top: 132px;
+  bottom: 188px;
   left: 18px;
   width: 168px;
   min-height: 0;
-  max-height: min(452px, calc(100vh - 448px));
+  max-height: none;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 0;
-  overflow: hidden;
+  padding: 0 4px 0 0;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: transparent;
   border: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, .45) transparent;
+}
+
+body:has(#page-dashboard.active) .nav-tabs::-webkit-scrollbar {
+  width: 4px;
+}
+body:has(#page-dashboard.active) .nav-tabs::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, .45);
+  border-radius: 4px;
 }
 
 body:has(#page-dashboard.active) .nav-tab {
