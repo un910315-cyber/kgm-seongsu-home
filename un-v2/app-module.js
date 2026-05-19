@@ -157,39 +157,63 @@
     if (totalEl) totalEl.textContent = opts?.totalText || '0원';
     if (partsEl) partsEl.textContent = opts?.partsText || '0원';
     if (funcEl) funcEl.textContent = opts?.functionText || '0원';
-    const all = parts.concat(func, deposit);
-    const max = Math.max(1, ...all);
-    const makePath = (values) => values.map((v, i) => {
-      const x = 28 + i * (700 / Math.max(1, values.length - 1));
-      const y = 150 - (v / max * 116);
-      return (i ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1);
+    const len = Math.max(parts.length, func.length, deposit.length, 1);
+    const carry = (arr) => Array.from({ length: len }, (_, i) => {
+      if (!arr.length) return 0;
+      return Number(arr[Math.min(i, arr.length - 1)]) || 0;
+    });
+    const pSeries = carry(parts);
+    const fSeries = carry(func);
+    const dSeries = carry(deposit);
+    const totals = pSeries.map((v, i) => v + fSeries[i] + dSeries[i]);
+    const max = Math.max(1, ...totals, ...pSeries, ...fSeries, ...dSeries);
+    const W = 760, H = 210, padL = 34, padR = 26, padT = 22, padB = 34;
+    const innerW = W - padL - padR;
+    const innerH = H - padT - padB;
+    const pt = (value, i) => ({
+      x: padL + (len === 1 ? innerW / 2 : i * (innerW / (len - 1))),
+      y: padT + innerH - (value / max) * innerH
+    });
+    const path = (values) => values.map((v, i) => {
+      const p = pt(v, i);
+      return (i ? 'L' : 'M') + p.x.toFixed(1) + ' ' + p.y.toFixed(1);
     }).join(' ');
-    chart.innerHTML = '<svg viewBox="0 0 760 176" preserveAspectRatio="none" style="width:100%;height:100%;display:block;">'
-      + '<line x1="28" y1="150" x2="732" y2="150" stroke="rgba(255,255,255,.07)"/>'
-      + '<line x1="28" y1="92" x2="732" y2="92" stroke="rgba(255,255,255,.06)" stroke-dasharray="3,4"/>'
-      + '<path d="'+makePath(parts)+'" fill="none" stroke="#fb923c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'
-      + '<path d="'+makePath(func)+'" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'
-      + '<path d="'+makePath(deposit)+'" fill="none" stroke="#fbbf24" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>'
+    const areaPath = (() => {
+      const top = path(totals);
+      const first = pt(totals[0], 0);
+      const last = pt(totals[totals.length - 1], totals.length - 1);
+      const base = padT + innerH;
+      return `${top} L ${last.x.toFixed(1)} ${base} L ${first.x.toFixed(1)} ${base} Z`;
+    })();
+    const lastX = pt(totals[totals.length - 1], totals.length - 1).x.toFixed(1);
+    const labels = [
+      { name: '\uBD80\uD488', value: partsAmount, color: '#fb923c' },
+      { name: '\uAE30\uB2A5', value: funcAmount, color: '#34d399' },
+      { name: '\uBCF4\uC99D\uAE08', value: depositAmount, color: '#fbbf24' }
+    ];
+    chart.innerHTML = '<svg viewBox="0 0 760 210" preserveAspectRatio="none" style="width:100%;height:100%;display:block;">'
+      + '<defs><linearGradient id="cumSalesTotalArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38bdf8" stop-opacity=".22"/><stop offset="100%" stop-color="#38bdf8" stop-opacity=".015"/></linearGradient><filter id="cumSalesGlow"><feGaussianBlur stdDeviation="2.2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'
+      + '<line x1="'+padL+'" y1="'+(padT+innerH)+'" x2="'+(W-padR)+'" y2="'+(padT+innerH)+'" stroke="rgba(255,255,255,.08)"/>'
+      + '<line x1="'+padL+'" y1="'+(padT+innerH/2)+'" x2="'+(W-padR)+'" y2="'+(padT+innerH/2)+'" stroke="rgba(255,255,255,.055)" stroke-dasharray="4,6"/>'
+      + '<path d="'+areaPath+'" fill="url(#cumSalesTotalArea)"/>'
+      + '<path d="'+path(totals)+'" fill="none" stroke="#38bdf8" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round" filter="url(#cumSalesGlow)"/>'
+      + '<path d="'+path(pSeries)+'" fill="none" stroke="#fb923c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" opacity=".95"/>'
+      + '<path d="'+path(fSeries)+'" fill="none" stroke="#34d399" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" opacity=".95"/>'
+      + '<path d="'+path(dSeries)+'" fill="none" stroke="#fbbf24" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>'
+      + '<circle cx="'+lastX+'" cy="'+pt(totals[totals.length - 1], totals.length - 1).y.toFixed(1)+'" r="5.5" fill="#e0f2fe" stroke="#0b1020" stroke-width="2.5"/>'
+      + '<text x="'+lastX+'" y="'+Math.max(15, pt(totals[totals.length - 1], totals.length - 1).y - 12).toFixed(1)+'" text-anchor="middle" fill="#e0f2fe" font-size="11" font-weight="900">TOTAL</text>'
       + '</svg>';
 
     const mix = document.getElementById('cumSalesMixChart');
     if (mix) {
       const total = Math.max(1, partsAmount + funcAmount + depositAmount);
-      const partsPct = partsAmount / total;
-      const funcPct = funcAmount / total;
-      const depPct = depositAmount / total;
-      const c = 2 * Math.PI * 32;
-      const partsLen = c * partsPct;
-      const funcLen = c * funcPct;
-      const depLen = c * depPct;
-      mix.innerHTML = `<svg viewBox="0 0 86 86" class="cum-sales-mix-svg">`
-        + `<circle cx="43" cy="43" r="32" fill="none" stroke="rgba(148,163,184,.13)" stroke-width="10"/>`
-        + `<circle cx="43" cy="43" r="32" fill="none" stroke="#fb923c" stroke-width="10" stroke-linecap="round" stroke-dasharray="${partsLen} ${c-partsLen}" transform="rotate(-90 43 43)"/>`
-        + `<circle cx="43" cy="43" r="32" fill="none" stroke="#34d399" stroke-width="10" stroke-linecap="round" stroke-dasharray="${funcLen} ${c-funcLen}" stroke-dashoffset="${-partsLen}" transform="rotate(-90 43 43)"/>`
-        + `<circle cx="43" cy="43" r="32" fill="none" stroke="#fbbf24" stroke-width="10" stroke-linecap="round" stroke-dasharray="${depLen} ${c-depLen}" stroke-dashoffset="${-(partsLen+funcLen)}" transform="rotate(-90 43 43)"/>`
-        + `<text x="43" y="40" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="900">${Math.round(Math.max(partsPct, funcPct, depPct) * 100)}%</text>`
-        + `<text x="43" y="53" text-anchor="middle" fill="#8b95a8" font-size="8" font-weight="800">TOP</text>`
-        + `</svg>`;
+      mix.innerHTML = labels.map(item => {
+        const pct = Math.round((item.value / total) * 100);
+        return '<div class="cum-sales-breakdown-row" style="--seg-color:'+item.color+';--seg-width:'+pct+'%;">'
+          + '<div class="cum-sales-breakdown-head"><span>'+item.name+'</span><strong>'+_fmtKRW(item.value)+'</strong><em>'+pct+'%</em></div>'
+          + '<div class="cum-sales-breakdown-track"><i></i></div>'
+          + '</div>';
+      }).join('');
     }
     const mixMain = document.getElementById('cum-sales-mix-main');
     const mixSub = document.getElementById('cum-sales-mix-sub');

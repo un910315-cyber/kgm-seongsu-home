@@ -2154,6 +2154,50 @@
   setTimeout(preview, 300);
   setTimeout(preview, 1200);
   setTimeout(preview, 3000);
+  function previewSalesBars() {
+    var mix = document.getElementById('cumSalesMixChart');
+    if (mix) {
+      var previewMix = [
+        { name: '\uBD80\uD488', value: '11,820,000\uC6D0', pct: 50, color: '#fb923c' },
+        { name: '\uAE30\uB2A5', value: '6,820,000\uC6D0', pct: 29, color: '#34d399' },
+        { name: '\uBCF4\uC99D\uAE08', value: '4,800,000\uC6D0', pct: 21, color: '#fbbf24' }
+      ];
+      mix.innerHTML = previewMix.map(function(item){
+        return '<div class="cum-sales-breakdown-row" style="--seg-color:'+item.color+';--seg-width:'+item.pct+'%;">'
+          + '<div class="cum-sales-breakdown-head"><span>'+item.name+'</span><strong>'+item.value+'</strong><em>'+item.pct+'%</em></div>'
+          + '<div class="cum-sales-breakdown-track"><i></i></div>'
+          + '</div>';
+      }).join('');
+    }
+    var cum = document.getElementById('cumSalesChart');
+    if (cum) {
+      var parts = [18,22,21,25,30,28,33,36,34,38,41,43];
+      var func = [9,11,13,12,16,18,17,21,23,22,25,27];
+      var dep = [5,6,6,7,7,8,9,9,10,11,12,13];
+      var total = parts.map(function(v, i){ return v + func[i] + dep[i]; });
+      var max = Math.max.apply(null, [1].concat(total));
+      function makePath(values) {
+        return values.map(function(v, i){
+          var x = 28 + i * (700 / (values.length - 1));
+          var y = 174 - (v / max * 140);
+          return (i ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1);
+        }).join(' ');
+      }
+      var totalPath = makePath(total);
+      cum.innerHTML = '<svg viewBox="0 0 760 210" preserveAspectRatio="none" style="width:100%;height:100%;display:block;">'
+        + '<defs><linearGradient id="cumPreviewArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38bdf8" stop-opacity=".22"/><stop offset="100%" stop-color="#38bdf8" stop-opacity=".015"/></linearGradient></defs>'
+        + '<line x1="28" y1="174" x2="732" y2="174" stroke="rgba(255,255,255,.07)"/><line x1="28" y1="104" x2="732" y2="104" stroke="rgba(255,255,255,.06)" stroke-dasharray="4,6"/>'
+        + '<path d="'+totalPath+' L 728 174 L 28 174 Z" fill="url(#cumPreviewArea)"/>'
+        + '<path d="'+totalPath+'" fill="none" stroke="#38bdf8" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>'
+        + '<path d="'+makePath(parts)+'" fill="none" stroke="#fb923c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>'
+        + '<path d="'+makePath(func)+'" fill="none" stroke="#34d399" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>'
+        + '<path d="'+makePath(dep)+'" fill="none" stroke="#fbbf24" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/></svg>';
+    }
+  }
+  setTimeout(previewSalesBars, 80);
+  setTimeout(previewSalesBars, 420);
+  setTimeout(previewSalesBars, 1400);
+  setTimeout(previewSalesBars, 3200);
 })();
 </script>
 <script defer src="app-features.js"></script>
