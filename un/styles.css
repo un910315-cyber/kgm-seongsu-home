@@ -3950,6 +3950,29 @@ body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sal
 }
 
 /* ==========================================================================
+   :has() 미지원 브라우저 안전망 (구형 iOS/Android 등)
+   사이드바 모드 룰이 :has 의존 → 미지원 시 룰 전체 미적용 → sticky .header가
+   가로로 펼쳐지면서 page 제목이 그 영역에 침범하는 문제 fallback.
+   ========================================================================== */
+@supports not selector(:has(*)) {
+  /* sticky .header 영역 56px + 여유 확보 */
+  .page.active > .main {
+    padding-top: 80px;
+  }
+  /* 대시보드는 자체 dashboard-hero 처리 (영향 받지 않도록) */
+  #page-dashboard.active > .main {
+    padding-top: 16px;
+  }
+  /* 입출고는 .main::before로 자체 제목 표시 — padding 좀 줄임 */
+  #page-list.active > .main,
+  #page-status.active > .main,
+  #page-complete.active > .main,
+  #page-out.active > .main {
+    padding-top: 24px;
+  }
+}
+
+/* ==========================================================================
    Notices (게시판 페이지 상단 공지사항 섹션)
    ========================================================================== */
 .notice-card {
