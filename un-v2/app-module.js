@@ -323,6 +323,16 @@
       const saveAndEstimateGroup = document.getElementById('saveAndEstimateGroup');
       if (saveAndEstimateGroup) saveAndEstimateGroup.style.display = allowedMenus.includes('estimate') ? '' : 'none';
 
+      // 사이드바 하단 사용자 뱃지 (대시보드 사이드바 모드 ::before 콘텐츠)
+      try {
+        const header = document.querySelector('.header');
+        if (header) {
+          const firstName = (window._userName || '').split(' ')[0] || (user.email || '').split('@')[0] || 'USER';
+          const roleLabel = role === 'admin' ? 'ADMIN' : (role === 'staff' ? 'STAFF' : 'VIEWER');
+          header.setAttribute('data-user-badge', firstName + '   ' + roleLabel);
+        }
+      } catch(_) {}
+
       // 헤더에 사용자 정보 표시 (중복 방지)
       const headerRight = document.querySelector('.header-right');
       const existingBadge = document.getElementById('user-badge');
