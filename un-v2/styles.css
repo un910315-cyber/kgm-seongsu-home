@@ -1824,7 +1824,7 @@ body:has(.page.active) .page.active > .main {
   width: auto;
   max-width: none;
   margin: 0 0 0 204px;
-  padding: 48px 38px 28px;
+  padding: 92px 38px 28px;
 }
 
 #page-list .main,
