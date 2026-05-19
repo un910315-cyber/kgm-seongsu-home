@@ -107,28 +107,28 @@
   <div class="nav-tab" onclick="switchPage('usermgmt')" id="tab-usermgmt" style="display:none">사용자 관리</div>
 </div>
 
+<!-- 출고일정·예약차 사이드 패널 (대시보드·현황 어디서든 토글 가능하도록 page 밖에 배치) -->
+<aside class="dash-out-side hidden" id="dashOutSide">
+  <div class="dash-out-drag" id="dashOutDrag" title="드래그해서 위치 이동">⋮⋮ 드래그 ⋮⋮<button class="dash-out-close" onclick="window._toggleDashOutSide(false)" title="닫기">×</button></div>
+  <div class="group">
+    <h4> 이번주 출고 <span class="cnt" id="outSideThisCnt">0</span></h4>
+    <div id="outSideThis"></div>
+  </div>
+  <div class="group">
+    <h4> 다음주 출고 <span class="cnt" id="outSideNextCnt">0</span></h4>
+    <div id="outSideNext"></div>
+  </div>
+</aside>
+
+<aside class="dash-res-side hidden" id="dashResSide">
+  <div class="dash-out-drag" id="dashResDrag" title="드래그해서 위치 이동">⋮⋮ 드래그 ⋮⋮<button class="dash-out-close" onclick="window._toggleDashResSide(false)" title="닫기">×</button></div>
+  <h4> 예약차 <span class="cnt" id="resSideCnt">0</span></h4>
+  <button class="dash-res-add" onclick="window._openResModal()"> 예약차 등록</button>
+  <div id="resSideList"></div>
+</aside>
+
 <!-- DASHBOARD -->
 <div id="page-dashboard" class="page active">
-  <aside class="dash-out-side hidden" id="dashOutSide">
-    <div class="dash-out-drag" id="dashOutDrag" title="드래그해서 위치 이동">⋮⋮ 드래그 ⋮⋮<button class="dash-out-close" onclick="window._toggleDashOutSide(false)" title="닫기">×</button></div>
-    <div class="group">
-      <h4> 이번주 출고 <span class="cnt" id="outSideThisCnt">0</span></h4>
-      <div id="outSideThis"></div>
-    </div>
-    <div class="group">
-      <h4> 다음주 출고 <span class="cnt" id="outSideNextCnt">0</span></h4>
-      <div id="outSideNext"></div>
-    </div>
-  </aside>
-
-  <!-- 예약차 사이드바 (우측, 사용자 직접 등록) -->
-  <aside class="dash-res-side hidden" id="dashResSide">
-    <div class="dash-out-drag" id="dashResDrag" title="드래그해서 위치 이동">⋮⋮ 드래그 ⋮⋮<button class="dash-out-close" onclick="window._toggleDashResSide(false)" title="닫기">×</button></div>
-    <h4> 예약차 <span class="cnt" id="resSideCnt">0</span></h4>
-    <button class="dash-res-add" onclick="window._openResModal()"> 예약차 등록</button>
-    <div id="resSideList"></div>
-  </aside>
-
   <div class="main">
     <!-- 블랙 차량 입고 알림 (관리자만) -->
     <div id="blacklistAlertBanner" style="display:none;margin-bottom:16px;padding:14px 18px;background:rgba(232,68,42,.12);border:1px solid rgba(232,68,42,.45);border-left:4px solid #e8442a;border-radius:8px;">
