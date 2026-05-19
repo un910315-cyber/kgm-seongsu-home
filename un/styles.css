@@ -4704,3 +4704,23 @@ body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sal
     transform: none !important;
   }
 }
+
+/* Dashboard cumulative sales cleanup: remove the stray overflow line chart. */
+body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card {
+  overflow: hidden !important;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sales-chart,
+body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sales-legend {
+  display: none !important;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sales-mix {
+  margin-bottom: 0 !important;
+}
+
+/* KGM intake card: remove leftover decorative top line from the compact today card. */
+body:has(#page-dashboard.active) #page-dashboard .kgm-section .stats-grid[style*="grid-template-columns:1fr"] .stat-card::after {
+  content: none !important;
+  display: none !important;
+}
