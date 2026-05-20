@@ -1068,16 +1068,38 @@ body > div[style*="position:fixed;top:0;"] {
   border-top: 1px solid rgba(255,255,255,.06);
   flex: 1 1 auto;
   min-height: 0;
+  display: flex;
+  gap: 14px;
+}
+
+#page-dashboard .trend-wait-col {
+  flex: 1 1 0;
+  min-width: 0;
   overflow-y: auto;
 }
 
+#page-dashboard .trend-wait-col.tw-finished {
+  padding-left: 14px;
+  border-left: 1px solid rgba(255,255,255,.06);
+}
+
 #page-dashboard .trend-wait-head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: .4px;
   color: var(--text-dim);
   text-transform: uppercase;
   margin-bottom: 8px;
+}
+
+#page-dashboard .tw-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 #page-dashboard .trend-wait-empty {
@@ -1088,7 +1110,7 @@ body > div[style*="position:fixed;top:0;"] {
 
 #page-dashboard .trend-wait-row {
   display: grid;
-  grid-template-columns: 42px 1fr auto auto;
+  grid-template-columns: 42px 1fr auto;
   align-items: center;
   gap: 8px;
   padding: 6px 2px;
@@ -1122,17 +1144,7 @@ body > div[style*="position:fixed;top:0;"] {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 96px;
-}
-
-#page-dashboard .tw-st {
-  font-size: 10px;
-  font-weight: 700;
-  color: #a78bfa;
-  background: rgba(167,139,250,.12);
-  padding: 2px 7px;
-  border-radius: 999px;
-  white-space: nowrap;
+  max-width: 72px;
 }
 
 #page-dashboard .kgm-section,
