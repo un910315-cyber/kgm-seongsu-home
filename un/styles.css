@@ -3165,8 +3165,8 @@ body:has(#page-dashboard.active) #page-dashboard .stat-sub {
 }
 
 body:has(#page-dashboard.active) #page-dashboard .dashboard-row {
-  grid-template-columns: minmax(0, 1.55fr) minmax(360px, .92fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, .82fr) minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 14px;
   margin-bottom: 2px;
 }
 
@@ -4819,7 +4819,6 @@ body:has(.page.active) .sidebar-links a:hover {
   body:has(#page-dashboard.active) .dashboard-kpi-card .stats-grid {
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important;
   }
-  body:has(#page-dashboard.active) .dashboard-row,
   body:has(#page-dashboard.active) .dashboard-bottom-row {
     grid-template-columns: 1fr !important;
   }
@@ -5019,4 +5018,11 @@ body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sal
 body:has(#page-dashboard.active) #page-dashboard .kgm-section .stats-grid[style*="grid-template-columns:1fr"] .stat-card::after {
   content: none !important;
   display: none !important;
+}
+
+/* 모바일(<=760px): 대시보드 가운데 줄 3칸은 폰에서 1칸으로 (세로 스택) */
+@media (max-width: 760px) {
+  body:has(#page-dashboard.active) #page-dashboard .dashboard-row {
+    grid-template-columns: 1fr !important;
+  }
 }
