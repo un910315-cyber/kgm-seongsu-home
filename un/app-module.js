@@ -256,9 +256,7 @@
     try {
       document.getElementById('loginError').style.display='none';
       document.getElementById('loginDenied').style.display='none';
-      document.getElementById('googleLoginBtn').style.pointerEvents='none';
-      document.getElementById('googleLoginBtn').style.opacity='0.5';
-      await signInWithPopup(auth, provider);
+      await signInWithRedirect(auth, provider);
     } catch(e) {
       document.getElementById('googleLoginBtn').style.pointerEvents='';
       document.getElementById('googleLoginBtn').style.opacity='';
@@ -385,11 +383,11 @@
     try {
       if (err) err.style.display='none';
       if (denied) denied.style.display='none';
-      if (btn) { btn.style.pointerEvents='none'; btn.style.opacity='0.5'; }
-      await signInWithPopup(auth, provider);
+      if (btn) { btn.style.pointerEvents=''; btn.style.opacity=''; }
+      await signInWithRedirect(auth, provider);
     } catch(e) {
       try {
-        await signInWithRedirect(auth, provider);
+        await signInWithPopup(auth, provider);
         return;
       } catch (redirectError) {
         e = redirectError;
