@@ -2155,19 +2155,20 @@
     const daysInMonth = new Date(Number(opts.year), monthNo, 0).getDate();
     const isCurrentMonth = opts.year === currentYear && monthNo === currentMonth;
     const elapsedDays = isCurrentMonth ? Math.max(1, Math.min(now.getDate(), daysInMonth)) : daysInMonth;
-    const forecast = isCurrentMonth ? Math.round((current.total / elapsedDays) * daysInMonth) : current.total;
+    const remainingDays = isCurrentMonth ? Math.max(0, daysInMonth - elapsedDays) : 0;
+    const targetClose = isCurrentMonth ? current.total + remainingDays : current.total;
     const best = monthlyData.reduce((top, item) => item.total > top.total ? item : top, monthlyData[0]);
     const kgmPct = current.total ? Math.round((current.mKgm / current.total) * 100) : 0;
     const diffClass = diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat';
     const diffText = prevTotal ? (diff > 0 ? '+' : '') + diff + '대' : '전월 없음';
     const diffMeta = prevTotal ? '전월 ' + prevTotal + '대 기준' : '비교 데이터 대기';
-    const forecastLabel = isCurrentMonth ? '예상 마감' : '마감 대수';
+    const forecastLabel = isCurrentMonth ? '목표 마감' : '마감 대수';
     const monthLabel = monthNo + '월';
     const bestLabel = (best && best.total) ? best.m + '월 ' + best.total + '대' : '-';
     bar.innerHTML = [
       { cls: 'now', label: monthLabel + ' 현재', value: current.total + '대', meta: 'KGM 비중 ' + kgmPct + '%' },
       { cls: diffClass, label: '전월 대비', value: diffText, meta: diffMeta },
-      { cls: 'forecast', label: forecastLabel, value: forecast + '대', meta: isCurrentMonth ? '달력일 ' + elapsedDays + '/' + daysInMonth + '일' : '선택월 기준' },
+      { cls: 'forecast', label: forecastLabel, value: targetClose + '대', meta: isCurrentMonth ? current.total + '대 + 남은 ' + remainingDays + '일' : '선택월 기준' },
       { cls: 'best', label: '올해 최고월', value: bestLabel, meta: '월별 입고 피크' }
     ].map(item => (
       '<div class="monthly-insight-item ' + item.cls + '">' +
