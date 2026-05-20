@@ -4039,7 +4039,7 @@ body:has(.page.active) .sidebar-links {
   flex-direction: column;
   gap: 5px;
   position: fixed;
-  z-index: 101;
+  z-index: 130;
   left: 18px;
   width: 168px;
   bottom: 170px;
