@@ -159,6 +159,23 @@
       </div>
     </div>
 
+    <!-- 매출 일별 추이 (막대그래프) -->
+    <div class="chart-card widget-card sales-trend-card">
+      <div class="chart-header" style="justify-content:space-between;">
+        <div>
+          <div class="chart-title">매출 일별 추이</div>
+          <div class="chart-subtitle" id="salesTrendSub">최근 영업일 14일 · 보증·기능·파손보험 합계</div>
+        </div>
+        <a href="#" onclick="switchPage('sales');return false;" style="color:#c4b5fd;text-decoration:none;font-size:11px;font-weight:600;">매출 입력 →</a>
+      </div>
+      <div id="salesTrendChart" class="sales-trend-chart"></div>
+      <div class="sales-trend-legend">
+        <span style="--lc:#fbbf24;">보증</span>
+        <span style="--lc:#34d399;">기능</span>
+        <span style="--lc:#ef4444;">파손+보험</span>
+      </div>
+    </div>
+
     <div class="dashboard-row">
       <div class="kgm-section">
         <!-- 정비차량(KGM) 위젯 카드 -->
@@ -198,51 +215,6 @@
         </div>
       </div>
 
-      <div class="daily-sales-section">
-        <!-- 매출 보고 위젯 — 보증·기능 공임/부품 + 수납금계 (오늘 기준) -->
-        <div class="chart-card widget-card">
-          <div class="chart-header" style="justify-content:space-between;">
-            <div style="display:flex;align-items:baseline;gap:10px;">
-              <div class="chart-title">매출 보고</div>
-              <div class="chart-subtitle" id="daily-sales-date">—</div>
-            </div>
-            <a href="#" onclick="switchPage('sales');return false;" style="color:#c4b5fd;text-decoration:none;font-size:11px;font-weight:600;">입력 →</a>
-          </div>
-
-          <div class="dash-sales-grp">
-            <div class="dsg-head"><span class="dsg-dot" style="background:#fbbf24"></span>보증</div>
-            <div class="dsg-rows">
-              <div class="dsg-line"><span>공임</span><strong id="dash-w-labor">₩0</strong></div>
-              <div class="dsg-line"><span>부품</span><strong id="dash-w-parts">₩0</strong></div>
-              <div class="dsg-line dsg-total"><span>합계</span><strong id="dash-w-total">₩0</strong></div>
-            </div>
-          </div>
-
-          <div class="dash-sales-grp">
-            <div class="dsg-head"><span class="dsg-dot" style="background:#34d399"></span>기능</div>
-            <div class="dsg-rows">
-              <div class="dsg-line"><span>공임</span><strong id="dash-f-labor">₩0</strong></div>
-              <div class="dsg-line"><span>부품</span><strong id="dash-f-parts">₩0</strong></div>
-              <div class="dsg-line dsg-total"><span>합계</span><strong id="dash-f-total">₩0</strong></div>
-            </div>
-          </div>
-
-          <div class="dash-sales-grp">
-            <div class="dsg-head"><span class="dsg-dot" style="background:#ef4444"></span>파손+보험</div>
-            <div class="dsg-rows">
-              <div class="dsg-line"><span>공임</span><strong id="dash-d-labor">₩0</strong></div>
-              <div class="dsg-line"><span>부품</span><strong id="dash-d-parts">₩0</strong></div>
-              <div class="dsg-line dsg-total"><span>합계</span><strong id="dash-d-total">₩0</strong></div>
-            </div>
-          </div>
-
-          <div class="dash-received">
-            <span>총 수납금계</span>
-            <strong id="dash-received">₩0</strong>
-          </div>
-        </div>
-      </div>
-
       <div class="sales-chart-section">
         <div class="chart-card widget-card cumulative-sales-card">
           <div class="chart-header">
@@ -255,6 +227,14 @@
             <div><span>이번 달 누적</span><strong id="cum-sales-total">₩0</strong></div>
             <div><span>부품</span><strong id="cum-sales-parts">₩0</strong></div>
             <div><span>기능</span><strong id="cum-sales-function">₩0</strong></div>
+          </div>
+          <div class="cum-sales-mix">
+            <div id="cumSalesMixChart" class="cum-sales-mix-chart"></div>
+            <div class="cum-sales-mix-copy">
+              <span>매출 구성</span>
+              <strong id="cum-sales-mix-main">데이터 대기</strong>
+              <em id="cum-sales-mix-sub">부품·기능·보증 비중</em>
+            </div>
           </div>
           <div id="cumSalesChart" class="cum-sales-chart"></div>
           <div class="cum-sales-legend">
@@ -336,6 +316,22 @@
           <tfoot id="stats-tfoot"></tfoot>
         </table>
       </div>
+    </div>
+    <div class="chart-card widget-card dashboard-ops-card" style="margin-top:12px;">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">공장 운영 요약</div>
+          <div class="chart-subtitle">현재 차량 상태·위치 분포</div>
+        </div>
+      </div>
+      <div class="ops-summary-grid">
+        <div><span>가동 차량</span><strong id="ops-active-total">0</strong><em>공업사 내</em></div>
+        <div><span>작업 부하</span><strong id="ops-workload">0</strong><em>대기+수리중</em></div>
+        <div><span>출고 준비</span><strong id="ops-ready">0</strong><em>수리 완료</em></div>
+      </div>
+      <div id="opsStatusChart" class="ops-status-chart"></div>
+      <div class="ops-location-title">층·공정별 차량 분포</div>
+      <div id="opsLocationList" class="ops-location-list"></div>
     </div>
     </div>
   </div>

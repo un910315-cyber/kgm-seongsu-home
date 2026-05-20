@@ -858,6 +858,70 @@
     return { cls: 'down', text: '↓ 어제 ' + pct + '%' };
   }
 
+  function renderSalesTrendChart(days) {
+    const chart = document.getElementById('salesTrendChart');
+    if (!chart) return;
+    const items = (days || _last14Days()).map(day => {
+      const rec = salesDailyMap[day] || {};
+      const w = rec.warranty || {};
+      const f = rec.func || {};
+      const d = rec.disaster || {};
+      const warranty = (Number(w.labor) || 0) + (Number(w.parts) || 0);
+      const func = (Number(f.labor) || 0) + (Number(f.parts) || 0);
+      const disaster = (Number(d.labor) || 0) + (Number(d.parts) || 0);
+      return { day, warranty, func, disaster, total: warranty + func + disaster };
+    });
+    const max = Math.max(1, ...items.map(x => x.total));
+    const hasData = items.some(x => x.total > 0);
+    const fmtShort = n => {
+      n = Number(n) || 0;
+      if (n >= 100000000) return Math.round(n / 10000000) / 10 + '억';
+      if (n >= 10000) return Math.round(n / 10000) + '만';
+      return n ? n.toLocaleString('ko-KR') : '0';
+    };
+    if (!hasData) {
+      chart.innerHTML = '<div class="empty-mini">최근 매출 입력 데이터가 없습니다</div>';
+      const sub = document.getElementById('salesTrendSub');
+      if (sub) sub.textContent = '최근 14일 · 매출 입력 대기';
+      return;
+    }
+    const W = 900, H = 166, padL = 28, padR = 18, padT = 22, padB = 34;
+    const innerW = W - padL - padR;
+    const innerH = H - padT - padB;
+    const barGap = 7;
+    const barW = Math.max(12, innerW / items.length - barGap);
+    const bars = items.map((it, i) => {
+      const x = padL + i * (innerW / items.length) + barGap / 2;
+      let y = padT + innerH;
+      const segs = [
+        { key: 'warranty', value: it.warranty, color: '#fbbf24' },
+        { key: 'func', value: it.func, color: '#34d399' },
+        { key: 'disaster', value: it.disaster, color: '#ef4444' }
+      ];
+      const rects = segs.map(seg => {
+        const h = (seg.value / max) * innerH;
+        y -= h;
+        return h > 0.8 ? '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+Math.max(1, h).toFixed(1)+'" rx="3" fill="'+seg.color+'" opacity=".9"/>' : '';
+      }).join('');
+      const date = new Date(it.day + 'T00:00:00');
+      const label = (date.getMonth() + 1) + '/' + date.getDate();
+      const totalLabel = it.total > 0 ? '<text x="'+(x+barW/2).toFixed(1)+'" y="'+Math.max(12, y-7).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="900" fill="#dbeafe">'+fmtShort(it.total)+'</text>' : '';
+      return '<g>'+rects+totalLabel+'<text x="'+(x+barW/2).toFixed(1)+'" y="'+(H-10)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#7c879d">'+label+'</text></g>';
+    }).join('');
+    const total = items.reduce((s, x) => s + x.total, 0);
+    const lastNonZero = [...items].reverse().find(x => x.total > 0);
+    const sub = document.getElementById('salesTrendSub');
+    if (sub) sub.textContent = '최근 14일 합계 ' + _fmtKRW(total) + (lastNonZero ? ' · 최근 입력 ' + lastNonZero.day.slice(5).replace('-', '/') : '');
+    chart.innerHTML =
+      '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" class="sales-trend-svg">'
+      + '<defs><linearGradient id="salesTrendBg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#8b5cf6" stop-opacity=".08"/><stop offset="100%" stop-color="#38bdf8" stop-opacity=".04"/></linearGradient></defs>'
+      + '<rect x="0" y="0" width="'+W+'" height="'+H+'" rx="10" fill="url(#salesTrendBg)"/>'
+      + '<line x1="'+padL+'" y1="'+(padT+innerH)+'" x2="'+(W-padR)+'" y2="'+(padT+innerH)+'" stroke="rgba(255,255,255,.08)"/>'
+      + '<line x1="'+padL+'" y1="'+(padT+innerH/2)+'" x2="'+(W-padR)+'" y2="'+(padT+innerH/2)+'" stroke="rgba(255,255,255,.055)" stroke-dasharray="4,6"/>'
+      + bars
+      + '</svg>';
+  }
+
   // 대시보드 매출 보고 위젯 — 전날 기준 (하루 한 번 업무 후 입력하므로 당일은 비어있음)
   function renderSalesWidget() {
     const y = new Date(); y.setDate(y.getDate() - 1);
@@ -880,6 +944,7 @@
     set('dash-received', received);
     const dateEl = document.getElementById('daily-sales-date');
     if (dateEl) dateEl.textContent = refDay.replace(/^\d{4}-/, '').replace('-', '/') + ' (전날)';
+    renderSalesTrendChart(_last14Days());
 
     // 이번 달 누적 매출 차트 — 부품(보증부품+기능부품) / 기능 공임 / 보증 공임
     const mo = _thisMonthStr();
@@ -1414,6 +1479,7 @@
 
     renderKgmIntakeChart();  // kgmDailyMap 사용
     renderLocationDonut(active);
+    renderDashboardOps(active, list);
 
     // 월별 통계도 대시보드로 통합됨 → 같이 렌더
     if (typeof initYearSelect === 'function') { try { initYearSelect(); } catch(e){} }
@@ -1615,6 +1681,62 @@
     el.innerHTML = floors + unmappedFloor;
   }
   window._renderLocationDonut = renderLocationDonut;
+
+  function renderDashboardOps(activeList, allList) {
+    const active = Array.isArray(activeList) ? activeList : [];
+    const all = Array.isArray(allList) ? allList : active;
+    const today = new Date().toISOString().split('T')[0];
+    const wait = all.filter(r => r.status === '수리대기').length;
+    const repair = all.filter(r => r.status === '수리중').length;
+    const done = all.filter(r => r.status === '수리완료').length;
+    const intake = all.filter(r => r.inDate === today).length;
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('ops-active-total', active.length);
+    set('ops-workload', wait + repair);
+    set('ops-ready', done);
+
+    const statusChart = document.getElementById('opsStatusChart');
+    if (statusChart) {
+      const rows = [
+        { label: '수리 대기', value: wait, color: '#a78bfa' },
+        { label: '수리 중', value: repair, color: '#60a5fa' },
+        { label: '수리 완료', value: done, color: '#34d399' },
+        { label: '오늘 입고', value: intake, color: '#fb7185' }
+      ];
+      const max = Math.max(1, ...rows.map(r => r.value));
+      statusChart.innerHTML = rows.map(row => {
+        const pct = Math.round(row.value / max * 100);
+        return '<div class="ops-status-row" style="--ops-color:'+row.color+';--ops-width:'+pct+'%;">'
+          + '<div class="ops-status-head"><span>'+row.label+'</span><strong>'+row.value+'대</strong></div>'
+          + '<div class="ops-status-track"><i></i></div>'
+          + '</div>';
+      }).join('');
+    }
+
+    const floorCounts = { '5층':0, '3층':0, '2층':0, '1층':0, '지하':0, '미지정':0 };
+    active.forEach(r => {
+      const loc = (r.location || '').trim();
+      const mapped = FLOOR_MAP[loc];
+      if (mapped && floorCounts[mapped.floor] !== undefined) floorCounts[mapped.floor]++;
+      else floorCounts['미지정']++;
+    });
+    const locEl = document.getElementById('opsLocationList');
+    if (locEl) {
+      const total = Math.max(1, active.length);
+      const names = FLOOR_ORDER.concat(['미지정']);
+      locEl.innerHTML = names.map(name => {
+        const value = floorCounts[name] || 0;
+        const pct = Math.round(value / total * 100);
+        const color = FLOOR_COLORS[name] || FLOOR_COLORS['미지정'];
+        const role = FLOOR_ROLES[name] || '위치 미지정';
+        return '<div class="ops-location-row" style="--ops-color:'+color+';--ops-width:'+pct+'%;">'
+          + '<div class="ops-location-meta"><span>'+name+' · '+role+'</span><strong>'+value+'대</strong></div>'
+          + '<div class="ops-location-track"><i></i></div>'
+          + '</div>';
+      }).join('');
+    }
+  }
+  window._renderDashboardOps = renderDashboardOps;
 
   // ---- LIST ----
   function renderList() {
