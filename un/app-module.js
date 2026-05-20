@@ -1516,6 +1516,7 @@
     renderKgmIntakeChart();  // kgmDailyMap 사용
     renderLocationDonut(active);
     renderDashboardOps(active, list);
+    renderTrendWaitList(list);
 
     // 월별 통계도 대시보드로 통합됨 → 같이 렌더
     if (typeof initYearSelect === 'function') { try { initYearSelect(); } catch(e){} }
@@ -1717,6 +1718,30 @@
     el.innerHTML = floors + unmappedFloor;
   }
   window._renderLocationDonut = renderLocationDonut;
+
+  // 매출 추이 카드 하단 — 수리 대기 차량 목록 (오래된 입고순)
+  function renderTrendWaitList(list) {
+    const box = document.getElementById('trendWaitList');
+    if (!box) return;
+    const waiting = (Array.isArray(list) ? list : [])
+      .filter(r => r.status === '수리대기')
+      .sort((a, b) => String(a.inDate || '').localeCompare(String(b.inDate || '')));
+    if (!waiting.length) {
+      box.innerHTML = '<div class="trend-wait-head">수리 대기 차량</div>'
+        + '<div class="trend-wait-empty">대기 중인 차량 없음</div>';
+      return;
+    }
+    box.innerHTML = '<div class="trend-wait-head">수리 대기 ' + waiting.length + '대 · 오래된 입고순</div>'
+      + waiting.map(r => {
+        const inD = r.inDate ? String(r.inDate).slice(5).replace('-', '/') : '-';
+        return '<div class="trend-wait-row">'
+          + '<span class="tw-date">' + inD + '</span>'
+          + '<span class="tw-car" onclick="openDetailModal(\'' + esc(r.id) + '\')" title="클릭하여 상세보기">' + esc(r.carNum) + '</span>'
+          + '<span class="tw-loc">' + (esc(r.location) || '-') + '</span>'
+          + '<span class="tw-st">' + esc(r.status) + '</span>'
+          + '</div>';
+      }).join('');
+  }
 
   function renderDashboardOps(activeList, allList) {
     const active = Array.isArray(activeList) ? activeList : [];

@@ -1056,6 +1056,85 @@ body > div[style*="position:fixed;top:0;"] {
   }
 }
 
+/* 매출 추이 카드 하단 — 수리 대기 차량 목록 */
+#page-dashboard .sales-trend-card {
+  display: flex;
+  flex-direction: column;
+}
+
+#page-dashboard .trend-wait {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+#page-dashboard .trend-wait-head {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .4px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+#page-dashboard .trend-wait-empty {
+  font-size: 12px;
+  color: var(--text-dim);
+  padding: 8px 2px;
+}
+
+#page-dashboard .trend-wait-row {
+  display: grid;
+  grid-template-columns: 42px 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 2px;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+  font-size: 12px;
+}
+
+#page-dashboard .trend-wait-row:last-child {
+  border-bottom: 0;
+}
+
+#page-dashboard .tw-date {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+#page-dashboard .tw-car {
+  font-weight: 700;
+  color: #c4b5fd;
+  cursor: pointer;
+}
+
+#page-dashboard .tw-car:hover {
+  text-decoration: underline;
+}
+
+#page-dashboard .tw-loc {
+  color: #aab4c8;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 96px;
+}
+
+#page-dashboard .tw-st {
+  font-size: 10px;
+  font-weight: 700;
+  color: #a78bfa;
+  background: rgba(167,139,250,.12);
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
 #page-dashboard .kgm-section,
 #page-dashboard .daily-sales-section,
 #page-dashboard .sales-chart-section {
