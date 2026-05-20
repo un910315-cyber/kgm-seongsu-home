@@ -1,0 +1,168 @@
+// KGM 자비스 — Cloudflare Worker (Claude API 중계 서버)
+// ─────────────────────────────────────────────────────────────
+// 역할: 자비스 PWA의 질문을 받아 Claude(Anthropic API)로 중계.
+//   - Anthropic API 키는 Cloudflare의 Secret(ANTHROPIC_API_KEY)으로 보관 → 코드·깃에 노출 안 됨
+//   - 날씨 질문이면 Open-Meteo(키 불필요·무료)에서 성수동 날씨를 받아 함께 전달
+//   - 정비소 데이터는 PWA가 context로 보내줌 (Firebase에서 읽은 요약)
+// 배포: Cloudflare 대시보드에 이 파일 내용을 붙여넣고, Secret 등록 후 Deploy.
+
+const MODEL = 'claude-haiku-4-5';
+
+// CORS 허용 출처
+const ALLOWED_ORIGINS = [
+  'https://kgm-seongsu.co.kr',
+  'https://www.kgm-seongsu.co.kr',
+  'https://un910315-cyber.github.io',
+];
+
+// 성수동 좌표 (Open-Meteo 날씨 조회용)
+const LAT = 37.5446;
+const LON = 127.0560;
+
+// 자비스 페르소나 — 정적(매 요청 동일) → 프롬프트 캐싱 대상
+const SYSTEM_PROMPT = [
+  "당신은 'KGM 성수서비스센터'의 음성 비서 '자비스'입니다. 정비소 대표님을 보좌합니다.",
+  '',
+  '말투와 형식:',
+  '- 항상 한국어 존댓말로, 짧고 명확하게 답하세요.',
+  '- 답변은 음성으로 읽히므로 보통 2~4문장 이내로 간결하게 합니다.',
+  '- 이모지, 마크다운 기호(*, #, - 등), 표는 절대 쓰지 마세요. 음성으로 읽기 때문입니다.',
+  '- 금액은 "삼십이만 원"처럼 또는 "32만 원"처럼 자연스럽게 읽히도록 표현하세요.',
+  '',
+  '답변 근거:',
+  '- 정비소 관련 질문(차량 현황, 매출, 연차, 블랙리스트 등)은 사용자 메시지의 [정비소 현황]만 근거로 답하세요.',
+  '- 데이터에 없는 내용은 추측하지 말고 "그 정보는 아직 없습니다"라고 솔직히 답하세요. 숫자를 지어내지 마세요.',
+  '- 날씨 정보가 함께 주어지면 그 값을 사용해 답하세요.',
+  '- 일반 상식이나 잡담 질문에는 비서답게 친절히 도와드리세요.',
+  '- 대표님을 "대표님"이라고 부르세요.',
+].join('\n');
+
+// Open-Meteo weather_code → 한국어
+const WEATHER_CODES = {
+  0: '맑음', 1: '대체로 맑음', 2: '구름 조금', 3: '흐림',
+  45: '안개', 48: '서리 안개',
+  51: '약한 이슬비', 53: '이슬비', 55: '강한 이슬비',
+  56: '어는 이슬비', 57: '강한 어는 이슬비',
+  61: '약한 비', 63: '비', 65: '강한 비',
+  66: '어는 비', 67: '강한 어는 비',
+  71: '약한 눈', 73: '눈', 75: '강한 눈', 77: '싸락눈',
+  80: '소나기', 81: '소나기', 82: '강한 소나기',
+  85: '약한 눈소나기', 86: '강한 눈소나기',
+  95: '천둥번개', 96: '천둥번개와 우박', 99: '강한 천둥번개와 우박',
+};
+
+function corsHeaders(origin) {
+  const allow = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allow,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Max-Age': '86400',
+  };
+}
+
+function json(obj, status, origin) {
+  return new Response(JSON.stringify(obj), {
+    status: status || 200,
+    headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
+  });
+}
+
+function round(n) {
+  return (typeof n === 'number' && isFinite(n)) ? Math.round(n) : '?';
+}
+
+async function getWeather() {
+  const url = 'https://api.open-meteo.com/v1/forecast'
+    + '?latitude=' + LAT + '&longitude=' + LON
+    + '&current=temperature_2m,apparent_temperature,weather_code'
+    + '&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max'
+    + '&timezone=Asia%2FSeoul&forecast_days=1';
+  const r = await fetch(url);
+  if (!r.ok) return '';
+  const d = await r.json();
+  const c = d.current || {};
+  const day = d.daily || {};
+  const desc = WEATHER_CODES[c.weather_code] || '';
+  const hi = (day.temperature_2m_max || [])[0];
+  const lo = (day.temperature_2m_min || [])[0];
+  const pop = (day.precipitation_probability_max || [])[0];
+  return '[오늘 성수동 날씨] ' + desc
+    + ', 현재 ' + round(c.temperature_2m) + '도'
+    + '(체감 ' + round(c.apparent_temperature) + '도)'
+    + ', 최고 ' + round(hi) + '도 / 최저 ' + round(lo) + '도'
+    + ', 강수확률 ' + (pop == null ? '?' : pop) + '%.';
+}
+
+export default {
+  async fetch(request, env) {
+    const origin = request.headers.get('Origin') || '';
+
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: corsHeaders(origin) });
+    }
+    if (request.method !== 'POST') {
+      return json({ error: 'POST only' }, 405, origin);
+    }
+    if (!env.ANTHROPIC_API_KEY) {
+      return json({ error: 'ANTHROPIC_API_KEY 시크릿이 설정되지 않았습니다.' }, 500, origin);
+    }
+
+    let body;
+    try { body = await request.json(); }
+    catch { return json({ error: 'invalid json' }, 400, origin); }
+
+    const question = String(body.question || '').trim().slice(0, 1000);
+    const context = String(body.context || '').slice(0, 8000);
+    if (!question) return json({ error: 'no question' }, 400, origin);
+
+    // 날씨 관련 질문이면 Open-Meteo 조회
+    let weather = '';
+    if (/날씨|기온|비\s|비가|비\?|눈\s|눈이|더운|더워|추운|추워|따뜻|쌀쌀|우산|미세먼지/.test(question)) {
+      try { weather = await getWeather(); } catch (e) { weather = ''; }
+    }
+
+    const userContent =
+      '[정비소 현황]\n' + (context || '(데이터 없음)')
+      + (weather ? '\n\n' + weather : '')
+      + '\n\n[질문]\n' + question;
+
+    const payload = {
+      model: MODEL,
+      max_tokens: 1024,
+      system: [
+        { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
+      ],
+      messages: [{ role: 'user', content: userContent }],
+    };
+
+    let res;
+    try {
+      res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': env.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify(payload),
+      });
+    } catch (e) {
+      return json({ error: 'Claude 서버에 연결하지 못했습니다.' }, 502, origin);
+    }
+
+    if (!res.ok) {
+      const detail = (await res.text()).slice(0, 300);
+      return json({ error: 'Claude 오류 (' + res.status + ')', detail }, 502, origin);
+    }
+
+    const data = await res.json();
+    const answer = (data.content || [])
+      .filter((b) => b && b.type === 'text')
+      .map((b) => b.text)
+      .join('\n')
+      .trim();
+
+    return json({ answer: answer || '죄송해요 대표님, 답을 만들지 못했어요.' }, 200, origin);
+  },
+};

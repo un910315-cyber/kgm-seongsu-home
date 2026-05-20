@@ -24,6 +24,11 @@ const db = getDatabase(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
+// ── 2단계: Claude 중계 서버 (Cloudflare Worker) ──
+// Worker 배포 후 workers.dev 주소를 여기에 넣으면 자비스가 Claude 두뇌로 동작.
+// 비어 있으면 1단계(키워드 응답) 모드로 작동. Worker 오류 시에도 키워드 모드로 자동 폴백.
+const WORKER_URL = '';
+
 // ── DOM ──
 const $ = (id) => document.getElementById(id);
 const loginScreen = $('loginScreen');
@@ -407,21 +412,96 @@ $('voiceTestBtn').addEventListener('click', () => {
 });
 
 // ════════════════════════════════════════════════
+//  Claude 중계 서버 연동 (2단계)
+// ════════════════════════════════════════════════
+// 정비소 데이터를 Claude가 이해할 수 있는 압축 텍스트로 만든다.
+function buildContext() {
+  if (!dataReady) return '';
+  const recs = recordsArr();
+  const lines = ['오늘 날짜: ' + todayStr() + ' (' + WEEKDAYS[new Date().getDay()] + '요일)'];
+
+  const fmt = (arr) => arr.slice(0, 30).map((r) => {
+    let s = r.carNum || '?';
+    if (r.carModel) s += '/' + r.carModel;
+    if (r.location) s += '/' + r.location;
+    if (r.inDate) s += '/입고' + r.inDate;
+    return s;
+  }).join('; ');
+  const byStatus = (s) => recs.filter((r) => r.status === s);
+  const wait = byStatus('수리대기'), repair = byStatus('수리중'), done = byStatus('수리완료');
+  lines.push('수리대기 ' + wait.length + '대: ' + (fmt(wait) || '없음'));
+  lines.push('수리중 ' + repair.length + '대: ' + (fmt(repair) || '없음'));
+  lines.push('수리완료(출고대기) ' + done.length + '대: ' + (fmt(done) || '없음'));
+  lines.push('오늘 입고: ' + recs.filter((r) => r.inDate === todayStr()).length + '대');
+
+  const sd = store.salesDaily || {};
+  const g = (o) => (Number(o && o.labor) || 0) + (Number(o && o.parts) || 0);
+  const sumDay = (rec) => rec ? (g(rec.warranty) + g(rec.func) + g(rec.disaster)) : 0;
+  const today = sd[todayStr()], yest = sd[todayStr(-1)];
+  if (today) lines.push('오늘 매출: 공임·부품 ' + won(sumDay(today)) + ', 수납금계 ' + won(today.received || 0));
+  if (yest) lines.push('어제 매출: 공임·부품 ' + won(sumDay(yest)) + ', 수납금계 ' + won(yest.received || 0));
+  let mTot = 0, mRec = 0, mDays = 0;
+  const prefix = todayStr().slice(0, 7);
+  Object.entries(sd).forEach(([d, rec]) => {
+    if (d.startsWith(prefix) && rec) { mTot += sumDay(rec); mRec += Number(rec.received) || 0; mDays++; }
+  });
+  lines.push('이번 달 매출(' + mDays + '일치): 공임·부품 ' + won(mTot) + ', 수납금계 ' + won(mRec));
+
+  Object.entries(store.emps || {}).forEach(([id, e]) => {
+    if (!e || !e.name) return;
+    let uh = 0;
+    Object.values(store.usage || {}).forEach((u) => { if (u && u.empId === id) uh += Number(u.hours) || 0; });
+    const ud = Math.round((uh / 8) * 10) / 10;
+    const total = Number(e.totalLeave) || 0;
+    lines.push('연차 ' + e.name + ': 총 ' + total + '일, 사용 ' + ud + '일, 잔여 ' + (Math.round((total - ud) * 10) / 10) + '일');
+  });
+
+  const bl = Object.values(store.blacklist || {});
+  if (bl.length) {
+    lines.push('블랙리스트 ' + bl.length + '대: ' +
+      bl.slice(0, 20).map((b) => b.carNum + '(' + (b.reason || '사유미기재') + ')').join('; '));
+  }
+  return lines.join('\n');
+}
+
+async function askWorker(question) {
+  const res = await fetch(WORKER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question: question, context: buildContext() }),
+  });
+  if (!res.ok) throw new Error('worker ' + res.status);
+  const data = await res.json();
+  if (!data || !data.answer) throw new Error(data && data.error ? data.error : 'no answer');
+  return data.answer;
+}
+
+// ════════════════════════════════════════════════
 //  질문 처리 흐름
 // ════════════════════════════════════════════════
-function handleQuery(text) {
+async function handleQuery(text) {
   const q = String(text || '').trim();
   if (!q) return;
   fadeIn(capYou, '“' + q + '”');
   fadeIn(capJv, '');
   setOrb('thinking');
   setStatus('생각하는 중…');
-  setTimeout(() => {
-    const reply = answer(q);
-    fadeIn(capJv, reply);
-    capJv.scrollTop = 0;
-    speak(reply);
-  }, 420);
+
+  let reply;
+  if (WORKER_URL) {
+    try {
+      reply = await askWorker(q);
+    } catch (e) {
+      // 중계 서버 실패 → 1단계 키워드 모드로 폴백
+      reply = answer(q);
+    }
+  } else {
+    await new Promise((r) => setTimeout(r, 360));
+    reply = answer(q);
+  }
+  fadeIn(capJv, reply);
+  capJv.scrollTop = 0;
+  speak(reply);
 }
 
 // ── 키보드 입력 (보조) ──
