@@ -43,6 +43,7 @@ const textInput = $('textInput');
 const sendBtn = $('sendBtn');
 const kbToggle = $('kbToggle');
 const inputWrap = $('inputWrap');
+const handsfreeBtn = $('handsfreeBtn');
 
 // ── 데이터 저장소 (Firebase 실시간 동기화) ──
 const store = { records: {}, blacklist: {}, salesDaily: {}, kgmDaily: {}, emps: {}, usage: {} };
@@ -335,8 +336,22 @@ function primeTTS() {
   } catch (e) {}
 }
 
+// ── 연속 대화(핸즈프리) 모드 ──
+// 켜면 답변이 끝날 때마다 마이크가 자동으로 다시 열려서, 매번 탭하지 않아도 됨.
+let continuousMode = false;
+function reListen() {
+  if (!continuousMode) return;
+  setTimeout(() => { if (continuousMode && !listening) startListening(); }, 450);
+}
+// 자비스가 말을 끝냈을 때 공통 처리
+function onSpeakDone() {
+  setOrb('idle');
+  setStatus(continuousMode ? '연속 대화 모드 — 말씀하세요' : IDLE_HINT);
+  reListen();
+}
+
 function speak(text) {
-  if (!window.speechSynthesis) { setOrb('idle'); setStatus(IDLE_HINT); return; }
+  if (!window.speechSynthesis) { onSpeakDone(); return; }
   try { window.speechSynthesis.cancel(); } catch (e) {}
   try { window.speechSynthesis.resume(); } catch (e) {}
   const u = new SpeechSynthesisUtterance(String(text).replace(/[⚠️]/g, ''));
@@ -347,11 +362,11 @@ function speak(text) {
   u.pitch = voicePrefs.pitch;
   let started = false;
   u.onstart = () => { started = true; setOrb('speaking'); };
-  u.onend = () => { setOrb('idle'); setStatus(IDLE_HINT); };
-  u.onerror = () => { setOrb('idle'); setStatus(IDLE_HINT); };
+  u.onend = () => onSpeakDone();
+  u.onerror = () => onSpeakDone();
   window.speechSynthesis.speak(u);
   // 워치독 — 음성이 안 켜져도 오브가 '생각 중'에 멈추지 않도록
-  setTimeout(() => { if (!started) { setOrb('idle'); setStatus(IDLE_HINT); } }, 1600);
+  setTimeout(() => { if (!started) onSpeakDone(); }, 1600);
 }
 
 // 중계서버가 보내준 자연스러운 음성(data URI) 재생. 실패 시 폰 기본 음성으로 폴백.
@@ -360,7 +375,7 @@ function speakAudio(dataUri, fallbackText) {
   try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {}
   let started = false;
   jarvisAudio.onplay = () => { started = true; setOrb('speaking'); };
-  jarvisAudio.onended = () => { setOrb('idle'); setStatus(IDLE_HINT); };
+  jarvisAudio.onended = () => onSpeakDone();
   jarvisAudio.onerror = () => { if (!started) speak(fallbackText); };
   jarvisAudio.src = dataUri;
   const p = jarvisAudio.play();
@@ -627,12 +642,15 @@ if (SR) {
   recog.onerror = (e) => {
     stopListening();
     if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      setContinuous(false);
       setStatus('마이크 권한이 필요해요. 키보드로 입력해 주세요.');
       openKeyboard();
     } else if (e.error === 'no-speech') {
-      setStatus('말소리를 못 들었어요. 오브를 다시 탭해 주세요.');
+      if (continuousMode) { setStatus('연속 대화 모드 — 말씀하세요'); reListen(); }
+      else setStatus('말소리를 못 들었어요. 오브를 다시 탭해 주세요.');
     } else {
-      setStatus(IDLE_HINT);
+      if (continuousMode) reListen();
+      else setStatus(IDLE_HINT);
     }
   };
   recog.onend = () => {
@@ -665,10 +683,40 @@ function stopListening() {
 orb.addEventListener('click', () => {
   if (!settingsModal.hidden) return;
   primeTTS();
+  if (continuousMode) { setContinuous(false); return; }
   if (listening) { stopListening(); return; }
   if (!recog) { openKeyboard(); return; }
   startListening();
 });
+
+// 연속 대화(핸즈프리) 모드 토글
+function setContinuous(on) {
+  continuousMode = on;
+  if (handsfreeBtn) handsfreeBtn.classList.toggle('on', on);
+  if (on) {
+    primeTTS();
+    if (!recog) {
+      continuousMode = false;
+      if (handsfreeBtn) handsfreeBtn.classList.remove('on');
+      openKeyboard();
+      return;
+    }
+    if (!listening) startListening();
+    else setStatus('연속 대화 모드 — 말씀하세요');
+  } else {
+    stopListening();
+    try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {}
+    try { jarvisAudio.pause(); } catch (e) {}
+    setOrb('idle');
+    setStatus(IDLE_HINT);
+  }
+}
+if (handsfreeBtn) {
+  handsfreeBtn.addEventListener('click', () => {
+    if (!settingsModal.hidden) return;
+    setContinuous(!continuousMode);
+  });
+}
 
 // ════════════════════════════════════════════════
 //  서비스 워커

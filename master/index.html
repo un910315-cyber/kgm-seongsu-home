@@ -296,6 +296,16 @@
     font-size: 16px; opacity: .5;
   }
   #kbToggle.on { opacity: 1; color: #9ec8ff; border-color: rgba(75,156,255,.4); }
+  #handsfreeBtn {
+    height: 38px; flex-shrink: 0; padding: 0 13px;
+    background: transparent; color: var(--dim);
+    border: 1px solid var(--line); border-radius: 11px;
+    font-size: 12px; font-weight: 700; letter-spacing: .5px; opacity: .5;
+  }
+  #handsfreeBtn.on {
+    opacity: 1; color: #00d9ff;
+    border-color: rgba(0,217,255,.5); background: rgba(0,217,255,.1);
+  }
   #inputWrap { display: flex; gap: 8px; flex: 1; }
   #inputWrap[hidden] { display: none; }
   #textInput {
@@ -406,6 +416,7 @@
         <input id="textInput" type="text" placeholder="질문을 입력하세요" autocomplete="off" enterkeyhint="send">
         <button id="sendBtn" aria-label="보내기">➤</button>
       </div>
+      <button id="handsfreeBtn" aria-label="연속 대화 모드">연속</button>
       <button id="kbToggle" aria-label="키보드 입력">⌨</button>
     </div>
   </div>
@@ -431,6 +442,6 @@
     </div>
   </div>
 
-  <script type="module" src="app.js?v=v8-2026-05-20"></script>
+  <script type="module" src="app.js?v=v9-2026-05-21"></script>
 </body>
 </html>
