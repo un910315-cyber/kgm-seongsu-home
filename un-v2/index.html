@@ -542,17 +542,11 @@
         <div class="sales-grp-head"><span class="sales-grp-dot" style="background:#fbbf24"></span>보증</div>
         <div class="sk-card-grid">
           <button type="button" class="sk-card" onclick="window.openSalesKeypad('w_labor')">
-            <span class="sk-card-label">공임</span>
+            <span class="sk-card-label">보증 매출 (공임+부품)</span>
             <span class="sk-card-value" id="sv-w_labor">₩0</span>
             <span class="sk-card-hint">탭하여 입력</span>
           </button>
-          <button type="button" class="sk-card" onclick="window.openSalesKeypad('w_parts')">
-            <span class="sk-card-label">부품</span>
-            <span class="sk-card-value" id="sv-w_parts">₩0</span>
-            <span class="sk-card-hint">탭하여 입력</span>
-          </button>
         </div>
-        <div class="sales-subtotal">보증 합계 <strong id="sv-w_total">₩0</strong></div>
       </div>
 
       <!-- 기능 -->
@@ -620,30 +614,6 @@
       <input type="hidden" id="si-d_parts">
       <input type="hidden" id="si-received">
       <input type="hidden" id="si-kgm">
-    </div>
-
-    <!-- 매달 보고 -->
-    <div class="chart-card widget-card" style="margin-top:12px;">
-      <div class="chart-header" style="justify-content:space-between;flex-wrap:wrap;gap:10px;">
-        <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
-          <div class="chart-title">매달 보고</div>
-          <div class="chart-subtitle" id="monthly-report-month">—</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <input type="month" id="sales-page-month" onclick="this.showPicker&&this.showPicker()" onchange="window._setSalesMonth&&window._setSalesMonth(this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-size:12px;font-family:inherit;cursor:pointer;">
-          <button type="button" class="btn btn-ghost btn-sm" onclick="window._setSalesMonth&&window._setSalesMonth('')">이번달</button>
-        </div>
-      </div>
-
-      <div class="sk-card-grid">
-        <button type="button" class="sk-card" data-cat="deposit" onclick="window.openSalesKeypad('deposit')">
-          <span class="sk-card-dot" style="background:#fbbf24"></span>
-          <span class="sk-card-label">이달 보증</span>
-          <span class="sk-card-value" id="deposit-value">₩0</span>
-          <span class="sk-card-hint">탭하여 입력</span>
-        </button>
-      </div>
-      <input type="hidden" id="deposit-input">
     </div>
 
   </div>

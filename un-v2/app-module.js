@@ -198,7 +198,7 @@
     const labels = [
       { name: '\uBD80\uD488', value: partsAmount, color: '#fb923c' },
       { name: '\uAE30\uB2A5', value: funcAmount, color: '#34d399' },
-      { name: '\uBCF4\uC99D\uAE08', value: depositAmount, color: '#fbbf24' }
+      { name: '\uBCF4\uC99D', value: depositAmount, color: '#fbbf24' }
     ];
     chart.innerHTML = '<svg viewBox="0 0 760 210" preserveAspectRatio="none" style="width:100%;height:100%;display:block;">'
       + '<defs><linearGradient id="cumSalesTotalArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38bdf8" stop-opacity=".22"/><stop offset="100%" stop-color="#38bdf8" stop-opacity=".015"/></linearGradient><filter id="cumSalesGlow"><feGaussianBlur stdDeviation="2.2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'
@@ -256,9 +256,7 @@
     try {
       document.getElementById('loginError').style.display='none';
       document.getElementById('loginDenied').style.display='none';
-      document.getElementById('googleLoginBtn').style.pointerEvents='none';
-      document.getElementById('googleLoginBtn').style.opacity='0.5';
-      await signInWithPopup(auth, provider);
+      await signInWithRedirect(auth, provider);
     } catch(e) {
       document.getElementById('googleLoginBtn').style.pointerEvents='';
       document.getElementById('googleLoginBtn').style.opacity='';
@@ -281,6 +279,7 @@
     const loadingScreen = document.getElementById('loadingScreen');
 
     if(!user){
+      stopRealtimeListeners();
       if (LOCAL_DASHBOARD_PREVIEW) {
         renderLocalDashboardPreview();
         setTimeout(renderLocalDashboardPreview, 300);
@@ -297,6 +296,7 @@
     try {
       const userDoc = await getDoc(doc(fsd, 'users', user.email));
       if(!userDoc.exists()){
+        stopRealtimeListeners();
         // 미등록 사용자 → Firestore에 접근 요청 기록
         await setDoc(doc(fsd, 'access_requests', user.email), {
           email: user.email,
@@ -359,6 +359,7 @@
       }
 
       // 로그인 화면 숨기기 → 앱 표시
+      startRealtimeListeners();
       loginScreen.style.display='none';
       document.body.style.overflow='';
       // Matrix 배경 애니메이션 중지 (성능)
@@ -382,11 +383,11 @@
     try {
       if (err) err.style.display='none';
       if (denied) denied.style.display='none';
-      if (btn) { btn.style.pointerEvents='none'; btn.style.opacity='0.5'; }
-      await signInWithPopup(auth, provider);
+      if (btn) { btn.style.pointerEvents=''; btn.style.opacity=''; }
+      await signInWithRedirect(auth, provider);
     } catch(e) {
       try {
-        await signInWithRedirect(auth, provider);
+        await signInWithPopup(auth, provider);
         return;
       } catch (redirectError) {
         e = redirectError;
@@ -602,6 +603,35 @@
   const kgmDailyRef = ref(db, 'kgmDailyCount');
   const salesDailyRef = ref(db, 'salesDaily');     // { 'YYYY-MM-DD': { parts, function } }
   const depositRef = ref(db, 'monthlyDeposit');    // { 'YYYY-MM': number }
+  let realtimeReady = false;
+  let realtimeStarted = false;
+  const realtimeQueue = [];
+  const realtimeUnsubs = [];
+  function authReadyOnValue(targetRef, next, error) {
+    const start = () => onValue(targetRef, next, error);
+    if (realtimeReady) {
+      const unsub = start();
+      realtimeUnsubs.push(unsub);
+      return unsub;
+    }
+    realtimeQueue.push(start);
+    return function(){};
+  }
+  function startRealtimeListeners() {
+    if (realtimeStarted) return;
+    realtimeReady = true;
+    realtimeStarted = true;
+    while (realtimeQueue.length) {
+      try { realtimeUnsubs.push(realtimeQueue.shift()()); } catch(e) { console.warn('realtime listener start failed', e); }
+    }
+  }
+  function stopRealtimeListeners() {
+    while (realtimeUnsubs.length) {
+      try { realtimeUnsubs.pop()(); } catch(e) {}
+    }
+    realtimeReady = false;
+    realtimeStarted = false;
+  }
 
   let records = {};
   let blacklistMap = {};
@@ -621,7 +651,7 @@
   };
 
   // 블랙리스트 실시간 구독
-  onValue(blacklistRef, (snapshot) => {
+  authReadyOnValue(blacklistRef, (snapshot) => {
     blacklistMap = snapshot.val() || {};
     // 현재 열려있는 입출고 폼이 있으면 경고 다시 평가
     if (typeof window._checkBlacklistWarning === 'function') {
@@ -697,7 +727,7 @@
   };
 
   // 실시간 데이터 수신
-  onValue(recordsRef, (snapshot) => {
+  authReadyOnValue(recordsRef, (snapshot) => {
     records = snapshot.val() || {};
     document.getElementById('loadingScreen').style.display = 'none';
     refreshAll();
@@ -709,7 +739,7 @@
   });
 
   // KGM 일일 카운트 실시간 수신
-  onValue(kgmDailyRef, (snap) => {
+  authReadyOnValue(kgmDailyRef, (snap) => {
     const val = snap.val() || {};
     kgmDailyMap = {};
     Object.entries(val).forEach(([k, v]) => {
@@ -721,13 +751,13 @@
   }, (err) => { console.warn('kgmDaily subscribe', err); });
 
   // 일일 매출 실시간 수신
-  onValue(salesDailyRef, (snap) => {
+  authReadyOnValue(salesDailyRef, (snap) => {
     salesDailyMap = snap.val() || {};
     if (typeof renderSalesWidget === 'function') { try { renderSalesWidget(); } catch(e){} }
   }, (err) => { console.warn('salesDaily subscribe', err); });
 
   // 매달 보증금 실시간 수신
-  onValue(depositRef, (snap) => {
+  authReadyOnValue(depositRef, (snap) => {
     depositMap = snap.val() || {};
     if (typeof renderSalesWidget === 'function') { try { renderSalesWidget(); } catch(e){} }
   }, (err) => { console.warn('deposit subscribe', err); });
@@ -829,6 +859,70 @@
     return { cls: 'down', text: '↓ 어제 ' + pct + '%' };
   }
 
+  function renderSalesTrendChart(days) {
+    const chart = document.getElementById('salesTrendChart');
+    if (!chart) return;
+    const items = (days || _last14Days()).map(day => {
+      const rec = salesDailyMap[day] || {};
+      const w = rec.warranty || {};
+      const f = rec.func || {};
+      const d = rec.disaster || {};
+      const warranty = (Number(w.labor) || 0) + (Number(w.parts) || 0);
+      const func = (Number(f.labor) || 0) + (Number(f.parts) || 0);
+      const disaster = (Number(d.labor) || 0) + (Number(d.parts) || 0);
+      return { day, warranty, func, disaster, total: warranty + func + disaster };
+    });
+    const max = Math.max(1, ...items.map(x => x.total));
+    const hasData = items.some(x => x.total > 0);
+    const fmtShort = n => {
+      n = Number(n) || 0;
+      if (n >= 100000000) return Math.round(n / 10000000) / 10 + '억';
+      if (n >= 10000) return Math.round(n / 10000) + '만';
+      return n ? n.toLocaleString('ko-KR') : '0';
+    };
+    if (!hasData) {
+      chart.innerHTML = '<div class="empty-mini">최근 매출 입력 데이터가 없습니다</div>';
+      const sub = document.getElementById('salesTrendSub');
+      if (sub) sub.textContent = '최근 14일 · 매출 입력 대기';
+      return;
+    }
+    const W = 900, H = 166, padL = 28, padR = 18, padT = 22, padB = 34;
+    const innerW = W - padL - padR;
+    const innerH = H - padT - padB;
+    const barGap = 7;
+    const barW = Math.max(12, innerW / items.length - barGap);
+    const bars = items.map((it, i) => {
+      const x = padL + i * (innerW / items.length) + barGap / 2;
+      let y = padT + innerH;
+      const segs = [
+        { key: 'warranty', value: it.warranty, color: '#fbbf24' },
+        { key: 'func', value: it.func, color: '#34d399' },
+        { key: 'disaster', value: it.disaster, color: '#ef4444' }
+      ];
+      const rects = segs.map(seg => {
+        const h = (seg.value / max) * innerH;
+        y -= h;
+        return h > 0.8 ? '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+Math.max(1, h).toFixed(1)+'" rx="3" fill="'+seg.color+'" opacity=".9"/>' : '';
+      }).join('');
+      const date = new Date(it.day + 'T00:00:00');
+      const label = (date.getMonth() + 1) + '/' + date.getDate();
+      const totalLabel = it.total > 0 ? '<text x="'+(x+barW/2).toFixed(1)+'" y="'+Math.max(12, y-7).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="900" fill="#dbeafe">'+fmtShort(it.total)+'</text>' : '';
+      return '<g>'+rects+totalLabel+'<text x="'+(x+barW/2).toFixed(1)+'" y="'+(H-10)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#7c879d">'+label+'</text></g>';
+    }).join('');
+    const total = items.reduce((s, x) => s + x.total, 0);
+    const lastNonZero = [...items].reverse().find(x => x.total > 0);
+    const sub = document.getElementById('salesTrendSub');
+    if (sub) sub.textContent = '최근 14일 합계 ' + _fmtKRW(total) + (lastNonZero ? ' · 최근 입력 ' + lastNonZero.day.slice(5).replace('-', '/') : '');
+    chart.innerHTML =
+      '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" class="sales-trend-svg">'
+      + '<defs><linearGradient id="salesTrendBg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#8b5cf6" stop-opacity=".08"/><stop offset="100%" stop-color="#38bdf8" stop-opacity=".04"/></linearGradient></defs>'
+      + '<rect x="0" y="0" width="'+W+'" height="'+H+'" rx="10" fill="url(#salesTrendBg)"/>'
+      + '<line x1="'+padL+'" y1="'+(padT+innerH)+'" x2="'+(W-padR)+'" y2="'+(padT+innerH)+'" stroke="rgba(255,255,255,.08)"/>'
+      + '<line x1="'+padL+'" y1="'+(padT+innerH/2)+'" x2="'+(W-padR)+'" y2="'+(padT+innerH/2)+'" stroke="rgba(255,255,255,.055)" stroke-dasharray="4,6"/>'
+      + bars
+      + '</svg>';
+  }
+
   // 대시보드 매출 보고 위젯 — 전날 기준 (하루 한 번 업무 후 입력하므로 당일은 비어있음)
   function renderSalesWidget() {
     const y = new Date(); y.setDate(y.getDate() - 1);
@@ -851,6 +945,7 @@
     set('dash-received', received);
     const dateEl = document.getElementById('daily-sales-date');
     if (dateEl) dateEl.textContent = refDay.replace(/^\d{4}-/, '').replace('-', '/') + ' (전날)';
+    renderSalesTrendChart(_last14Days());
 
     // 이번 달 누적 매출 차트 — 부품(보증부품+기능부품) / 기능 공임 / 보증 공임
     const mo = _thisMonthStr();
@@ -969,7 +1064,8 @@
           const n = parseInt(String(v).replace(/[^0-9]/g, ''), 10);
           return Number.isFinite(n) ? n : 0;
         };
-        let dateStr = '', w = null, f = null, received = null, kgmCnt = null;
+        let dateStr = '', w = null, f = null, received = null;
+        let wCnt = 0, fCnt = 0;  // 보증 건수, 기능 건수 (제일 오른쪽 셀 r52)
         const dz = { labor: 0, parts: 0 };  // 파손+보험 합산
         rows.forEach(r => {
           const joined = r.join(' ');
@@ -977,12 +1073,13 @@
             const m = joined.match(/\d{4}-\d{2}-\d{2}/);
             if (m) dateStr = m[0];
           }
-          if (!w && String(r[1]).trim() === '보증') w = { labor: num(r[5]), parts: num(r[8]) };
-          if (!f && String(r[3]).trim() === '기능') f = { labor: num(r[5]), parts: num(r[8]) };
+          // 보증: 공임 + 부품대를 합쳐 단일 금액으로
+          if (!w && String(r[1]).trim() === '보증') { w = { labor: num(r[5]) + num(r[8]), parts: 0 }; wCnt = num(r[52]); }
+          if (!f && String(r[3]).trim() === '기능') { f = { labor: num(r[5]), parts: num(r[8]) }; fCnt = num(r[52]); }
           const u3 = String(r[3]).trim();
           if (u3 === '파손' || u3 === '보험') { dz.labor += num(r[5]); dz.parts += num(r[8]); }
           if (received == null && String(r[1]).trim() === '총계') {
-            received = num(r[46]); kgmCnt = num(r[52]);
+            received = num(r[46]);
           }
         });
         if (!dateStr || (!w && !f && received == null)) {
@@ -1001,13 +1098,19 @@
           const card = document.getElementById('sv-' + k);
           if (card) card.textContent = '₩' + v.toLocaleString('ko-KR');
         };
-        fill('w_labor', w.labor); fill('w_parts', w.parts);
+        fill('w_labor', w.labor);
         fill('f_labor', f.labor); fill('f_parts', f.parts);
         fill('d_labor', dz.labor); fill('d_parts', dz.parts);
         fill('received', received);
+        // KGM 정비 대수 = 보증 건수 + 기능 건수 (자동)
+        const kgmTotal = wCnt + fCnt;
+        const kgmHid = document.getElementById('si-kgm');
+        if (kgmHid) kgmHid.value = String(kgmTotal);
+        const kgmCard = document.getElementById('sv-kgm');
+        if (kgmCard) kgmCard.textContent = kgmTotal + '대';
         refreshSalesReportTotals();
         if (statusEl) {
-          statusEl.textContent = dateStr + ' 불러옴 · 엑셀 정비건수 ' + (kgmCnt || 0) + '대 (참고) — 정비 대수 확인 후 저장하세요';
+          statusEl.textContent = dateStr + ' 불러옴 · 정비대수 ' + kgmTotal + '대 자동 입력 — 확인 후 [저장]';
         }
         showNotif(dateStr + ' 매출 엑셀 불러옴 — [저장]을 누르면 기록됩니다');
       } catch(e) {
@@ -1385,6 +1488,7 @@
 
     renderKgmIntakeChart();  // kgmDailyMap 사용
     renderLocationDonut(active);
+    renderDashboardOps(active, list);
 
     // 월별 통계도 대시보드로 통합됨 → 같이 렌더
     if (typeof initYearSelect === 'function') { try { initYearSelect(); } catch(e){} }
@@ -1586,6 +1690,62 @@
     el.innerHTML = floors + unmappedFloor;
   }
   window._renderLocationDonut = renderLocationDonut;
+
+  function renderDashboardOps(activeList, allList) {
+    const active = Array.isArray(activeList) ? activeList : [];
+    const all = Array.isArray(allList) ? allList : active;
+    const today = new Date().toISOString().split('T')[0];
+    const wait = all.filter(r => r.status === '수리대기').length;
+    const repair = all.filter(r => r.status === '수리중').length;
+    const done = all.filter(r => r.status === '수리완료').length;
+    const intake = all.filter(r => r.inDate === today).length;
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('ops-active-total', active.length);
+    set('ops-workload', wait + repair);
+    set('ops-ready', done);
+
+    const statusChart = document.getElementById('opsStatusChart');
+    if (statusChart) {
+      const rows = [
+        { label: '수리 대기', value: wait, color: '#a78bfa' },
+        { label: '수리 중', value: repair, color: '#60a5fa' },
+        { label: '수리 완료', value: done, color: '#34d399' },
+        { label: '오늘 입고', value: intake, color: '#fb7185' }
+      ];
+      const max = Math.max(1, ...rows.map(r => r.value));
+      statusChart.innerHTML = rows.map(row => {
+        const pct = Math.round(row.value / max * 100);
+        return '<div class="ops-status-row" style="--ops-color:'+row.color+';--ops-width:'+pct+'%;">'
+          + '<div class="ops-status-head"><span>'+row.label+'</span><strong>'+row.value+'대</strong></div>'
+          + '<div class="ops-status-track"><i></i></div>'
+          + '</div>';
+      }).join('');
+    }
+
+    const floorCounts = { '5층':0, '3층':0, '2층':0, '1층':0, '지하':0, '미지정':0 };
+    active.forEach(r => {
+      const loc = (r.location || '').trim();
+      const mapped = FLOOR_MAP[loc];
+      if (mapped && floorCounts[mapped.floor] !== undefined) floorCounts[mapped.floor]++;
+      else floorCounts['미지정']++;
+    });
+    const locEl = document.getElementById('opsLocationList');
+    if (locEl) {
+      const total = Math.max(1, active.length);
+      const names = FLOOR_ORDER.concat(['미지정']);
+      locEl.innerHTML = names.map(name => {
+        const value = floorCounts[name] || 0;
+        const pct = Math.round(value / total * 100);
+        const color = FLOOR_COLORS[name] || FLOOR_COLORS['미지정'];
+        const role = FLOOR_ROLES[name] || '위치 미지정';
+        return '<div class="ops-location-row" style="--ops-color:'+color+';--ops-width:'+pct+'%;">'
+          + '<div class="ops-location-meta"><span>'+name+' · '+role+'</span><strong>'+value+'대</strong></div>'
+          + '<div class="ops-location-track"><i></i></div>'
+          + '</div>';
+      }).join('');
+    }
+  }
+  window._renderDashboardOps = renderDashboardOps;
 
   // ---- LIST ----
   function renderList() {
@@ -1986,6 +2146,48 @@
   };
 
   // ---- STATS ----
+  function renderMonthlyInsightBar(monthlyData, opts) {
+    const bar = document.getElementById('monthlyInsightBar');
+    if (!bar || !Array.isArray(monthlyData) || !monthlyData.length) return;
+    const now = new Date();
+    const currentYear = String(now.getFullYear());
+    const currentMonth = now.getMonth() + 1;
+    const targetMonth = opts.isMonthly
+      ? parseInt(opts.selMonth, 10)
+      : (opts.year === currentYear ? currentMonth : ((monthlyData.filter(d => d.total > 0).slice(-1)[0] || {}).m || currentMonth));
+    const monthNo = Math.max(1, Math.min(12, targetMonth || currentMonth));
+    const current = monthlyData[monthNo - 1] || { total: 0, mKgm: 0, mDom: 0, mFor: 0 };
+    const prevDate = new Date(Number(opts.year), monthNo - 2, 1);
+    const prevPrefix = prevDate.getFullYear() + '-' + String(prevDate.getMonth() + 1).padStart(2, '0');
+    const prevTotal = (opts.allList || []).filter(r => (r.inDate || '').startsWith(prevPrefix)).length;
+    const diff = current.total - prevTotal;
+    const daysInMonth = new Date(Number(opts.year), monthNo, 0).getDate();
+    const isCurrentMonth = opts.year === currentYear && monthNo === currentMonth;
+    const elapsedDays = isCurrentMonth ? Math.max(1, Math.min(now.getDate(), daysInMonth)) : daysInMonth;
+    const remainingDays = isCurrentMonth ? Math.max(0, daysInMonth - elapsedDays) : 0;
+    const targetClose = isCurrentMonth ? current.total + remainingDays : current.total;
+    const best = monthlyData.reduce((top, item) => item.total > top.total ? item : top, monthlyData[0]);
+    const kgmPct = current.total ? Math.round((current.mKgm / current.total) * 100) : 0;
+    const diffClass = diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat';
+    const diffText = prevTotal ? (diff > 0 ? '+' : '') + diff + '대' : '전월 없음';
+    const diffMeta = prevTotal ? '전월 ' + prevTotal + '대 기준' : '비교 데이터 대기';
+    const forecastLabel = isCurrentMonth ? '목표 마감' : '마감 대수';
+    const monthLabel = monthNo + '월';
+    const bestLabel = (best && best.total) ? best.m + '월 ' + best.total + '대' : '-';
+    bar.innerHTML = [
+      { cls: 'now', label: monthLabel + ' 현재', value: current.total + '대', meta: 'KGM 비중 ' + kgmPct + '%' },
+      { cls: diffClass, label: '전월 대비', value: diffText, meta: diffMeta },
+      { cls: 'forecast', label: forecastLabel, value: targetClose + '대', meta: isCurrentMonth ? current.total + '대 + 남은 ' + remainingDays + '일' : '선택월 기준' },
+      { cls: 'best', label: '올해 최고월', value: bestLabel, meta: '월별 입고 피크' }
+    ].map(item => (
+      '<div class="monthly-insight-item ' + item.cls + '">' +
+        '<span>' + item.label + '</span>' +
+        '<strong>' + item.value + '</strong>' +
+        '<em>' + item.meta + '</em>' +
+      '</div>'
+    )).join('');
+  }
+
   function renderStats() {
     if (LOCAL_DASHBOARD_PREVIEW) {
       renderLocalDashboardPreview();
@@ -2114,6 +2316,7 @@
         + `<path d="${linePath}" fill="none" stroke="#8b5cf6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#monthlyRibbonGlow)"/>`
         + dots + strips + `</svg>`;
     }
+    renderMonthlyInsightBar(monthlyData, { year, selMonth, isMonthly, allList: list });
 
     // 월별 테이블
     const tbody = document.getElementById('stats-tbody');
@@ -2439,8 +2642,8 @@
   let leaveUsage = {};
   let editingLeaveEmpId = null;
 
-  onValue(leaveEmpRef, (snap) => { leaveEmployees = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} try { if(window._renderMyRequests) window._renderMyRequests(); if(window._renderApprovalQueue) window._renderApprovalQueue(); } catch(e) {} try { if(window._renderOrgChart) window._renderOrgChart(); } catch(e) {} try { if(window._renderNotices) window._renderNotices(); } catch(e) {} });
-  onValue(leaveUseRef, (snap) => { leaveUsage = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} });
+  authReadyOnValue(leaveEmpRef, (snap) => { leaveEmployees = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} try { if(window._renderMyRequests) window._renderMyRequests(); if(window._renderApprovalQueue) window._renderApprovalQueue(); } catch(e) {} try { if(window._renderOrgChart) window._renderOrgChart(); } catch(e) {} try { if(window._renderNotices) window._renderNotices(); } catch(e) {} });
+  authReadyOnValue(leaveUseRef, (snap) => { leaveUsage = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} });
 
   // 총 사용 시간 (시간 단위로 통합 계산, 1일=8시간)
   function getLeaveUsedHours(empId) {
@@ -2581,7 +2784,7 @@
   const boardRef = ref(db, 'board');
   let boardPosts = {};
 
-  onValue(boardRef, (snap) => { boardPosts = snap.val() || {}; try { renderBoard(); } catch(e) { console.error(e); } });
+  authReadyOnValue(boardRef, (snap) => { boardPosts = snap.val() || {}; try { renderBoard(); } catch(e) { console.error(e); } });
 
   function renderBoard() {
     var list = Object.entries(boardPosts).map(function(e) { return {id:e[0], text:e[1].text, author:e[1].author, authorEmail:e[1].authorEmail, createdAt:e[1].createdAt}; });
@@ -2636,7 +2839,7 @@
   let boardNoticesMap = {};
   let editingBoardNoticeId = null;
 
-  onValue(boardNoticesRef, (snap) => {
+  authReadyOnValue(boardNoticesRef, (snap) => {
     boardNoticesMap = snap.val() || {};
     try { renderBoardNotices(); } catch(e) { console.error('renderBoardNotices', e); }
     if (window._userEmail) setTimeout(maybeShowImportantBoardNotice, 300);
@@ -2806,7 +3009,7 @@
   let calCursor = new Date(); calCursor.setDate(1);
   let editingEventId = null;
 
-  onValue(companyEventsRef, (snap) => { companyEvents = snap.val() || {}; try { renderCalendar(); } catch(e) { console.error(e); } });
+  authReadyOnValue(companyEventsRef, (snap) => { companyEvents = snap.val() || {}; try { renderCalendar(); } catch(e) { console.error(e); } });
 
   function leaveTypeColor(t) {
     if (t==='\uc5f0\ucc28') return 'var(--blue)';
@@ -2947,7 +3150,7 @@
   let insuranceContacts = {};
   let editingInsuranceId = null;
 
-  onValue(insuranceRef, function(snap){
+  authReadyOnValue(insuranceRef, function(snap){
     insuranceContacts = snap.val() || {};
     try { window._renderInsurance && window._renderInsurance(); } catch(e) { console.error(e); }
   });
@@ -3307,7 +3510,7 @@
   let editingRejectId = null;
   let editingRejectStage = null;
 
-  onValue(leaveRequestsRef, (snap) => { leaveRequests = snap.val() || {}; try { renderMyRequests(); renderApprovalQueue(); } catch(e) { console.error(e); } });
+  authReadyOnValue(leaveRequestsRef, (snap) => { leaveRequests = snap.val() || {}; try { renderMyRequests(); renderApprovalQueue(); } catch(e) { console.error(e); } });
 
   function getMyEmpRecord() {
     if (!window._userEmail) return null;
@@ -3747,7 +3950,7 @@
   let editingNoticeId = null;
   let viewingNoticeId = null;
 
-  onValue(noticesRef, (snap) => { leaveNotices = snap.val() || {}; try { renderNotices(); } catch(e) { console.error(e); } });
+  authReadyOnValue(noticesRef, (snap) => { leaveNotices = snap.val() || {}; try { renderNotices(); } catch(e) { console.error(e); } });
 
   function noticeStatusLabel(s) {
     if (s === 'issued') return '발행됨';
