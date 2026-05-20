@@ -1368,25 +1368,29 @@
       </tr>`).join('');
   }
 
-  // ── 정비차량 (KGM) 14일 입고 추이 SVG 차트 — kgmDailyMap 기반 ──
+  // ── 정비차량 (KGM) 입고 추이 SVG 차트 — 평일(월~금) 14일, kgmDailyMap 기반 ──
   function renderKgmIntakeChart() {
     const el = document.getElementById('kgmIntakeChart');
     if (!el) return;
     const today = new Date();
+    const todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
     const days = [];
-    for (let i = 13; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-      const count = kgmDailyMap[ds] || 0;
-      const dow = ['일','월','화','수','목','금','토'][d.getDay()];
-      days.push({
-        date: ds, count: count,
-        label: (d.getMonth()+1) + '/' + d.getDate(),
-        dow: dow,
-        isToday: i === 0,
-        isWeekend: d.getDay() === 0 || d.getDay() === 6
-      });
+    const cur = new Date(today);
+    // 오늘부터 거슬러 평일(토·일 제외) 14개 수집
+    while (days.length < 14) {
+      const dow = cur.getDay();
+      if (dow !== 0 && dow !== 6) {
+        const ds = cur.getFullYear() + '-' + String(cur.getMonth()+1).padStart(2,'0') + '-' + String(cur.getDate()).padStart(2,'0');
+        days.unshift({
+          date: ds,
+          count: kgmDailyMap[ds] || 0,
+          label: (cur.getMonth()+1) + '/' + cur.getDate(),
+          dow: ['일','월','화','수','목','금','토'][dow],
+          isToday: ds === todayStr,
+          isWeekend: false
+        });
+      }
+      cur.setDate(cur.getDate() - 1);
     }
     const max = Math.max(2, ...days.map(d => d.count));
     const w = 760, h = 210, padL = 32, padR = 16, padB = 46, padT = 18;
