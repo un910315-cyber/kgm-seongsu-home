@@ -1211,7 +1211,7 @@ body > div[style*="position:fixed;top:0;"] {
 }
 
 #page-dashboard .cum-sales-chart {
-  height: 82px;
+  height: 200px;
   width: 100%;
 }
 
@@ -3261,8 +3261,7 @@ body:has(#page-dashboard.active) #page-dashboard .dashboard-bottom-row {
   gap: 18px;
 }
 
-body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card,
-body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card {
+body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card {
   max-height: 248px;
 }
 
