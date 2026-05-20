@@ -180,10 +180,9 @@
           <!-- 누적 통계 (주/월/분기) -->
           <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06);">
             <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;letter-spacing:0.4px;text-transform:uppercase;font-weight:600;"> 누적 통계</div>
-            <div class="stats-grid" style="grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:0;">
+            <div class="stats-grid" style="grid-template-columns:1fr 1fr;gap:6px;margin-bottom:0;">
               <div class="stat-card purple"><div class="stat-label">이번 주</div><div class="stat-value" id="stat-kgm-week">0</div><div class="stat-sub">월~일</div></div>
               <div class="stat-card orange"><div class="stat-label">이번 달</div><div class="stat-value" id="stat-kgm-month">0</div><div class="stat-sub">월 누적</div></div>
-              <div class="stat-card blue"><div class="stat-label">이번 분기</div><div class="stat-value" id="stat-kgm-quarter">0</div><div class="stat-sub">분기 누적</div></div>
             </div>
           </div>
 
@@ -200,7 +199,7 @@
       </div>
 
       <div class="daily-sales-section">
-        <!-- 일일 매출 + 보증금 위젯 (대표 보고용 — 큰 숫자 + 14일 추이 차트) -->
+        <!-- 매출 보고 위젯 — 보증·기능 공임/부품 + 수납금계 (오늘 기준) -->
         <div class="chart-card widget-card">
           <div class="chart-header" style="justify-content:space-between;">
             <div style="display:flex;align-items:baseline;gap:10px;">
@@ -210,37 +209,27 @@
             <a href="#" onclick="switchPage('sales');return false;" style="color:#c4b5fd;text-decoration:none;font-size:11px;font-weight:600;">입력 →</a>
           </div>
 
-          <!-- 부품 매출 -->
-          <div class="daily-stat-row" style="--row-color:#fb923c;">
-            <div class="dsr-top">
-              <div class="dsr-label"><span class="dsr-dot"></span>부품 (오늘)</div>
-              <div class="dsr-trend" id="daily-parts-trend"></div>
+          <div class="dash-sales-grp">
+            <div class="dsg-head"><span class="dsg-dot" style="background:#fbbf24"></span>보증</div>
+            <div class="dsg-rows">
+              <div class="dsg-line"><span>공임</span><strong id="dash-w-labor">₩0</strong></div>
+              <div class="dsg-line"><span>부품</span><strong id="dash-w-parts">₩0</strong></div>
+              <div class="dsg-line dsg-total"><span>합계</span><strong id="dash-w-total">₩0</strong></div>
             </div>
-            <div class="dsr-value" id="daily-parts-value">₩0</div>
-            <div class="dsr-spark-wrap"><div id="daily-parts-spark" class="dsr-spark"></div></div>
-            <div class="dsr-meta">최근 14일</div>
           </div>
 
-          <!-- 기능 매출 -->
-          <div class="daily-stat-row" style="--row-color:#34d399;">
-            <div class="dsr-top">
-              <div class="dsr-label"><span class="dsr-dot"></span>기능 (오늘)</div>
-              <div class="dsr-trend" id="daily-function-trend"></div>
+          <div class="dash-sales-grp">
+            <div class="dsg-head"><span class="dsg-dot" style="background:#34d399"></span>기능</div>
+            <div class="dsg-rows">
+              <div class="dsg-line"><span>공임</span><strong id="dash-f-labor">₩0</strong></div>
+              <div class="dsg-line"><span>부품</span><strong id="dash-f-parts">₩0</strong></div>
+              <div class="dsg-line dsg-total"><span>합계</span><strong id="dash-f-total">₩0</strong></div>
             </div>
-            <div class="dsr-value" id="daily-function-value">₩0</div>
-            <div class="dsr-spark-wrap"><div id="daily-function-spark" class="dsr-spark"></div></div>
-            <div class="dsr-meta">최근 14일</div>
           </div>
 
-          <!-- 이달 보증금 -->
-          <div class="daily-stat-row deposit-row" style="--row-color:#fbbf24;">
-            <div class="dsr-top">
-              <div class="dsr-label"><span class="dsr-dot"></span>이달 보증</div>
-              <div class="dsr-trend" id="deposit-status"></div>
-            </div>
-            <div class="dsr-value" id="monthly-deposit-value">₩0</div>
-            <div class="dsr-spark-wrap"><div id="deposit-spark" class="dsr-spark"></div></div>
-            <div class="dsr-meta">최근 6개월</div>
+          <div class="dash-received">
+            <span>총 수납금계</span>
+            <strong id="dash-received">₩0</strong>
           </div>
         </div>
       </div>

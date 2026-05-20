@@ -828,140 +828,24 @@
     return { cls: 'down', text: '↓ 어제 ' + pct + '%' };
   }
 
+  // 대시보드 매출 보고 위젯 — 오늘 기준 보증·기능 공임/부품 + 수납금계
   function renderSalesWidget() {
     const today = _todayStr();
-    const mo = _thisMonthStr();
-    const todayData = salesDailyMap[today] || {};
-    const depositVal = Number(depositMap[mo]) || 0;
-    const dateLabel = today.replace(/^\d{4}-/, '').replace('-', '/');
-    const monthLabel = mo.replace('-', '년 ') + '월';
-
-    // 대시보드 오늘 매출 위젯
+    const rec = salesDailyMap[today] || {};
+    const w = rec.warranty || {};
+    const f = rec.func || {};
+    const wl = Number(w.labor) || 0, wp = Number(w.parts) || 0;
+    const fl = Number(f.labor) || 0, fp = Number(f.parts) || 0;
+    const received = Number(rec.received) || 0;
+    const set = (id, v) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '₩' + v.toLocaleString('ko-KR');
+    };
+    set('dash-w-labor', wl); set('dash-w-parts', wp); set('dash-w-total', wl + wp);
+    set('dash-f-labor', fl); set('dash-f-parts', fp); set('dash-f-total', fl + fp);
+    set('dash-received', received);
     const dateEl = document.getElementById('daily-sales-date');
-    if (dateEl) dateEl.textContent = dateLabel + ' 기준';
-
-    // 14일 데이터 추출
-    const days14 = _last14Days();
-    const yesterdayKey = days14[days14.length - 2];
-    const yesterdayData = salesDailyMap[yesterdayKey] || {};
-
-    const CAT_COLORS = { parts: '#fb923c', function: '#34d399' };
-    SALES_CATS.forEach(cat => {
-      const v = Number(todayData[cat]) || 0;
-      const yv = Number(yesterdayData[cat]) || 0;
-      const valEl = document.getElementById('daily-' + cat + '-value');
-      if (valEl) {
-        valEl.textContent = _fmtKRW(v);
-        valEl.classList.toggle('zero', v === 0);
-      }
-      // 추세
-      const trendEl = document.getElementById('daily-' + cat + '-trend');
-      if (trendEl) {
-        const t = _trendLabel(v, yv);
-        trendEl.textContent = t.text;
-        trendEl.className = 'dsr-trend ' + t.cls;
-      }
-      // 14일 스파크라인
-      const series = days14.map(d => Number((salesDailyMap[d] || {})[cat]) || 0);
-      _renderSpark('daily-' + cat + '-spark', series, CAT_COLORS[cat]);
-    });
-
-    // 보증금
-    const depEl = document.getElementById('monthly-deposit-value');
-    if (depEl) {
-      depEl.textContent = _fmtKRW(depositVal);
-      depEl.classList.toggle('zero', depositVal === 0);
-    }
-    // 보증금 상태 라벨
-    const depStatusEl = document.getElementById('deposit-status');
-    if (depStatusEl) {
-      if (depositVal > 0) {
-        depStatusEl.textContent = monthLabel + ' 보고 완료';
-        depStatusEl.className = 'dsr-trend up';
-      } else {
-        depStatusEl.textContent = '미입력';
-        depStatusEl.className = 'dsr-trend flat';
-      }
-    }
-    // 보증금 6개월 스파크라인
-    const months6 = _last6Months();
-    const depSeries = months6.map(m => Number(depositMap[m]) || 0);
-    _renderSpark('deposit-spark', depSeries, '#fbbf24');
-
-    const monthDays = Object.keys(salesDailyMap).filter(d => d.startsWith(mo)).sort();
-    let partsRun = 0, funcRun = 0;
-    const partsCum = [];
-    const funcCum = [];
-    monthDays.forEach(d => {
-      const dayData = salesDailyMap[d] || {};
-      partsRun += Number(dayData.parts) || 0;
-      funcRun += Number(dayData.function) || 0;
-      partsCum.push(partsRun);
-      funcCum.push(funcRun);
-    });
-    const depCum = partsCum.map((_, i) => Math.round(depositVal * ((i + 1) / Math.max(1, partsCum.length))));
-    renderCumulativeSalesChart({
-      parts: partsCum.length ? partsCum : [0],
-      func: funcCum.length ? funcCum : [0],
-      deposit: depCum.length ? depCum : [depositVal],
-      partsAmount: partsRun,
-      functionAmount: funcRun,
-      depositAmount: depositVal,
-      totalText: _fmtKRW(partsRun + funcRun + depositVal),
-      partsText: _fmtKRW(partsRun),
-      functionText: _fmtKRW(funcRun)
-    });
-
-    // ── 매출 보고 페이지 — 활성 날짜·월로 표시 ──
-    const pageDay = _getActiveSalesDate();
-    const pageMo  = _getActiveSalesMonth();
-    const pageData = salesDailyMap[pageDay] || {};
-    const pageDeposit = Number(depositMap[pageMo]) || 0;
-    const pageDateLabel = pageDay.replace(/^\d{4}-/, '').replace('-', '/');
-    const pageMonthLabel = pageMo.replace('-', '년 ') + '월';
-    const isToday = pageDay === today;
-    const isThisMonth = pageMo === mo;
-
-    // 헤더 라벨 + input 동기화
-    const dailyReportDate = document.getElementById('daily-report-date');
-    if (dailyReportDate) {
-      dailyReportDate.textContent = isToday ? (pageDay + ' (오늘)') : pageDay;
-    }
-    const monthlyReportMonth = document.getElementById('monthly-report-month');
-    if (monthlyReportMonth) {
-      monthlyReportMonth.textContent = isThisMonth ? (pageMonthLabel + ' (이번달)') : pageMonthLabel;
-    }
-    const salesDateInp = document.getElementById('sales-page-date');
-    if (salesDateInp && !salesDateInp.value && window._activeSalesDate) {
-      salesDateInp.value = window._activeSalesDate;
-    }
-    const salesMonthInp = document.getElementById('sales-page-month');
-    if (salesMonthInp && !salesMonthInp.value && window._activeSalesMonth) {
-      salesMonthInp.value = window._activeSalesMonth;
-    }
-
-    // 부품·기능 카드 값 (활성 날짜)
-    SALES_CATS.forEach(cat => {
-      const v = Number(pageData[cat]) || 0;
-      const pgValEl = document.getElementById('sales-page-value-' + cat);
-      if (pgValEl) {
-        pgValEl.textContent = _fmtKRW(v);
-        pgValEl.classList.toggle('zero', v === 0);
-      }
-    });
-    // KGM 정비 대수 (활성 날짜)
-    const kgmPgCnt = kgmDailyMap[pageDay] || 0;
-    const kgmPgEl = document.getElementById('sales-page-value-kgm');
-    if (kgmPgEl) {
-      kgmPgEl.textContent = kgmPgCnt + '대';
-      kgmPgEl.classList.toggle('zero', kgmPgCnt === 0);
-    }
-    // 보증 (활성 월)
-    const depPgEl = document.getElementById('deposit-value');
-    if (depPgEl) {
-      depPgEl.textContent = _fmtKRW(pageDeposit);
-      depPgEl.classList.toggle('zero', pageDeposit === 0);
-    }
+    if (dateEl) dateEl.textContent = today.replace(/^\d{4}-/, '').replace('-', '/') + ' 기준';
   }
   window._renderSalesWidget = renderSalesWidget;
 
