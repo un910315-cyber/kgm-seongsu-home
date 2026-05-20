@@ -24,10 +24,9 @@ const db = getDatabase(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// ── 2단계: Claude 중계 서버 (Cloudflare Worker) ──
-// Worker 배포 후 workers.dev 주소를 여기에 넣으면 자비스가 Claude 두뇌로 동작.
+// ── 2단계: Claude 중계 서버 (Deno Deploy) ──
 // 비어 있으면 1단계(키워드 응답) 모드로 작동. Worker 오류 시에도 키워드 모드로 자동 폴백.
-const WORKER_URL = '';
+const WORKER_URL = 'https://trusty-crane-45.un910315-cyber.deno.net/';
 
 // ── DOM ──
 const $ = (id) => document.getElementById(id);
