@@ -4,7 +4,9 @@
 //   - Anthropic API 키는 Cloudflare의 Secret(ANTHROPIC_API_KEY)으로 보관 → 코드·깃에 노출 안 됨
 //   - 날씨 질문이면 Open-Meteo(키 불필요·무료)에서 성수동 날씨를 받아 함께 전달
 //   - 정비소 데이터는 PWA가 context로 보내줌 (Firebase에서 읽은 요약)
-// 배포: Cloudflare 대시보드에 이 파일 내용을 붙여넣고, Secret 등록 후 Deploy.
+// 배포: Cloudflare Workers 또는 Deno Deploy 둘 다 가능 (코드 동일).
+//   - Deno Deploy: dash.deno.com → GitHub 로그인 → New Playground → 붙여넣기
+//   - 환경변수 ANTHROPIC_API_KEY 를 대시보드에서 등록.
 
 const MODEL = 'claude-haiku-4-5';
 
@@ -72,6 +74,15 @@ function round(n) {
   return (typeof n === 'number' && isFinite(n)) ? Math.round(n) : '?';
 }
 
+// API 키 읽기 — Cloudflare(env 인자) / Deno Deploy(Deno.env) 양쪽 지원
+function getApiKey(env) {
+  if (env && env.ANTHROPIC_API_KEY) return env.ANTHROPIC_API_KEY;
+  if (typeof Deno !== 'undefined' && Deno.env) {
+    try { return Deno.env.get('ANTHROPIC_API_KEY'); } catch (e) {}
+  }
+  return null;
+}
+
 async function getWeather() {
   const url = 'https://api.open-meteo.com/v1/forecast'
     + '?latitude=' + LAT + '&longitude=' + LON
@@ -104,8 +115,9 @@ export default {
     if (request.method !== 'POST') {
       return json({ error: 'POST only' }, 405, origin);
     }
-    if (!env.ANTHROPIC_API_KEY) {
-      return json({ error: 'ANTHROPIC_API_KEY 시크릿이 설정되지 않았습니다.' }, 500, origin);
+    const apiKey = getApiKey(env);
+    if (!apiKey) {
+      return json({ error: 'ANTHROPIC_API_KEY 환경변수가 설정되지 않았습니다.' }, 500, origin);
     }
 
     let body;
@@ -142,7 +154,7 @@ export default {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': env.ANTHROPIC_API_KEY,
+          'x-api-key': apiKey,
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify(payload),
