@@ -4006,6 +4006,57 @@ body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sal
 }
 
 /* ==========================================================================
+   작업지시서 인쇄 도구 (마이그레이션 때 누락 → 복원)
+   ========================================================================== */
+.wo-modal-inner { display:flex; gap:0; max-width:1280px; width:96vw; max-height:92vh; background:#f5f5f7; color:#333; }
+.wo-form-panel { width:340px; background:#fff; border-right:1px solid #e0e0e0; padding:14px; overflow-y:auto; flex-shrink:0; font-family:'Pretendard','Malgun Gothic',sans-serif; max-height:92vh; }
+.wo-form-panel .wo-section { margin-bottom:14px; }
+.wo-form-panel .wo-section-title { font-size:11px; font-weight:600; color:#f37021; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; border-bottom:1px solid #e0e0e0; padding-bottom:4px; }
+.wo-form-panel .wo-field-row { display:grid; grid-template-columns:80px 1fr; gap:8px; align-items:center; margin-bottom:6px; }
+.wo-form-panel .wo-field-row label { font-size:12px; color:#333; }
+.wo-form-panel input[type=text], .wo-form-panel textarea { padding:6px 8px; font-size:12px; border:1px solid #e0e0e0; border-radius:4px; font-family:inherit; width:100%; background:#fff; color:#333; }
+.wo-form-panel input[type=text]:focus, .wo-form-panel textarea:focus { outline:none; border-color:#f37021; }
+.wo-form-panel textarea { resize:vertical; min-height:60px; }
+.wo-date-group { display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; }
+.wo-date-group input { text-align:center; }
+.wo-mode-tabs { display:flex; gap:4px; margin-bottom:12px; background:#f0f0f0; padding:3px; border-radius:6px; }
+.wo-mode-tabs button { flex:1; padding:6px 4px; background:transparent; color:#888; font-size:11px; border:none; border-radius:4px; cursor:pointer; font-weight:600; }
+.wo-mode-tabs button.active { background:#fff; color:#1a1a1a; box-shadow:0 1px 3px rgba(0,0,0,0.1); }
+.wo-control-row { display:grid; grid-template-columns:90px 1fr 40px; gap:6px; align-items:center; margin-bottom:6px; }
+.wo-control-row label { font-size:11px; color:#333; }
+.wo-control-row input[type=range] { width:100%; }
+.wo-control-row .wo-val { font-size:11px; color:#888; text-align:right; font-variant-numeric:tabular-nums; }
+.wo-btn-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+.wo-btn { padding:10px 12px; font-size:12px; font-weight:600; border:none; border-radius:4px; cursor:pointer; font-family:inherit; }
+.wo-btn-outline { background:#fff; color:#333; border:1px solid #e0e0e0; }
+.wo-btn-outline:hover { background:#f9f9f9; }
+.wo-btn-primary { background:#f37021; color:#fff; }
+.wo-btn-primary:hover { background:#e0631a; }
+.wo-preview-container { flex:1; padding:20px; overflow:auto; background:#ddd; }
+.wo-info-bar { background:#eff6ff; border:1px solid #bfdbfe; color:#1e3a8a; padding:8px 12px; border-radius:4px; font-size:11px; margin-bottom:12px; line-height:1.5; }
+.wo-preview-wrap { display:flex; justify-content:center; align-items:flex-start; }
+.wo-page { width:297mm; height:210mm; background-color:#fff; background-image:url('work-order-form.png'); background-size:100% 100%; background-repeat:no-repeat; position:relative; box-shadow:0 4px 20px rgba(0,0,0,0.15); transform-origin:top center; flex-shrink:0; }
+.wo-page.print-mode { background-image:none; box-shadow:none; }
+.wo-field { position:absolute; font-family:'Malgun Gothic','맑은 고딕',sans-serif; color:#000; line-height:1.2; white-space:pre-wrap; word-wrap:break-word; padding:0; user-select:none; }
+.wo-page.adjust-mode .wo-field { border:1.5px dashed #f37021; background:rgba(243,112,33,0.08); cursor:move; min-height:4mm; }
+.wo-page.adjust-mode .wo-field:hover { background:rgba(243,112,33,0.18); border-color:#d35400; }
+.wo-page.adjust-mode .wo-field::before { content:attr(data-field-label); position:absolute; top:-14px; left:0; background:#f37021; color:#fff; font-size:9px; padding:1px 4px; border-radius:2px; font-family:'Malgun Gothic',sans-serif; white-space:nowrap; z-index:10; }
+@media print {
+  body.printing-workorder > *:not(#workOrderModal) { display:none !important; }
+  body.printing-workorder { background:#fff !important; }
+  body.printing-workorder #workOrderModal { position:static !important; display:block !important; background:#fff !important; padding:0 !important; }
+  body.printing-workorder #workOrderModal .modal { max-width:none !important; max-height:none !important; border:none !important; box-shadow:none !important; background:#fff !important; border-radius:0 !important; }
+  body.printing-workorder #workOrderModal .modal-header, body.printing-workorder .wo-form-panel, body.printing-workorder .wo-info-bar { display:none !important; }
+  body.printing-workorder .wo-modal-inner { display:block !important; max-width:none !important; width:auto !important; max-height:none !important; background:#fff !important; }
+  body.printing-workorder .wo-preview-container { padding:0 !important; background:#fff !important; overflow:visible !important; }
+  body.printing-workorder .wo-preview-wrap { display:block !important; }
+  body.printing-workorder .wo-page { width:297mm !important; height:210mm !important; box-shadow:none !important; transform:none !important; margin:0 !important; page-break-after:avoid; }
+  body.printing-workorder .wo-page.adjust-mode .wo-field { border:none !important; background:transparent !important; }
+  body.printing-workorder .wo-page.adjust-mode .wo-field::before { display:none !important; }
+}
+@media print { @page { size:A4 landscape; margin:0; } }
+
+/* ==========================================================================
    사이드바 하단 상태 (날짜·실시간연결) — 대시보드 hero 대체
    ========================================================================== */
 .sidebar-status { display: none; }
