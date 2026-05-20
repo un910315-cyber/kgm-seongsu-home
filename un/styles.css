@@ -1032,18 +1032,20 @@ body > div[style*="position:fixed;top:0;"] {
 
 #page-dashboard .dashboard-row {
   display: grid;
-  grid-template-columns: minmax(0, .9fr) minmax(360px, 1.2fr);
+  grid-template-columns: minmax(0, .82fr) minmax(0, 1fr) minmax(0, 1.05fr);
   gap: 12px;
   align-items: stretch;
 }
 
 #page-dashboard .kgm-section,
-#page-dashboard .daily-sales-section {
+#page-dashboard .daily-sales-section,
+#page-dashboard .sales-chart-section {
   min-width: 0;
 }
 
 #page-dashboard .kgm-section .widget-card,
-#page-dashboard .daily-sales-section .widget-card {
+#page-dashboard .daily-sales-section .widget-card,
+#page-dashboard .sales-chart-section .widget-card {
   height: 100%;
 }
 

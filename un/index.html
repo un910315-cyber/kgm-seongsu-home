@@ -233,6 +233,28 @@
           </div>
         </div>
       </div>
+
+      <div class="sales-chart-section">
+        <div class="chart-card widget-card cumulative-sales-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">누적 매출</div>
+              <div class="chart-subtitle">이번 달 · 부품·기능·보증</div>
+            </div>
+          </div>
+          <div class="cum-sales-summary">
+            <div><span>이번 달 누적</span><strong id="cum-sales-total">₩0</strong></div>
+            <div><span>부품</span><strong id="cum-sales-parts">₩0</strong></div>
+            <div><span>기능</span><strong id="cum-sales-function">₩0</strong></div>
+          </div>
+          <div id="cumSalesChart" class="cum-sales-chart"></div>
+          <div class="cum-sales-legend">
+            <span style="--legend-color:#fb923c;">부품</span>
+            <span style="--legend-color:#34d399;">기능 공임</span>
+            <span style="--legend-color:#fbbf24;">보증 공임</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 건물내 차량 위치현황 — 일단 제거 (나중에 필요하면 다시 추가) -->
@@ -304,34 +326,6 @@
           <tbody id="stats-tbody"></tbody>
           <tfoot id="stats-tfoot"></tfoot>
         </table>
-      </div>
-    </div>
-    <div class="chart-card widget-card cumulative-sales-card" style="margin-top:12px;">
-      <div class="chart-header" style="justify-content:space-between;">
-        <div>
-          <div class="chart-title">누적 매출 보고</div>
-          <div class="chart-subtitle">부품 · 기능 · 보증 흐름</div>
-        </div>
-        <a href="#" onclick="switchPage('sales');return false;" style="color:#c4b5fd;text-decoration:none;font-size:11px;font-weight:600;">상세 보기 →</a>
-      </div>
-      <div class="cum-sales-summary">
-        <div><span>이번 달 누적</span><strong id="cum-sales-total">0원</strong></div>
-        <div><span>부품</span><strong id="cum-sales-parts">0원</strong></div>
-        <div><span>기능</span><strong id="cum-sales-function">0원</strong></div>
-      </div>
-      <div class="cum-sales-mix">
-        <div id="cumSalesMixChart" class="cum-sales-mix-chart"></div>
-        <div class="cum-sales-mix-copy">
-          <span>매출 구성</span>
-          <strong id="cum-sales-mix-main">부품 중심</strong>
-          <em id="cum-sales-mix-sub">부품 · 기능 · 보증 비율</em>
-        </div>
-      </div>
-      <div id="cumSalesChart" class="cum-sales-chart"></div>
-      <div class="cum-sales-legend">
-        <span style="--legend-color:#fb923c;">부품</span>
-        <span style="--legend-color:#34d399;">기능</span>
-        <span style="--legend-color:#fbbf24;">보증</span>
       </div>
     </div>
     </div>

@@ -846,6 +846,31 @@
     set('dash-received', received);
     const dateEl = document.getElementById('daily-sales-date');
     if (dateEl) dateEl.textContent = today.replace(/^\d{4}-/, '').replace('-', '/') + ' 기준';
+
+    // 이번 달 누적 매출 차트 — 부품(보증부품+기능부품) / 기능 공임 / 보증 공임
+    const mo = _thisMonthStr();
+    const monthDays = Object.keys(salesDailyMap).filter(d => d.startsWith(mo)).sort();
+    let partsRun = 0, funcRun = 0, warrRun = 0;
+    const partsCum = [], funcCum = [], warrCum = [];
+    monthDays.forEach(d => {
+      const r = salesDailyMap[d] || {};
+      const ww = r.warranty || {}, ff = r.func || {};
+      partsRun += (Number(ww.parts) || 0) + (Number(ff.parts) || 0);
+      funcRun  += Number(ff.labor) || 0;
+      warrRun  += Number(ww.labor) || 0;
+      partsCum.push(partsRun); funcCum.push(funcRun); warrCum.push(warrRun);
+    });
+    renderCumulativeSalesChart({
+      parts:    partsCum.length ? partsCum : [0],
+      func:     funcCum.length ? funcCum : [0],
+      deposit:  warrCum.length ? warrCum : [0],
+      partsAmount: partsRun,
+      functionAmount: funcRun,
+      depositAmount: warrRun,
+      totalText:    '₩' + (partsRun + funcRun + warrRun).toLocaleString('ko-KR'),
+      partsText:    '₩' + partsRun.toLocaleString('ko-KR'),
+      functionText: '₩' + funcRun.toLocaleString('ko-KR')
+    });
   }
   window._renderSalesWidget = renderSalesWidget;
 
