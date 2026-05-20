@@ -6,7 +6,9 @@
 //   - 정비소 데이터는 PWA가 context로 보내줌 (Firebase에서 읽은 요약)
 // 배포: Cloudflare Workers 또는 Deno Deploy 둘 다 가능 (코드 동일).
 //   - Deno Deploy: dash.deno.com → GitHub 로그인 → New Playground → 붙여넣기
-//   - 환경변수 ANTHROPIC_API_KEY 를 대시보드에서 등록.
+//   - 필수 환경변수: ANTHROPIC_API_KEY
+//   - 선택 환경변수: ELEVENLABS_API_KEY (있으면 자연스러운 사람 음성으로 답변),
+//                    ELEVENLABS_VOICE_ID (특정 목소리 지정; 없으면 계정 첫 목소리 사용)
 
 const MODEL = 'claude-haiku-4-5';
 
@@ -74,13 +76,62 @@ function round(n) {
   return (typeof n === 'number' && isFinite(n)) ? Math.round(n) : '?';
 }
 
-// API 키 읽기 — Cloudflare(env 인자) / Deno Deploy(Deno.env) 양쪽 지원
-function getApiKey(env) {
-  if (env && env.ANTHROPIC_API_KEY) return env.ANTHROPIC_API_KEY;
+// 환경변수 읽기 — Cloudflare(env 인자) / Deno Deploy(Deno.env) 양쪽 지원
+function getEnv(env, name) {
+  if (env && env[name]) return env[name];
   if (typeof Deno !== 'undefined' && Deno.env) {
-    try { return Deno.env.get('ANTHROPIC_API_KEY'); } catch (e) {}
+    try { return Deno.env.get(name); } catch (e) {}
   }
   return null;
+}
+function getApiKey(env) { return getEnv(env, 'ANTHROPIC_API_KEY'); }
+
+// ── ElevenLabs 음성 합성 (선택) ──
+// ELEVENLABS_API_KEY 환경변수가 있으면 답변을 자연스러운 사람 음성으로 변환.
+// 없으면 audio 없이 텍스트만 반환 → 자비스가 폰 기본 음성으로 읽음.
+let cachedVoiceId = null;
+async function getVoiceId(key, env) {
+  const fromEnv = getEnv(env, 'ELEVENLABS_VOICE_ID');
+  if (fromEnv) return fromEnv;
+  if (cachedVoiceId) return cachedVoiceId;
+  try {
+    const r = await fetch('https://api.elevenlabs.io/v1/voices', { headers: { 'xi-api-key': key } });
+    if (!r.ok) return null;
+    const d = await r.json();
+    const v = (d.voices || [])[0];
+    cachedVoiceId = v ? v.voice_id : null;
+    return cachedVoiceId;
+  } catch (e) { return null; }
+}
+function bufToBase64(buf) {
+  const bytes = new Uint8Array(buf);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+async function synthVoice(text, env) {
+  const key = getEnv(env, 'ELEVENLABS_API_KEY');
+  if (!key) return null;
+  try {
+    const voiceId = await getVoiceId(key, env);
+    if (!voiceId) return null;
+    const r = await fetch('https://api.elevenlabs.io/v1/text-to-speech/' + voiceId, {
+      method: 'POST',
+      headers: {
+        'xi-api-key': key,
+        'Content-Type': 'application/json',
+        'Accept': 'audio/mpeg',
+      },
+      body: JSON.stringify({
+        text: text,
+        model_id: 'eleven_turbo_v2_5',
+        voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+      }),
+    });
+    if (!r.ok) return null;
+    const buf = await r.arrayBuffer();
+    return 'data:audio/mpeg;base64,' + bufToBase64(buf);
+  } catch (e) { return null; }
 }
 
 async function getWeather() {
@@ -174,7 +225,12 @@ export default {
       .map((b) => b.text)
       .join('\n')
       .trim();
+    const finalAnswer = answer || '죄송해요 대표님, 답을 만들지 못했어요.';
 
-    return json({ answer: answer || '죄송해요 대표님, 답을 만들지 못했어요.' }, 200, origin);
+    // 자연스러운 음성으로 변환 (ELEVENLABS_API_KEY 가 있을 때만; 실패해도 텍스트는 반환)
+    let audio = null;
+    try { audio = await synthVoice(finalAnswer, env); } catch (e) { audio = null; }
+
+    return json({ answer: finalAnswer, audio: audio }, 200, origin);
   },
 };

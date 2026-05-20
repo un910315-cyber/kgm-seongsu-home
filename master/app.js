@@ -354,6 +354,19 @@ function speak(text) {
   setTimeout(() => { if (!started) { setOrb('idle'); setStatus(IDLE_HINT); } }, 1600);
 }
 
+// 중계서버가 보내준 자연스러운 음성(data URI) 재생. 실패 시 폰 기본 음성으로 폴백.
+const jarvisAudio = new Audio();
+function speakAudio(dataUri, fallbackText) {
+  try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {}
+  let started = false;
+  jarvisAudio.onplay = () => { started = true; setOrb('speaking'); };
+  jarvisAudio.onended = () => { setOrb('idle'); setStatus(IDLE_HINT); };
+  jarvisAudio.onerror = () => { if (!started) speak(fallbackText); };
+  jarvisAudio.src = dataUri;
+  const p = jarvisAudio.play();
+  if (p && p.catch) p.catch(() => { if (!started) speak(fallbackText); });
+}
+
 // ── 음성 설정 시트 ──
 const settingsModal = $('settingsModal');
 const voiceSelect = $('voiceSelect');
@@ -491,7 +504,7 @@ async function askWorker(question) {
   if (!res.ok) throw new Error('worker ' + res.status);
   const data = await res.json();
   if (!data || !data.answer) throw new Error(data && data.error ? data.error : 'no answer');
-  return data.answer;
+  return data;
 }
 
 // ════════════════════════════════════════════════
@@ -505,10 +518,12 @@ async function handleQuery(text) {
   setOrb('thinking');
   setStatus('생각하는 중…');
 
-  let reply;
+  let reply, audio = null;
   if (WORKER_URL) {
     try {
-      reply = await askWorker(q);
+      const data = await askWorker(q);
+      reply = data.answer;
+      audio = data.audio || null;
     } catch (e) {
       // 중계 서버 실패 → 1단계 키워드 모드로 폴백
       reply = answer(q);
@@ -519,7 +534,8 @@ async function handleQuery(text) {
   }
   fadeIn(capJv, reply);
   capJv.scrollTop = 0;
-  speak(reply);
+  if (audio) speakAudio(audio, reply);
+  else speak(reply);
 }
 
 // ── 키보드 입력 (보조) ──
