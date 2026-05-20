@@ -519,11 +519,11 @@
 <div id="page-sales" class="page">
   <div class="main">
 
-    <!-- 일일 보고 -->
+    <!-- 일일 매출 보고 -->
     <div class="chart-card widget-card">
       <div class="chart-header" style="justify-content:space-between;flex-wrap:wrap;gap:10px;">
         <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
-          <div class="chart-title">일일 보고</div>
+          <div class="chart-title">일일 매출 보고</div>
           <div class="chart-subtitle" id="daily-report-date">—</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
@@ -532,29 +532,77 @@
         </div>
       </div>
 
-      <div class="sk-card-grid">
-        <button type="button" class="sk-card" data-cat="kgm" onclick="window.openSalesKeypad('kgm')">
+      <!-- 볼트 매출현황 엑셀 업로드 -->
+      <div class="sales-excel-drop" id="salesExcelDrop">
+        <input type="file" id="salesExcelInput" accept=".xls,.xlsx" style="display:none">
+        <div class="sed-icon">📂</div>
+        <div class="sed-main">볼트 매출현황 엑셀을 끌어다 놓거나 클릭해서 선택</div>
+        <div class="sed-sub" id="salesExcelStatus">.xls / .xlsx — 보증·기능·수납금계가 자동으로 채워집니다</div>
+      </div>
+
+      <!-- 보증 -->
+      <div class="sales-grp">
+        <div class="sales-grp-head"><span class="sales-grp-dot" style="background:#fbbf24"></span>보증</div>
+        <div class="sk-card-grid">
+          <button type="button" class="sk-card" onclick="window.openSalesKeypad('w_labor')">
+            <span class="sk-card-label">공임</span>
+            <span class="sk-card-value" id="sv-w_labor">₩0</span>
+            <span class="sk-card-hint">탭하여 입력</span>
+          </button>
+          <button type="button" class="sk-card" onclick="window.openSalesKeypad('w_parts')">
+            <span class="sk-card-label">부품</span>
+            <span class="sk-card-value" id="sv-w_parts">₩0</span>
+            <span class="sk-card-hint">탭하여 입력</span>
+          </button>
+        </div>
+        <div class="sales-subtotal">보증 합계 <strong id="sv-w_total">₩0</strong></div>
+      </div>
+
+      <!-- 기능 -->
+      <div class="sales-grp">
+        <div class="sales-grp-head"><span class="sales-grp-dot" style="background:#34d399"></span>기능</div>
+        <div class="sk-card-grid">
+          <button type="button" class="sk-card" onclick="window.openSalesKeypad('f_labor')">
+            <span class="sk-card-label">공임</span>
+            <span class="sk-card-value" id="sv-f_labor">₩0</span>
+            <span class="sk-card-hint">탭하여 입력</span>
+          </button>
+          <button type="button" class="sk-card" onclick="window.openSalesKeypad('f_parts')">
+            <span class="sk-card-label">부품</span>
+            <span class="sk-card-value" id="sv-f_parts">₩0</span>
+            <span class="sk-card-hint">탭하여 입력</span>
+          </button>
+        </div>
+        <div class="sales-subtotal">기능 합계 <strong id="sv-f_total">₩0</strong></div>
+      </div>
+
+      <!-- 수납금계 + KGM 정비 대수 -->
+      <div class="sk-card-grid" style="margin-top:6px;">
+        <button type="button" class="sk-card" onclick="window.openSalesKeypad('received')">
+          <span class="sk-card-dot" style="background:#38bdf8"></span>
+          <span class="sk-card-label">총 수납금계</span>
+          <span class="sk-card-value" id="sv-received">₩0</span>
+          <span class="sk-card-hint">탭하여 입력</span>
+        </button>
+        <button type="button" class="sk-card" onclick="window.openSalesKeypad('kgm')">
           <span class="sk-card-dot" style="background:#ff8787"></span>
           <span class="sk-card-label">KGM 정비 대수</span>
-          <span class="sk-card-value" id="sales-page-value-kgm">0대</span>
-          <span class="sk-card-hint">탭하여 입력</span>
-        </button>
-        <button type="button" class="sk-card" data-cat="parts" onclick="window.openSalesKeypad('parts')">
-          <span class="sk-card-dot" style="background:#fb923c"></span>
-          <span class="sk-card-label">부품 매출</span>
-          <span class="sk-card-value" id="sales-page-value-parts">₩0</span>
-          <span class="sk-card-hint">탭하여 입력</span>
-        </button>
-        <button type="button" class="sk-card" data-cat="function" onclick="window.openSalesKeypad('function')">
-          <span class="sk-card-dot" style="background:#34d399"></span>
-          <span class="sk-card-label">기능 매출</span>
-          <span class="sk-card-value" id="sales-page-value-function">₩0</span>
+          <span class="sk-card-value" id="sv-kgm">0대</span>
           <span class="sk-card-hint">탭하여 입력</span>
         </button>
       </div>
-      <input type="hidden" id="sales-page-input-kgm">
-      <input type="hidden" id="sales-page-input-parts">
-      <input type="hidden" id="sales-page-input-function">
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="window._renderSalesReport&&window._renderSalesReport()">되돌리기</button>
+        <button type="button" class="btn btn-primary" onclick="window._saveSalesReport&&window._saveSalesReport()">저장</button>
+      </div>
+
+      <input type="hidden" id="si-w_labor">
+      <input type="hidden" id="si-w_parts">
+      <input type="hidden" id="si-f_labor">
+      <input type="hidden" id="si-f_parts">
+      <input type="hidden" id="si-received">
+      <input type="hidden" id="si-kgm">
     </div>
 
     <!-- 매달 보고 -->

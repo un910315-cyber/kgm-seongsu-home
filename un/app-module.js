@@ -965,6 +965,157 @@
   }
   window._renderSalesWidget = renderSalesWidget;
 
+  // ══════════════════════════════════════════════════════════════════
+  //  일일 매출 보고 (새 구조) — salesDaily/{날짜} = {warranty:{labor,parts}, func:{labor,parts}, received}
+  // ══════════════════════════════════════════════════════════════════
+  const SALES_REPORT_FIELDS = ['w_labor','w_parts','f_labor','f_parts','received','kgm'];
+
+  function _srNum(id) {
+    const el = document.getElementById(id);
+    return el ? (parseInt(String(el.value || '0').replace(/[^0-9]/g,''), 10) || 0) : 0;
+  }
+
+  function refreshSalesReportTotals() {
+    const wt = document.getElementById('sv-w_total');
+    const ft = document.getElementById('sv-f_total');
+    if (wt) wt.textContent = '₩' + (_srNum('si-w_labor') + _srNum('si-w_parts')).toLocaleString('ko-KR');
+    if (ft) ft.textContent = '₩' + (_srNum('si-f_labor') + _srNum('si-f_parts')).toLocaleString('ko-KR');
+  }
+  window._refreshSalesReportTotals = refreshSalesReportTotals;
+
+  function renderSalesReport() {
+    const day = _getActiveSalesDate();
+    const rec = salesDailyMap[day] || {};
+    const w = rec.warranty || {};
+    const f = rec.func || {};
+    const vals = {
+      w_labor:  Number(w.labor) || 0,
+      w_parts:  Number(w.parts) || 0,
+      f_labor:  Number(f.labor) || 0,
+      f_parts:  Number(f.parts) || 0,
+      received: Number(rec.received) || 0,
+      kgm:      Number(kgmDailyMap[day]) || 0
+    };
+    SALES_REPORT_FIELDS.forEach(k => {
+      const hid = document.getElementById('si-' + k);
+      if (hid) hid.value = String(vals[k]);
+      const card = document.getElementById('sv-' + k);
+      if (card) card.textContent = (k === 'kgm')
+        ? (vals[k].toLocaleString('ko-KR') + '대')
+        : ('₩' + vals[k].toLocaleString('ko-KR'));
+    });
+    refreshSalesReportTotals();
+    const dlabel = document.getElementById('daily-report-date');
+    if (dlabel) dlabel.textContent = (day === _todayStr()) ? (day + ' (오늘)') : day;
+    const dinp = document.getElementById('sales-page-date');
+    if (dinp && !dinp.value && window._activeSalesDate) dinp.value = window._activeSalesDate;
+  }
+  window._renderSalesReport = renderSalesReport;
+
+  window._saveSalesReport = async function() {
+    const day = _getActiveSalesDate();
+    const data = {
+      warranty: { labor: _srNum('si-w_labor'), parts: _srNum('si-w_parts') },
+      func:     { labor: _srNum('si-f_labor'), parts: _srNum('si-f_parts') },
+      received: _srNum('si-received')
+    };
+    const kgm = _srNum('si-kgm');
+    try {
+      await update(ref(db, 'salesDaily/' + day), data);
+      await update(ref(db, 'kgmDailyCount'), { [day]: kgm });
+      showNotif(day + ' 매출 보고 저장 ');
+    } catch(e) {
+      console.error('saveSalesReport', e);
+      showNotif('저장 실패: ' + (e.message || e), true);
+    }
+  };
+
+  // 볼트 매출현황 엑셀(.xls/.xlsx) 파싱 → 보증·기능·수납금계 자동 채움
+  function handleSalesExcel(file) {
+    if (!file) return;
+    const statusEl = document.getElementById('salesExcelStatus');
+    if (typeof XLSX === 'undefined') {
+      if (statusEl) statusEl.textContent = '엑셀 라이브러리 로드 실패 — 새로고침 후 다시 시도';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        const wb = XLSX.read(new Uint8Array(ev.target.result), { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+        const num = (v) => {
+          if (typeof v === 'number') return v;
+          const n = parseInt(String(v).replace(/[^0-9]/g, ''), 10);
+          return Number.isFinite(n) ? n : 0;
+        };
+        let dateStr = '', w = null, f = null, received = null, kgmCnt = null;
+        rows.forEach(r => {
+          const joined = r.join(' ');
+          if (!dateStr && joined.indexOf('기준일자') >= 0) {
+            const m = joined.match(/\d{4}-\d{2}-\d{2}/);
+            if (m) dateStr = m[0];
+          }
+          if (!w && String(r[1]).trim() === '보증') w = { labor: num(r[5]), parts: num(r[8]) };
+          if (!f && String(r[3]).trim() === '기능') f = { labor: num(r[5]), parts: num(r[8]) };
+          if (received == null && String(r[1]).trim() === '총계') {
+            received = num(r[46]); kgmCnt = num(r[52]);
+          }
+        });
+        if (!dateStr || (!w && !f && received == null)) {
+          if (statusEl) statusEl.textContent = '볼트 매출현황 양식이 아닌 것 같습니다 — 파일을 확인해주세요';
+          return;
+        }
+        w = w || { labor: 0, parts: 0 };
+        f = f || { labor: 0, parts: 0 };
+        received = received || 0;
+        if (window._setSalesDate) window._setSalesDate(dateStr);
+        const dinp = document.getElementById('sales-page-date');
+        if (dinp) dinp.value = dateStr;
+        const fill = (k, v) => {
+          const hid = document.getElementById('si-' + k);
+          if (hid) hid.value = String(v);
+          const card = document.getElementById('sv-' + k);
+          if (card) card.textContent = '₩' + v.toLocaleString('ko-KR');
+        };
+        fill('w_labor', w.labor); fill('w_parts', w.parts);
+        fill('f_labor', f.labor); fill('f_parts', f.parts);
+        fill('received', received);
+        refreshSalesReportTotals();
+        if (statusEl) {
+          statusEl.textContent = dateStr + ' 불러옴 · 엑셀 정비건수 ' + (kgmCnt || 0) + '대 (참고) — 정비 대수 확인 후 저장하세요';
+        }
+        showNotif(dateStr + ' 매출 엑셀 불러옴 — [저장]을 누르면 기록됩니다');
+      } catch(e) {
+        console.error('handleSalesExcel', e);
+        if (statusEl) statusEl.textContent = '엑셀 읽기 실패: ' + (e.message || e);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+  window._handleSalesExcel = handleSalesExcel;
+
+  // 엑셀 드롭존 — 클릭/파일선택/드래그앤드롭
+  (function bindSalesExcelDrop() {
+    const drop = document.getElementById('salesExcelDrop');
+    const input = document.getElementById('salesExcelInput');
+    if (!drop || !input) return;
+    drop.addEventListener('click', () => input.click());
+    input.addEventListener('change', () => {
+      if (input.files && input.files[0]) handleSalesExcel(input.files[0]);
+      input.value = '';
+    });
+    ['dragenter','dragover'].forEach(ev =>
+      drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('dragover'); }));
+    ['dragleave','drop'].forEach(ev =>
+      drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('dragover'); }));
+    drop.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) handleSalesExcel(file);
+    });
+  })();
+
   // 일일 매출 저장 (부품 / 기능) — 매출 보고 페이지에서 호출
   window._salesSavePage = async function(cat) {
     if (SALES_CATS.indexOf(cat) < 0) return;

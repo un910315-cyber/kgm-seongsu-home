@@ -4006,6 +4006,62 @@ body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sal
 }
 
 /* ==========================================================================
+   매출 보고 — 엑셀 업로드 영역 + 보증/기능 그룹
+   ========================================================================== */
+.sales-excel-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 20px 16px;
+  margin: 6px 0 14px;
+  border: 1.5px dashed rgba(139, 92, 246, .4);
+  border-radius: 12px;
+  background: rgba(139, 92, 246, .05);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color .14s ease, background .14s ease;
+}
+.sales-excel-drop:hover,
+.sales-excel-drop.dragover {
+  border-color: var(--accent);
+  background: rgba(139, 92, 246, .13);
+}
+.sed-icon { font-size: 26px; }
+.sed-main { font-size: 13px; font-weight: 800; color: var(--text); }
+.sed-sub { font-size: 11px; color: var(--text-dim); }
+
+.sales-grp { margin-top: 4px; }
+.sales-grp-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 12px 0 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: .03em;
+}
+.sales-grp-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px currentColor;
+}
+.sales-subtotal {
+  margin-top: 8px;
+  text-align: right;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.sales-subtotal strong {
+  margin-left: 6px;
+  font-size: 14px;
+  color: #f8fafc;
+  font-weight: 900;
+}
+
+/* ==========================================================================
    작업지시서 인쇄 도구 (마이그레이션 때 누락 → 복원)
    ========================================================================== */
 .wo-modal-inner { display:flex; gap:0; max-width:1280px; width:96vw; max-height:92vh; background:#f5f5f7; color:#333; }
@@ -4708,4 +4764,200 @@ body:has(.page.active) .sidebar-links a:hover {
   body:has(#page-dashboard.active) .dashboard-bottom-row {
     grid-template-columns: 1fr !important;
   }
+}
+
+/* Final production lock: keep the manual sidebar fixed after every page click. */
+@media (min-width: 761px) {
+  body,
+  body[data-page],
+  body:has(.page.active) {
+    min-width: 1180px !important;
+  }
+
+  body .header,
+  body[data-page] .header,
+  body:has(.page.active) .header,
+  body:has(#page-dashboard.active) .header {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    width: 184px !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 0 !important;
+    padding: 18px 14px !important;
+    overflow: hidden !important;
+    background: rgba(7, 11, 20, .96) !important;
+    border-right: 1px solid rgba(148, 163, 184, .14) !important;
+    border-bottom: 0 !important;
+    z-index: 100 !important;
+  }
+
+  body .header-logo,
+  body[data-page] .header-logo,
+  body:has(.page.active) .header-logo {
+    min-width: 0 !important;
+    height: 72px !important;
+    display: flex !important;
+    align-items: flex-start !important;
+  }
+
+  body .logo-grad,
+  body[data-page] .logo-grad,
+  body:has(.page.active) .logo-grad,
+  body:has(#page-dashboard.active) .logo-grad {
+    width: 156px !important;
+    height: 58px !important;
+    min-height: 58px !important;
+    justify-content: flex-start !important;
+    overflow: visible !important;
+  }
+
+  body .logo-grad::before,
+  body[data-page] .logo-grad::before,
+  body:has(.page.active) .logo-grad::before {
+    font-size: 25px !important;
+    line-height: 1 !important;
+  }
+
+  body .logo-grad::after,
+  body[data-page] .logo-grad::after,
+  body:has(.page.active) .logo-grad::after {
+    display: block !important;
+    max-width: 128px !important;
+    margin-top: 4px !important;
+    font-size: 9px !important;
+    line-height: 1.22 !important;
+    letter-spacing: .7px !important;
+    white-space: normal !important;
+  }
+
+  body .header-right,
+  body[data-page] .header-right,
+  body:has(.page.active) .header-right {
+    display: none !important;
+  }
+
+  body .header::before,
+  body .header::after,
+  body[data-page] .header::before,
+  body[data-page] .header::after,
+  body:has(.page.active) .header::before,
+  body:has(.page.active) .header::after {
+    display: none !important;
+  }
+
+  body .nav-tabs,
+  body[data-page] .nav-tabs,
+  body:has(.page.active) .nav-tabs,
+  body:has(#page-dashboard.active) .nav-tabs {
+    position: fixed !important;
+    top: 102px !important;
+    bottom: 12px !important;
+    left: 14px !important;
+    right: auto !important;
+    width: 156px !important;
+    height: auto !important;
+    max-height: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    padding: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    background: transparent !important;
+    border: 0 !important;
+    z-index: 101 !important;
+  }
+
+  body .nav-group,
+  body[data-page] .nav-group,
+  body:has(.page.active) .nav-group {
+    display: block !important;
+    width: 100% !important;
+    flex: 0 0 auto !important;
+  }
+
+  body .nav-group .nav-subtabs,
+  body .nav-group.nav-group-open .nav-subtabs,
+  body[data-page] .nav-group .nav-subtabs,
+  body[data-page] .nav-group.nav-group-open .nav-subtabs,
+  body:has(.page.active) .nav-group .nav-subtabs,
+  body:has(.page.active) .nav-group.nav-group-open .nav-subtabs {
+    display: flex !important;
+    width: 100% !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    gap: 5px !important;
+    max-height: 150px !important;
+    margin-top: 5px !important;
+    padding-left: 10px !important;
+    overflow: hidden !important;
+    opacity: 1 !important;
+    border-left: 1px solid rgba(139, 92, 246, .34) !important;
+    transform: none !important;
+  }
+
+  body .nav-tab,
+  body .nav-subtab,
+  body[data-page] .nav-tab,
+  body[data-page] .nav-subtab,
+  body:has(.page.active) .nav-tab,
+  body:has(.page.active) .nav-subtab,
+  body:has(#page-dashboard.active) .nav-tab {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 32px !important;
+    flex: 0 0 auto !important;
+    padding: 7px 10px !important;
+    border-radius: 8px !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    line-height: 1.18 !important;
+    text-align: left !important;
+    white-space: nowrap !important;
+  }
+
+  body .nav-subtab,
+  body[data-page] .nav-subtab,
+  body:has(.page.active) .nav-subtab {
+    min-height: 27px !important;
+    padding: 6px 9px 6px 12px !important;
+    font-size: 10.5px !important;
+  }
+
+  body .page.active > .main,
+  body[data-page] .page.active > .main,
+  body:has(.page.active) .page.active > .main,
+  body:has(#page-dashboard.active) #page-dashboard .main {
+    margin-left: 184px !important;
+    width: calc(100% - 184px) !important;
+    max-width: none !important;
+    padding-left: 28px !important;
+    transform: none !important;
+  }
+}
+
+/* Dashboard cumulative sales cleanup: remove the stray overflow line chart. */
+body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card {
+  overflow: hidden !important;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sales-chart,
+body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sales-legend {
+  display: none !important;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sales-mix {
+  margin-bottom: 0 !important;
+}
+
+/* KGM intake card: remove leftover decorative top line from the compact today card. */
+body:has(#page-dashboard.active) #page-dashboard .kgm-section .stats-grid[style*="grid-template-columns:1fr"] .stat-card::after {
+  content: none !important;
+  display: none !important;
 }

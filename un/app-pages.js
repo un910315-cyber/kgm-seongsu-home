@@ -28,7 +28,7 @@
       if (name==='board') { if(window._renderBoardNotices) window._renderBoardNotices(); if(window._renderBoard) window._renderBoard(); if(window._renderCalendar) window._renderCalendar(); }
       if (name==='insurance' && window._renderInsurance) window._renderInsurance();
       if (name==='blacklist' && window._renderBlacklist) window._renderBlacklist();
-      if (name==='sales' && window._renderSalesWidget) window._renderSalesWidget();
+      if (name==='sales' && window._renderSalesReport) window._renderSalesReport();
     } catch(e) {
       alert('switchPage 에러: ' + e.message);
     }
@@ -89,13 +89,19 @@
   // ── 매출 보고 POS 키패드 모달 ──
   (function() {
     var SK = { cat: null, value: '' };
+    var WON_QUICK = [{l:'+1만',d:10000},{l:'+10만',d:100000},{l:'+100만',d:1000000}];
     var CFG = {
-      kgm:      { label: 'KGM 정비 대수', color: '#ff8787', unit: '대', max: 999,       quick: [{l:'+1',d:1},{l:'+5',d:5},{l:'+10',d:10}] },
-      parts:    { label: '부품 매출',     color: '#fb923c', unit: '원', max: 999999999, quick: [{l:'+1만',d:10000},{l:'+10만',d:100000},{l:'+100만',d:1000000}] },
-      function: { label: '기능 매출',     color: '#34d399', unit: '원', max: 999999999, quick: [{l:'+1만',d:10000},{l:'+10만',d:100000},{l:'+100만',d:1000000}] },
-      deposit:  { label: '이달 보증',     color: '#fbbf24', unit: '원', max: 999999999, quick: [{l:'+10만',d:100000},{l:'+100만',d:1000000},{l:'+1000만',d:10000000}] }
+      // 일일 매출 보고 항목 (report:true → 즉시 저장 안 함, 카드만 갱신 후 저장 버튼으로 일괄 저장)
+      w_labor:  { label: '보증 공임',     color: '#fbbf24', unit: '원', max: 9999999999, report: true, quick: WON_QUICK },
+      w_parts:  { label: '보증 부품',     color: '#fbbf24', unit: '원', max: 9999999999, report: true, quick: WON_QUICK },
+      f_labor:  { label: '기능 공임',     color: '#34d399', unit: '원', max: 9999999999, report: true, quick: WON_QUICK },
+      f_parts:  { label: '기능 부품',     color: '#34d399', unit: '원', max: 9999999999, report: true, quick: WON_QUICK },
+      received: { label: '총 수납금계',   color: '#38bdf8', unit: '원', max: 9999999999, report: true, quick: [{l:'+10만',d:100000},{l:'+100만',d:1000000},{l:'+1000만',d:10000000}] },
+      kgm:      { label: 'KGM 정비 대수', color: '#ff8787', unit: '대', max: 999,        report: true, quick: [{l:'+1',d:1},{l:'+5',d:5},{l:'+10',d:10}] },
+      // 매달 보고 (즉시 저장)
+      deposit:  { label: '이달 보증',     color: '#fbbf24', unit: '원', max: 999999999,  quick: [{l:'+10만',d:100000},{l:'+100만',d:1000000},{l:'+1000만',d:10000000}] }
     };
-    var INPUT_ID = { kgm:'sales-page-input-kgm', parts:'sales-page-input-parts', function:'sales-page-input-function', deposit:'deposit-input' };
+    var INPUT_ID = { deposit:'deposit-input' };
 
     function fmtDisp() {
       var n = parseInt(SK.value || '0', 10) || 0;
@@ -144,16 +150,29 @@
 
     window.salesKeypadSave = function() {
       if (!SK.cat) return;
+      var c = CFG[SK.cat];
+      clamp();
+      // 일일 매출 보고 항목 — 카드·hidden만 갱신, 저장은 별도 버튼
+      if (c && c.report) {
+        var n = parseInt(SK.value || '0', 10) || 0;
+        var hid = document.getElementById('si-' + SK.cat);
+        if (hid) hid.value = String(n);
+        var card = document.getElementById('sv-' + SK.cat);
+        if (card) card.textContent = c.unit === '대'
+          ? (n.toLocaleString('ko-KR') + '대')
+          : ('₩' + n.toLocaleString('ko-KR'));
+        if (window._refreshSalesReportTotals) window._refreshSalesReportTotals();
+        window.closeSalesKeypad();
+        return;
+      }
+      // 매달 보고(deposit 등) — 즉시 저장
       var inp = document.getElementById(INPUT_ID[SK.cat]);
       if (!inp) { window.closeSalesKeypad(); return; }
-      clamp();
       inp.value = SK.value || '0';
       var saveBtn = document.querySelector('.sk-save');
       if (saveBtn) saveBtn.disabled = true;
       try {
-        if      (SK.cat === 'kgm'     && window._kgmDailySavePage) window._kgmDailySavePage();
-        else if (SK.cat === 'deposit' && window._depositSave)      window._depositSave();
-        else if (window._salesSavePage)                            window._salesSavePage(SK.cat);
+        if (SK.cat === 'deposit' && window._depositSave) window._depositSave();
       } catch(_) {}
       setTimeout(function(){
         if (saveBtn) saveBtn.disabled = false;

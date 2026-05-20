@@ -4006,6 +4006,62 @@ body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sal
 }
 
 /* ==========================================================================
+   매출 보고 — 엑셀 업로드 영역 + 보증/기능 그룹
+   ========================================================================== */
+.sales-excel-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 20px 16px;
+  margin: 6px 0 14px;
+  border: 1.5px dashed rgba(139, 92, 246, .4);
+  border-radius: 12px;
+  background: rgba(139, 92, 246, .05);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color .14s ease, background .14s ease;
+}
+.sales-excel-drop:hover,
+.sales-excel-drop.dragover {
+  border-color: var(--accent);
+  background: rgba(139, 92, 246, .13);
+}
+.sed-icon { font-size: 26px; }
+.sed-main { font-size: 13px; font-weight: 800; color: var(--text); }
+.sed-sub { font-size: 11px; color: var(--text-dim); }
+
+.sales-grp { margin-top: 4px; }
+.sales-grp-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 12px 0 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: .03em;
+}
+.sales-grp-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px currentColor;
+}
+.sales-subtotal {
+  margin-top: 8px;
+  text-align: right;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.sales-subtotal strong {
+  margin-left: 6px;
+  font-size: 14px;
+  color: #f8fafc;
+  font-weight: 900;
+}
+
+/* ==========================================================================
    작업지시서 인쇄 도구 (마이그레이션 때 누락 → 복원)
    ========================================================================== */
 .wo-modal-inner { display:flex; gap:0; max-width:1280px; width:96vw; max-height:92vh; background:#f5f5f7; color:#333; }
