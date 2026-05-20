@@ -104,7 +104,10 @@ async function synthVoice(text, env) {
     let voiceId = getEnv(env, 'ELEVENLABS_VOICE_ID') || cachedVoiceId;
     if (!voiceId) {
       const vr = await fetch('https://api.elevenlabs.io/v1/voices', { headers: { 'xi-api-key': key } });
-      if (!vr.ok) return { audio: null, error: 'voices-' + vr.status };
+      if (!vr.ok) {
+        const vdet = (await vr.text()).slice(0, 220);
+        return { audio: null, error: 'voices-' + vr.status + ' ' + vdet };
+      }
       const vd = await vr.json();
       const v = (vd.voices || [])[0];
       if (!v) return { audio: null, error: 'voices-empty' };
