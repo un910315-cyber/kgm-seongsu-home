@@ -789,13 +789,14 @@
     window._activeSalesDate = (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) ? d : null;
     var inp = document.getElementById('sales-page-date');
     if (inp && !window._activeSalesDate) inp.value = '';
-    if (typeof renderSalesWidget === 'function') { try { renderSalesWidget(); } catch(_) {} }
+    // 매출 보고 페이지를 활성 날짜 데이터로 다시 그림 (대시보드 위젯 아님)
+    if (typeof renderSalesReport === 'function') { try { renderSalesReport(); } catch(_) {} }
   };
   window._setSalesMonth = function(m) {
     window._activeSalesMonth = (m && /^\d{4}-\d{2}$/.test(m)) ? m : null;
     var inp = document.getElementById('sales-page-month');
     if (inp && !window._activeSalesMonth) inp.value = '';
-    if (typeof renderSalesWidget === 'function') { try { renderSalesWidget(); } catch(_) {} }
+    if (typeof renderSalesReport === 'function') { try { renderSalesReport(); } catch(_) {} }
   };
   // 14일치 일자별 값 추출 (오래된 → 최신)
   function _last14Days() {
