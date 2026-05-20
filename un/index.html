@@ -227,6 +227,15 @@
             </div>
           </div>
 
+          <div class="dash-sales-grp">
+            <div class="dsg-head"><span class="dsg-dot" style="background:#ef4444"></span>파손+보험</div>
+            <div class="dsg-rows">
+              <div class="dsg-line"><span>공임</span><strong id="dash-d-labor">₩0</strong></div>
+              <div class="dsg-line"><span>부품</span><strong id="dash-d-parts">₩0</strong></div>
+              <div class="dsg-line dsg-total"><span>합계</span><strong id="dash-d-total">₩0</strong></div>
+            </div>
+          </div>
+
           <div class="dash-received">
             <span>총 수납금계</span>
             <strong id="dash-received">₩0</strong>
@@ -559,6 +568,24 @@
         <div class="sales-subtotal">기능 합계 <strong id="sv-f_total">₩0</strong></div>
       </div>
 
+      <!-- 파손+보험 -->
+      <div class="sales-grp">
+        <div class="sales-grp-head"><span class="sales-grp-dot" style="background:#ef4444"></span>파손+보험</div>
+        <div class="sk-card-grid">
+          <button type="button" class="sk-card" onclick="window.openSalesKeypad('d_labor')">
+            <span class="sk-card-label">공임</span>
+            <span class="sk-card-value" id="sv-d_labor">₩0</span>
+            <span class="sk-card-hint">탭하여 입력</span>
+          </button>
+          <button type="button" class="sk-card" onclick="window.openSalesKeypad('d_parts')">
+            <span class="sk-card-label">부품</span>
+            <span class="sk-card-value" id="sv-d_parts">₩0</span>
+            <span class="sk-card-hint">탭하여 입력</span>
+          </button>
+        </div>
+        <div class="sales-subtotal">파손+보험 합계 <strong id="sv-d_total">₩0</strong></div>
+      </div>
+
       <!-- 수납금계 + KGM 정비 대수 -->
       <div class="sk-card-grid" style="margin-top:6px;">
         <button type="button" class="sk-card" onclick="window.openSalesKeypad('received')">
@@ -584,6 +611,8 @@
       <input type="hidden" id="si-w_parts">
       <input type="hidden" id="si-f_labor">
       <input type="hidden" id="si-f_parts">
+      <input type="hidden" id="si-d_labor">
+      <input type="hidden" id="si-d_parts">
       <input type="hidden" id="si-received">
       <input type="hidden" id="si-kgm">
     </div>

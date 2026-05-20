@@ -96,6 +96,8 @@
       w_parts:  { label: '보증 부품',     color: '#fbbf24', unit: '원', max: 9999999999, report: true, quick: WON_QUICK },
       f_labor:  { label: '기능 공임',     color: '#34d399', unit: '원', max: 9999999999, report: true, quick: WON_QUICK },
       f_parts:  { label: '기능 부품',     color: '#34d399', unit: '원', max: 9999999999, report: true, quick: WON_QUICK },
+      d_labor:  { label: '파손+보험 공임', color: '#ef4444', unit: '원', max: 9999999999, report: true, quick: WON_QUICK },
+      d_parts:  { label: '파손+보험 부품', color: '#ef4444', unit: '원', max: 9999999999, report: true, quick: WON_QUICK },
       received: { label: '총 수납금계',   color: '#38bdf8', unit: '원', max: 9999999999, report: true, quick: [{l:'+10만',d:100000},{l:'+100만',d:1000000},{l:'+1000만',d:10000000}] },
       kgm:      { label: 'KGM 정비 대수', color: '#ff8787', unit: '대', max: 999,        report: true, quick: [{l:'+1',d:1},{l:'+5',d:5},{l:'+10',d:10}] },
       // 매달 보고 (즉시 저장)

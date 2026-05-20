@@ -828,14 +828,17 @@
     return { cls: 'down', text: '↓ 어제 ' + pct + '%' };
   }
 
-  // 대시보드 매출 보고 위젯 — 오늘 기준 보증·기능 공임/부품 + 수납금계
+  // 대시보드 매출 보고 위젯 — 전날 기준 (하루 한 번 업무 후 입력하므로 당일은 비어있음)
   function renderSalesWidget() {
-    const today = _todayStr();
-    const rec = salesDailyMap[today] || {};
+    const y = new Date(); y.setDate(y.getDate() - 1);
+    const refDay = y.getFullYear() + '-' + String(y.getMonth() + 1).padStart(2, '0') + '-' + String(y.getDate()).padStart(2, '0');
+    const rec = salesDailyMap[refDay] || {};
     const w = rec.warranty || {};
     const f = rec.func || {};
+    const dz = rec.disaster || {};
     const wl = Number(w.labor) || 0, wp = Number(w.parts) || 0;
     const fl = Number(f.labor) || 0, fp = Number(f.parts) || 0;
+    const dl = Number(dz.labor) || 0, dp = Number(dz.parts) || 0;
     const received = Number(rec.received) || 0;
     const set = (id, v) => {
       const el = document.getElementById(id);
@@ -843,9 +846,10 @@
     };
     set('dash-w-labor', wl); set('dash-w-parts', wp); set('dash-w-total', wl + wp);
     set('dash-f-labor', fl); set('dash-f-parts', fp); set('dash-f-total', fl + fp);
+    set('dash-d-labor', dl); set('dash-d-parts', dp); set('dash-d-total', dl + dp);
     set('dash-received', received);
     const dateEl = document.getElementById('daily-sales-date');
-    if (dateEl) dateEl.textContent = today.replace(/^\d{4}-/, '').replace('-', '/') + ' 기준';
+    if (dateEl) dateEl.textContent = refDay.replace(/^\d{4}-/, '').replace('-', '/') + ' (전날)';
 
     // 이번 달 누적 매출 차트 — 부품(보증부품+기능부품) / 기능 공임 / 보증 공임
     const mo = _thisMonthStr();
@@ -877,7 +881,7 @@
   // ══════════════════════════════════════════════════════════════════
   //  일일 매출 보고 (새 구조) — salesDaily/{날짜} = {warranty:{labor,parts}, func:{labor,parts}, received}
   // ══════════════════════════════════════════════════════════════════
-  const SALES_REPORT_FIELDS = ['w_labor','w_parts','f_labor','f_parts','received','kgm'];
+  const SALES_REPORT_FIELDS = ['w_labor','w_parts','f_labor','f_parts','d_labor','d_parts','received','kgm'];
 
   function _srNum(id) {
     const el = document.getElementById(id);
@@ -887,8 +891,10 @@
   function refreshSalesReportTotals() {
     const wt = document.getElementById('sv-w_total');
     const ft = document.getElementById('sv-f_total');
+    const dt = document.getElementById('sv-d_total');
     if (wt) wt.textContent = '₩' + (_srNum('si-w_labor') + _srNum('si-w_parts')).toLocaleString('ko-KR');
     if (ft) ft.textContent = '₩' + (_srNum('si-f_labor') + _srNum('si-f_parts')).toLocaleString('ko-KR');
+    if (dt) dt.textContent = '₩' + (_srNum('si-d_labor') + _srNum('si-d_parts')).toLocaleString('ko-KR');
   }
   window._refreshSalesReportTotals = refreshSalesReportTotals;
 
@@ -897,11 +903,14 @@
     const rec = salesDailyMap[day] || {};
     const w = rec.warranty || {};
     const f = rec.func || {};
+    const dz = rec.disaster || {};
     const vals = {
       w_labor:  Number(w.labor) || 0,
       w_parts:  Number(w.parts) || 0,
       f_labor:  Number(f.labor) || 0,
       f_parts:  Number(f.parts) || 0,
+      d_labor:  Number(dz.labor) || 0,
+      d_parts:  Number(dz.parts) || 0,
       received: Number(rec.received) || 0,
       kgm:      Number(kgmDailyMap[day]) || 0
     };
@@ -926,6 +935,7 @@
     const data = {
       warranty: { labor: _srNum('si-w_labor'), parts: _srNum('si-w_parts') },
       func:     { labor: _srNum('si-f_labor'), parts: _srNum('si-f_parts') },
+      disaster: { labor: _srNum('si-d_labor'), parts: _srNum('si-d_parts') },
       received: _srNum('si-received')
     };
     const kgm = _srNum('si-kgm');
@@ -959,6 +969,7 @@
           return Number.isFinite(n) ? n : 0;
         };
         let dateStr = '', w = null, f = null, received = null, kgmCnt = null;
+        const dz = { labor: 0, parts: 0 };  // 파손+보험 합산
         rows.forEach(r => {
           const joined = r.join(' ');
           if (!dateStr && joined.indexOf('기준일자') >= 0) {
@@ -967,6 +978,8 @@
           }
           if (!w && String(r[1]).trim() === '보증') w = { labor: num(r[5]), parts: num(r[8]) };
           if (!f && String(r[3]).trim() === '기능') f = { labor: num(r[5]), parts: num(r[8]) };
+          const u3 = String(r[3]).trim();
+          if (u3 === '파손' || u3 === '보험') { dz.labor += num(r[5]); dz.parts += num(r[8]); }
           if (received == null && String(r[1]).trim() === '총계') {
             received = num(r[46]); kgmCnt = num(r[52]);
           }
@@ -989,6 +1002,7 @@
         };
         fill('w_labor', w.labor); fill('w_parts', w.parts);
         fill('f_labor', f.labor); fill('f_parts', f.parts);
+        fill('d_labor', dz.labor); fill('d_parts', dz.parts);
         fill('received', received);
         refreshSalesReportTotals();
         if (statusEl) {
