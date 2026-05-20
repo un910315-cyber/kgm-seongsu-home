@@ -198,7 +198,7 @@
     const labels = [
       { name: '\uBD80\uD488', value: partsAmount, color: '#fb923c' },
       { name: '\uAE30\uB2A5', value: funcAmount, color: '#34d399' },
-      { name: '\uBCF4\uC99D\uAE08', value: depositAmount, color: '#fbbf24' }
+      { name: '\uBCF4\uC99D', value: depositAmount, color: '#fbbf24' }
     ];
     chart.innerHTML = '<svg viewBox="0 0 760 210" preserveAspectRatio="none" style="width:100%;height:100%;display:block;">'
       + '<defs><linearGradient id="cumSalesTotalArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38bdf8" stop-opacity=".22"/><stop offset="100%" stop-color="#38bdf8" stop-opacity=".015"/></linearGradient><filter id="cumSalesGlow"><feGaussianBlur stdDeviation="2.2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'
