@@ -1064,7 +1064,8 @@
           const n = parseInt(String(v).replace(/[^0-9]/g, ''), 10);
           return Number.isFinite(n) ? n : 0;
         };
-        let dateStr = '', w = null, f = null, received = null, kgmCnt = null;
+        let dateStr = '', w = null, f = null, received = null;
+        let wCnt = 0, fCnt = 0;  // 보증 건수, 기능 건수 (제일 오른쪽 셀 r52)
         const dz = { labor: 0, parts: 0 };  // 파손+보험 합산
         rows.forEach(r => {
           const joined = r.join(' ');
@@ -1072,12 +1073,13 @@
             const m = joined.match(/\d{4}-\d{2}-\d{2}/);
             if (m) dateStr = m[0];
           }
-          if (!w && String(r[1]).trim() === '보증') w = { labor: num(r[5]), parts: num(r[8]) };
-          if (!f && String(r[3]).trim() === '기능') f = { labor: num(r[5]), parts: num(r[8]) };
+          // 보증: 공임 + 부품대를 합쳐 단일 금액으로
+          if (!w && String(r[1]).trim() === '보증') { w = { labor: num(r[5]) + num(r[8]), parts: 0 }; wCnt = num(r[52]); }
+          if (!f && String(r[3]).trim() === '기능') { f = { labor: num(r[5]), parts: num(r[8]) }; fCnt = num(r[52]); }
           const u3 = String(r[3]).trim();
           if (u3 === '파손' || u3 === '보험') { dz.labor += num(r[5]); dz.parts += num(r[8]); }
           if (received == null && String(r[1]).trim() === '총계') {
-            received = num(r[46]); kgmCnt = num(r[52]);
+            received = num(r[46]);
           }
         });
         if (!dateStr || (!w && !f && received == null)) {
@@ -1096,13 +1098,19 @@
           const card = document.getElementById('sv-' + k);
           if (card) card.textContent = '₩' + v.toLocaleString('ko-KR');
         };
-        fill('w_labor', w.labor); fill('w_parts', w.parts);
+        fill('w_labor', w.labor);
         fill('f_labor', f.labor); fill('f_parts', f.parts);
         fill('d_labor', dz.labor); fill('d_parts', dz.parts);
         fill('received', received);
+        // KGM 정비 대수 = 보증 건수 + 기능 건수 (자동)
+        const kgmTotal = wCnt + fCnt;
+        const kgmHid = document.getElementById('si-kgm');
+        if (kgmHid) kgmHid.value = String(kgmTotal);
+        const kgmCard = document.getElementById('sv-kgm');
+        if (kgmCard) kgmCard.textContent = kgmTotal + '대';
         refreshSalesReportTotals();
         if (statusEl) {
-          statusEl.textContent = dateStr + ' 불러옴 · 엑셀 정비건수 ' + (kgmCnt || 0) + '대 (참고) — 정비 대수 확인 후 저장하세요';
+          statusEl.textContent = dateStr + ' 불러옴 · 정비대수 ' + kgmTotal + '대 자동 입력 — 확인 후 [저장]';
         }
         showNotif(dateStr + ' 매출 엑셀 불러옴 — [저장]을 누르면 기록됩니다');
       } catch(e) {
