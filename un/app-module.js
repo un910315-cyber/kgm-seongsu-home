@@ -2167,7 +2167,7 @@
     bar.innerHTML = [
       { cls: 'now', label: monthLabel + ' 현재', value: current.total + '대', meta: 'KGM 비중 ' + kgmPct + '%' },
       { cls: diffClass, label: '전월 대비', value: diffText, meta: diffMeta },
-      { cls: 'forecast', label: forecastLabel, value: forecast + '대', meta: isCurrentMonth ? elapsedDays + '/' + daysInMonth + '일 진행' : '선택월 기준' },
+      { cls: 'forecast', label: forecastLabel, value: forecast + '대', meta: isCurrentMonth ? '달력일 ' + elapsedDays + '/' + daysInMonth + '일' : '선택월 기준' },
       { cls: 'best', label: '올해 최고월', value: bestLabel, meta: '월별 입고 피크' }
     ].map(item => (
       '<div class="monthly-insight-item ' + item.cls + '">' +

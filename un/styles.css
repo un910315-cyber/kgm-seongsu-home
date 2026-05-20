@@ -4044,6 +4044,10 @@ body:has(#page-dashboard.active) #page-dashboard .monthly-insight-item strong {
   letter-spacing: -0.02em;
 }
 
+body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card div[style*="rgba(139,92,246,0.06)"] {
+  display: none !important;
+}
+
 @media (max-width: 1180px) {
   body:has(#page-dashboard.active) #page-dashboard .monthly-insight-bar {
     grid-template-columns: repeat(2, minmax(0, 1fr));
