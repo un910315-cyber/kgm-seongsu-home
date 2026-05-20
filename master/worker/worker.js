@@ -90,31 +90,26 @@ function getApiKey(env) { return getEnv(env, 'ANTHROPIC_API_KEY'); }
 // ELEVENLABS_API_KEY 환경변수가 있으면 답변을 자연스러운 사람 음성으로 변환.
 // 없으면 audio 없이 텍스트만 반환 → 자비스가 폰 기본 음성으로 읽음.
 let cachedVoiceId = null;
-async function getVoiceId(key, env) {
-  const fromEnv = getEnv(env, 'ELEVENLABS_VOICE_ID');
-  if (fromEnv) return fromEnv;
-  if (cachedVoiceId) return cachedVoiceId;
-  try {
-    const r = await fetch('https://api.elevenlabs.io/v1/voices', { headers: { 'xi-api-key': key } });
-    if (!r.ok) return null;
-    const d = await r.json();
-    const v = (d.voices || [])[0];
-    cachedVoiceId = v ? v.voice_id : null;
-    return cachedVoiceId;
-  } catch (e) { return null; }
-}
 function bufToBase64(buf) {
   const bytes = new Uint8Array(buf);
   let bin = '';
   for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
   return btoa(bin);
 }
+// { audio, error } 반환 — error는 진단용 짧은 코드
 async function synthVoice(text, env) {
   const key = getEnv(env, 'ELEVENLABS_API_KEY');
-  if (!key) return null;
+  if (!key) return { audio: null, error: 'no-key' };
   try {
-    const voiceId = await getVoiceId(key, env);
-    if (!voiceId) return null;
+    let voiceId = getEnv(env, 'ELEVENLABS_VOICE_ID') || cachedVoiceId;
+    if (!voiceId) {
+      const vr = await fetch('https://api.elevenlabs.io/v1/voices', { headers: { 'xi-api-key': key } });
+      if (!vr.ok) return { audio: null, error: 'voices-' + vr.status };
+      const vd = await vr.json();
+      const v = (vd.voices || [])[0];
+      if (!v) return { audio: null, error: 'voices-empty' };
+      voiceId = cachedVoiceId = v.voice_id;
+    }
     const r = await fetch('https://api.elevenlabs.io/v1/text-to-speech/' + voiceId, {
       method: 'POST',
       headers: {
@@ -128,10 +123,15 @@ async function synthVoice(text, env) {
         voice_settings: { stability: 0.5, similarity_boost: 0.75 },
       }),
     });
-    if (!r.ok) return null;
+    if (!r.ok) {
+      const det = (await r.text()).slice(0, 140);
+      return { audio: null, error: 'tts-' + r.status + ':' + det };
+    }
     const buf = await r.arrayBuffer();
-    return 'data:audio/mpeg;base64,' + bufToBase64(buf);
-  } catch (e) { return null; }
+    return { audio: 'data:audio/mpeg;base64,' + bufToBase64(buf), error: null };
+  } catch (e) {
+    return { audio: null, error: 'exception:' + (e && e.message ? e.message : 'unknown') };
+  }
 }
 
 async function getWeather() {
@@ -228,9 +228,12 @@ export default {
     const finalAnswer = answer || '죄송해요 대표님, 답을 만들지 못했어요.';
 
     // 자연스러운 음성으로 변환 (ELEVENLABS_API_KEY 가 있을 때만; 실패해도 텍스트는 반환)
-    let audio = null;
-    try { audio = await synthVoice(finalAnswer, env); } catch (e) { audio = null; }
+    let audio = null, ttsError = null;
+    try {
+      const t = await synthVoice(finalAnswer, env);
+      audio = t.audio; ttsError = t.error;
+    } catch (e) { ttsError = 'wrap'; }
 
-    return json({ answer: finalAnswer, audio: audio }, 200, origin);
+    return json({ answer: finalAnswer, audio: audio, ttsError: ttsError }, 200, origin);
   },
 };
