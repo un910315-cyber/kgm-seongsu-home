@@ -320,19 +320,38 @@ function currentVoice() {
   return vs.find((v) => v.lang === 'ko-KR') || vs.find((v) => /ko/i.test(v.lang)) || null;
 }
 
+let ttsPrimed = false;
+// 사용자 제스처(탭/전송) 안에서 음성 출력을 미리 깨운다.
+// 안드로이드·크롬은 첫 음성을 제스처 안에서 한 번 풀어주지 않으면 무음이 됨.
+function primeTTS() {
+  if (!window.speechSynthesis) return;
+  try { window.speechSynthesis.resume(); } catch (e) {}
+  if (ttsPrimed) return;
+  ttsPrimed = true;
+  try {
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0;
+    window.speechSynthesis.speak(u);
+  } catch (e) {}
+}
+
 function speak(text) {
-  if (!window.speechSynthesis) { setOrb('idle'); return; }
+  if (!window.speechSynthesis) { setOrb('idle'); setStatus(IDLE_HINT); return; }
   try { window.speechSynthesis.cancel(); } catch (e) {}
+  try { window.speechSynthesis.resume(); } catch (e) {}
   const u = new SpeechSynthesisUtterance(String(text).replace(/[⚠️]/g, ''));
   const v = currentVoice();
   u.lang = (v && v.lang) || 'ko-KR';
   if (v) u.voice = v;
   u.rate = voicePrefs.rate;
   u.pitch = voicePrefs.pitch;
-  u.onstart = () => setOrb('speaking');
+  let started = false;
+  u.onstart = () => { started = true; setOrb('speaking'); };
   u.onend = () => { setOrb('idle'); setStatus(IDLE_HINT); };
-  u.onerror = () => { setOrb('idle'); };
+  u.onerror = () => { setOrb('idle'); setStatus(IDLE_HINT); };
   window.speechSynthesis.speak(u);
+  // 워치독 — 음성이 안 켜져도 오브가 '생각 중'에 멈추지 않도록
+  setTimeout(() => { if (!started) { setOrb('idle'); setStatus(IDLE_HINT); } }, 1600);
 }
 
 // ── 음성 설정 시트 ──
@@ -520,6 +539,7 @@ kbToggle.addEventListener('click', () => {
 function submitText() {
   const v = textInput.value.trim();
   if (!v) return;
+  primeTTS();
   textInput.value = '';
   handleQuery(v);
 }
@@ -628,6 +648,7 @@ function stopListening() {
 // 오브 = 자비스 본체. 탭하면 듣기 시작/중지.
 orb.addEventListener('click', () => {
   if (!settingsModal.hidden) return;
+  primeTTS();
   if (listening) { stopListening(); return; }
   if (!recog) { openKeyboard(); return; }
   startListening();
