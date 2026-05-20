@@ -2137,6 +2137,47 @@
   };
 
   // ---- STATS ----
+  function renderMonthlyInsightBar(monthlyData, opts) {
+    const bar = document.getElementById('monthlyInsightBar');
+    if (!bar || !Array.isArray(monthlyData) || !monthlyData.length) return;
+    const now = new Date();
+    const currentYear = String(now.getFullYear());
+    const currentMonth = now.getMonth() + 1;
+    const targetMonth = opts.isMonthly
+      ? parseInt(opts.selMonth, 10)
+      : (opts.year === currentYear ? currentMonth : ((monthlyData.filter(d => d.total > 0).slice(-1)[0] || {}).m || currentMonth));
+    const monthNo = Math.max(1, Math.min(12, targetMonth || currentMonth));
+    const current = monthlyData[monthNo - 1] || { total: 0, mKgm: 0, mDom: 0, mFor: 0 };
+    const prevDate = new Date(Number(opts.year), monthNo - 2, 1);
+    const prevPrefix = prevDate.getFullYear() + '-' + String(prevDate.getMonth() + 1).padStart(2, '0');
+    const prevTotal = (opts.allList || []).filter(r => (r.inDate || '').startsWith(prevPrefix)).length;
+    const diff = current.total - prevTotal;
+    const daysInMonth = new Date(Number(opts.year), monthNo, 0).getDate();
+    const isCurrentMonth = opts.year === currentYear && monthNo === currentMonth;
+    const elapsedDays = isCurrentMonth ? Math.max(1, Math.min(now.getDate(), daysInMonth)) : daysInMonth;
+    const forecast = isCurrentMonth ? Math.round((current.total / elapsedDays) * daysInMonth) : current.total;
+    const best = monthlyData.reduce((top, item) => item.total > top.total ? item : top, monthlyData[0]);
+    const kgmPct = current.total ? Math.round((current.mKgm / current.total) * 100) : 0;
+    const diffClass = diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat';
+    const diffText = prevTotal ? (diff > 0 ? '+' : '') + diff + '대' : '전월 없음';
+    const diffMeta = prevTotal ? '전월 ' + prevTotal + '대 기준' : '비교 데이터 대기';
+    const forecastLabel = isCurrentMonth ? '예상 마감' : '마감 대수';
+    const monthLabel = monthNo + '월';
+    const bestLabel = (best && best.total) ? best.m + '월 ' + best.total + '대' : '-';
+    bar.innerHTML = [
+      { cls: 'now', label: monthLabel + ' 현재', value: current.total + '대', meta: 'KGM 비중 ' + kgmPct + '%' },
+      { cls: diffClass, label: '전월 대비', value: diffText, meta: diffMeta },
+      { cls: 'forecast', label: forecastLabel, value: forecast + '대', meta: isCurrentMonth ? elapsedDays + '/' + daysInMonth + '일 진행' : '선택월 기준' },
+      { cls: 'best', label: '올해 최고월', value: bestLabel, meta: '월별 입고 피크' }
+    ].map(item => (
+      '<div class="monthly-insight-item ' + item.cls + '">' +
+        '<span>' + item.label + '</span>' +
+        '<strong>' + item.value + '</strong>' +
+        '<em>' + item.meta + '</em>' +
+      '</div>'
+    )).join('');
+  }
+
   function renderStats() {
     if (LOCAL_DASHBOARD_PREVIEW) {
       renderLocalDashboardPreview();
@@ -2265,6 +2306,7 @@
         + `<path d="${linePath}" fill="none" stroke="#8b5cf6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#monthlyRibbonGlow)"/>`
         + dots + strips + `</svg>`;
     }
+    renderMonthlyInsightBar(monthlyData, { year, selMonth, isMonthly, allList: list });
 
     // 월별 테이블
     const tbody = document.getElementById('stats-tbody');

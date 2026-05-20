@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v48-dashboard-cache-bust">
+<link rel="stylesheet" href="styles.css?v=v49-monthly-insight">
 </head>
 <body>
 
@@ -288,6 +288,7 @@
       <div class="chart-header" style="margin-bottom:10px;">
         <div class="chart-title">차량 구분 비율 (연간)</div>
       </div>
+      <div id="monthlyInsightBar" class="monthly-insight-bar" aria-label="월간 인사이트"></div>
       <div id="stats-bar" style="margin-bottom:18px;"></div>
 
       <!-- 월별 테이블 (DASHBOARD-ROW-END-MARKER) -->
@@ -1001,13 +1002,13 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v48-dashboard-cache-bust"></script>
+<script type="module" src="app-module.js?v=v49-monthly-insight"></script>
 
-<script defer src="app-pages.js?v=v48-dashboard-cache-bust"></script>
+<script defer src="app-pages.js?v=v49-monthly-insight"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script defer src="app-insurance.js?v=v48-dashboard-cache-bust"></script>
+<script defer src="app-insurance.js?v=v49-monthly-insight"></script>
 
 
 <div id="page-estimate" class="page">
@@ -2348,6 +2349,6 @@
   setTimeout(previewSalesBars, 3200);
 })();
 </script>
-<script defer src="app-features.js?v=v48-dashboard-cache-bust"></script>
+<script defer src="app-features.js?v=v49-monthly-insight"></script>
 </body>
 </html>

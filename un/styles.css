@@ -3976,6 +3976,87 @@ body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sal
   }
 }
 
+/* Monthly insight bar: compact executive readout below the monthly intake trend. */
+body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card {
+  display: flex !important;
+  max-height: none !important;
+  flex-direction: column !important;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .monthly-insight-bar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(148, 163, 184, .10);
+}
+
+body:has(#page-dashboard.active) #page-dashboard .monthly-insight-item {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  padding: 12px 13px 11px;
+  border: 1px solid rgba(148, 163, 184, .12);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 86% 22%, rgba(139, 92, 246, .14), transparent 28%),
+    rgba(7, 12, 23, .58);
+}
+
+body:has(#page-dashboard.active) #page-dashboard .monthly-insight-item::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--insight-color, #8b5cf6);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--insight-color, #8b5cf6) 44%, transparent);
+}
+
+body:has(#page-dashboard.active) #page-dashboard .monthly-insight-item.now { --insight-color: #8b5cf6; }
+body:has(#page-dashboard.active) #page-dashboard .monthly-insight-item.up { --insight-color: #34d399; }
+body:has(#page-dashboard.active) #page-dashboard .monthly-insight-item.down { --insight-color: #fb7185; }
+body:has(#page-dashboard.active) #page-dashboard .monthly-insight-item.flat { --insight-color: #94a3b8; }
+body:has(#page-dashboard.active) #page-dashboard .monthly-insight-item.forecast { --insight-color: #60a5fa; }
+body:has(#page-dashboard.active) #page-dashboard .monthly-insight-item.best { --insight-color: #fbbf24; }
+
+body:has(#page-dashboard.active) #page-dashboard .monthly-insight-item span,
+body:has(#page-dashboard.active) #page-dashboard .monthly-insight-item em {
+  display: block;
+  min-width: 0;
+  color: #8d99ad;
+  font-size: 10.5px;
+  font-style: normal;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .monthly-insight-item strong {
+  display: block;
+  margin: 6px 0 2px;
+  color: #f8fafc;
+  font-family: 'JetBrains Mono', 'Noto Sans KR', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 1180px) {
+  body:has(#page-dashboard.active) #page-dashboard .monthly-insight-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  body:has(#page-dashboard.active) #page-dashboard .monthly-insight-bar {
+    grid-template-columns: 1fr;
+    margin-top: 12px;
+  }
+}
+
 /* Dashboard floating side panels: prevent reservation/out-schedule content from leaking at page top. */
 .dash-out-side,
 .dash-res-side {
