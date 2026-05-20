@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v54-sales-warranty-merge">
+<link rel="stylesheet" href="styles.css?v=v55-dashboard-sales-report">
 </head>
 <body>
 
@@ -159,20 +159,66 @@
       </div>
     </div>
 
-    <!-- 매출 일별 추이 (막대그래프) -->
-    <div class="chart-card widget-card sales-trend-card">
-      <div class="chart-header" style="justify-content:space-between;">
-        <div>
-          <div class="chart-title">매출 일별 추이</div>
-          <div class="chart-subtitle" id="salesTrendSub">최근 영업일 14일 · 보증·기능·파손보험 합계</div>
+    <div class="dashboard-sales-row">
+      <!-- 매출 일별 추이 (막대그래프) -->
+      <div class="chart-card widget-card sales-trend-card">
+        <div class="chart-header" style="justify-content:space-between;">
+          <div>
+            <div class="chart-title">매출 일별 추이</div>
+            <div class="chart-subtitle" id="salesTrendSub">평일 5일 · 보증·기능·파손보험 합계</div>
+          </div>
+          <a href="#" onclick="switchPage('sales');return false;" style="color:#c4b5fd;text-decoration:none;font-size:11px;font-weight:600;">매출 입력 →</a>
         </div>
-        <a href="#" onclick="switchPage('sales');return false;" style="color:#c4b5fd;text-decoration:none;font-size:11px;font-weight:600;">매출 입력 →</a>
+        <div id="salesTrendChart" class="sales-trend-chart"></div>
+        <div class="sales-trend-legend">
+          <span style="--lc:#fbbf24;">보증</span>
+          <span style="--lc:#34d399;">기능</span>
+          <span style="--lc:#ef4444;">파손+보험</span>
+        </div>
       </div>
-      <div id="salesTrendChart" class="sales-trend-chart"></div>
-      <div class="sales-trend-legend">
-        <span style="--lc:#fbbf24;">보증</span>
-        <span style="--lc:#34d399;">기능</span>
-        <span style="--lc:#ef4444;">파손+보험</span>
+
+      <div class="daily-sales-section">
+        <div class="chart-card widget-card daily-sales-card">
+          <div class="chart-header" style="justify-content:space-between;">
+            <div>
+              <div class="chart-title">매출 보고</div>
+              <div class="chart-subtitle" id="daily-sales-date">—</div>
+            </div>
+            <a href="#" onclick="switchPage('sales');return false;" style="color:#c4b5fd;text-decoration:none;font-size:11px;font-weight:700;">입력 →</a>
+          </div>
+
+          <div class="dash-sales-grp">
+            <div class="dsg-head"><span class="dsg-dot" style="color:#fbbf24;background:#fbbf24"></span>보증</div>
+            <div class="dsg-rows">
+              <div class="dsg-line"><span>공임</span><strong id="dash-w-labor">₩0</strong></div>
+              <div class="dsg-line"><span>부품</span><strong id="dash-w-parts">₩0</strong></div>
+              <div class="dsg-line dsg-total"><span>합계</span><strong id="dash-w-total">₩0</strong></div>
+            </div>
+          </div>
+
+          <div class="dash-sales-grp">
+            <div class="dsg-head"><span class="dsg-dot" style="color:#34d399;background:#34d399"></span>기능</div>
+            <div class="dsg-rows">
+              <div class="dsg-line"><span>공임</span><strong id="dash-f-labor">₩0</strong></div>
+              <div class="dsg-line"><span>부품</span><strong id="dash-f-parts">₩0</strong></div>
+              <div class="dsg-line dsg-total"><span>합계</span><strong id="dash-f-total">₩0</strong></div>
+            </div>
+          </div>
+
+          <div class="dash-sales-grp">
+            <div class="dsg-head"><span class="dsg-dot" style="color:#ef4444;background:#ef4444"></span>파손+보험</div>
+            <div class="dsg-rows">
+              <div class="dsg-line"><span>공임</span><strong id="dash-d-labor">₩0</strong></div>
+              <div class="dsg-line"><span>부품</span><strong id="dash-d-parts">₩0</strong></div>
+              <div class="dsg-line dsg-total"><span>합계</span><strong id="dash-d-total">₩0</strong></div>
+            </div>
+          </div>
+
+          <div class="dash-received">
+            <span>총 수납금계</span>
+            <strong id="dash-received">₩0</strong>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -973,13 +1019,13 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v54-sales-warranty-merge"></script>
+<script type="module" src="app-module.js?v=v55-dashboard-sales-report"></script>
 
-<script defer src="app-pages.js?v=v54-sales-warranty-merge"></script>
+<script defer src="app-pages.js?v=v55-dashboard-sales-report"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script defer src="app-insurance.js?v=v54-sales-warranty-merge"></script>
+<script defer src="app-insurance.js?v=v55-dashboard-sales-report"></script>
 
 
 <div id="page-estimate" class="page">
@@ -2320,6 +2366,6 @@
   setTimeout(previewSalesBars, 3200);
 })();
 </script>
-<script defer src="app-features.js?v=v54-sales-warranty-merge"></script>
+<script defer src="app-features.js?v=v55-dashboard-sales-report"></script>
 </body>
 </html>

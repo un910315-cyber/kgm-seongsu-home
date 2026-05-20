@@ -810,6 +810,29 @@
     }
     return days;
   }
+  function _last7Days() {
+    const days = [];
+    const today = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      days.push(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'));
+    }
+    return days;
+  }
+  // 최근 평일 5일(월~금), 오래된→최신
+  function _last5Weekdays() {
+    const days = [];
+    const d = new Date();
+    while (days.length < 5) {
+      const dow = d.getDay();
+      if (dow !== 0 && dow !== 6) {
+        days.unshift(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'));
+      }
+      d.setDate(d.getDate() - 1);
+    }
+    return days;
+  }
   // 최근 6개월 키 (오래된 → 최신)
   function _last6Months() {
     const months = [];
@@ -862,7 +885,7 @@
   function renderSalesTrendChart(days) {
     const chart = document.getElementById('salesTrendChart');
     if (!chart) return;
-    const items = (days || _last14Days()).map(day => {
+    const items = (days || _last5Weekdays()).map(day => {
       const rec = salesDailyMap[day] || {};
       const w = rec.warranty || {};
       const f = rec.func || {};
@@ -883,10 +906,10 @@
     if (!hasData) {
       chart.innerHTML = '<div class="empty-mini">최근 매출 입력 데이터가 없습니다</div>';
       const sub = document.getElementById('salesTrendSub');
-      if (sub) sub.textContent = '최근 14일 · 매출 입력 대기';
+      if (sub) sub.textContent = '평일 5일 · 매출 입력 대기';
       return;
     }
-    const W = 900, H = 166, padL = 28, padR = 18, padT = 22, padB = 34;
+    const W = 620, H = 188, padL = 30, padR = 18, padT = 24, padB = 38;
     const innerW = W - padL - padR;
     const innerH = H - padT - padB;
     const barGap = 7;
@@ -905,14 +928,18 @@
         return h > 0.8 ? '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+Math.max(1, h).toFixed(1)+'" rx="3" fill="'+seg.color+'" opacity=".9"/>' : '';
       }).join('');
       const date = new Date(it.day + 'T00:00:00');
+      const dowName = ['일','월','화','수','목','금','토'][date.getDay()];
       const label = (date.getMonth() + 1) + '/' + date.getDate();
-      const totalLabel = it.total > 0 ? '<text x="'+(x+barW/2).toFixed(1)+'" y="'+Math.max(12, y-7).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="900" fill="#dbeafe">'+fmtShort(it.total)+'</text>' : '';
-      return '<g>'+rects+totalLabel+'<text x="'+(x+barW/2).toFixed(1)+'" y="'+(H-10)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#7c879d">'+label+'</text></g>';
+      const cx = (x + barW / 2).toFixed(1);
+      const totalLabel = it.total > 0 ? '<text x="'+cx+'" y="'+Math.max(12, y-7).toFixed(1)+'" text-anchor="middle" font-size="10" font-weight="900" fill="#dbeafe">'+fmtShort(it.total)+'</text>' : '';
+      return '<g>'+rects+totalLabel
+        +'<text x="'+cx+'" y="'+(H-21)+'" text-anchor="middle" font-size="10" font-weight="800" fill="#aab4c8">'+dowName+'</text>'
+        +'<text x="'+cx+'" y="'+(H-9)+'" text-anchor="middle" font-size="9" font-weight="700" fill="#7c879d">'+label+'</text></g>';
     }).join('');
     const total = items.reduce((s, x) => s + x.total, 0);
     const lastNonZero = [...items].reverse().find(x => x.total > 0);
     const sub = document.getElementById('salesTrendSub');
-    if (sub) sub.textContent = '최근 14일 합계 ' + _fmtKRW(total) + (lastNonZero ? ' · 최근 입력 ' + lastNonZero.day.slice(5).replace('-', '/') : '');
+    if (sub) sub.textContent = '평일 5일 합계 ' + _fmtKRW(total) + (lastNonZero ? ' · 최근 입력 ' + lastNonZero.day.slice(5).replace('-', '/') : '');
     chart.innerHTML =
       '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" class="sales-trend-svg">'
       + '<defs><linearGradient id="salesTrendBg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#8b5cf6" stop-opacity=".08"/><stop offset="100%" stop-color="#38bdf8" stop-opacity=".04"/></linearGradient></defs>'
@@ -945,7 +972,7 @@
     set('dash-received', received);
     const dateEl = document.getElementById('daily-sales-date');
     if (dateEl) dateEl.textContent = refDay.replace(/^\d{4}-/, '').replace('-', '/') + ' (전날)';
-    renderSalesTrendChart(_last14Days());
+    renderSalesTrendChart(_last5Weekdays());
 
     // 이번 달 누적 매출 차트 — 부품(보증부품+기능부품) / 기능 공임 / 보증 공임
     const mo = _thisMonthStr();

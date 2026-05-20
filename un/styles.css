@@ -1037,6 +1037,25 @@ body > div[style*="position:fixed;top:0;"] {
   align-items: stretch;
 }
 
+/* 매출 일별 추이 + 매출 보고 — 반반 2컬럼 */
+#page-dashboard .dashboard-sales-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+  margin-bottom: 14px;
+}
+
+#page-dashboard .dashboard-sales-row .widget-card {
+  height: 100%;
+}
+
+@media (max-width: 992px) {
+  #page-dashboard .dashboard-sales-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 #page-dashboard .kgm-section,
 #page-dashboard .daily-sales-section,
 #page-dashboard .sales-chart-section {
@@ -3171,7 +3190,7 @@ body:has(#page-dashboard.active) #page-dashboard .dashboard-row {
 }
 
 body:has(#page-dashboard.active) #page-dashboard .sales-trend-card {
-  margin: -4px 0 16px;
+  margin: 0;
 }
 
 body:has(#page-dashboard.active) #page-dashboard .sales-trend-card .chart-header {
