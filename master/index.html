@@ -8,7 +8,7 @@
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,78 +18,101 @@
 
 <style>
   :root {
-    --bg: #0a0a0a;
     --panel: #141417;
-    --line: rgba(255,255,255,.08);
+    --line: rgba(255,255,255,.09);
     --text: #f3f4f6;
-    --dim: #9aa0aa;
+    --dim: #8a8f99;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; height: 100%; }
   body {
-    background: var(--bg);
+    background: #000;
     color: var(--text);
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
     overflow: hidden;
   }
   button { font-family: inherit; cursor: pointer; }
 
-  /* ───── 로그인 화면 ───── */
+  /* ───── 로그인 ───── */
   #loginScreen {
     position: fixed; inset: 0; z-index: 50;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     gap: 22px; padding: 32px;
-    background: radial-gradient(ellipse at 50% 38%, #15203a 0%, #0a0a0a 62%);
+    background: radial-gradient(ellipse at 50% 38%, #0e1626 0%, #000 64%);
   }
   #loginScreen .li-orb {
     width: 96px; height: 96px; border-radius: 50%;
     background: radial-gradient(circle at 40% 34%, #fff, #4b9cff 58%, #1e3a8a 100%);
-    box-shadow: 0 0 50px 8px #4b9cff, 0 0 110px 26px rgba(75,156,255,.35);
+    box-shadow: 0 0 50px 8px #4b9cff, 0 0 120px 30px rgba(75,156,255,.35);
     animation: breathe 4s ease-in-out infinite;
   }
-  #loginScreen h1 { margin: 6px 0 0; font-size: 22px; font-weight: 800; letter-spacing: .5px; }
-  #loginScreen p { margin: 0; color: var(--dim); font-size: 13px; text-align: center; line-height: 1.6; }
+  #loginScreen h1 { margin: 6px 0 0; font-size: 22px; font-weight: 800; letter-spacing: 1px; }
+  #loginScreen p { margin: 0; color: var(--dim); font-size: 13px; text-align: center; }
   #googleLoginBtn {
     display: flex; align-items: center; gap: 10px;
-    background: #fff; color: #1f2937;
-    border: 0; border-radius: 12px;
+    background: #fff; color: #1f2937; border: 0; border-radius: 12px;
     padding: 13px 22px; font-size: 15px; font-weight: 700;
   }
   #googleLoginBtn:active { transform: scale(.97); }
   #loginError { color: #f87171; font-size: 12px; min-height: 14px; text-align: center; }
 
-  /* ───── 메인 ───── */
-  #app { display: none; flex-direction: column; height: 100dvh; }
-  header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: calc(12px + env(safe-area-inset-top)) 18px 12px;
-    border-bottom: 1px solid var(--line);
-    flex-shrink: 0;
+  /* ───── 메인 — 시네마틱 ───── */
+  #app { display: none; flex-direction: column; height: 100dvh; position: relative; }
+
+  /* 상단 — 최소한의 조작만, 평소엔 흐릿 */
+  .topbar {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 5;
+    display: flex; justify-content: space-between;
+    padding: calc(10px + env(safe-area-inset-top)) 16px 0;
   }
-  header .brand { display: flex; align-items: center; gap: 8px; font-weight: 800; letter-spacing: .5px; }
-  header .brand .dot {
-    width: 9px; height: 9px; border-radius: 50%;
-    background: #4b9cff; box-shadow: 0 0 10px 2px #4b9cff;
-  }
-  header .who { font-size: 11px; color: var(--dim); }
-  #logoutBtn {
+  .topbar button {
     background: transparent; color: var(--dim);
     border: 1px solid var(--line); border-radius: 8px;
-    padding: 6px 11px; font-size: 11px; font-weight: 600;
+    padding: 6px 10px; font-size: 11px; font-weight: 600;
+    opacity: .4; transition: opacity .25s ease;
+  }
+  .topbar button:active { opacity: 1; }
+  #settingsBtn { font-size: 13px; padding: 6px 9px; }
+
+  /* 무대 — 자비스가 사는 곳 */
+  .stage {
+    flex: 1; min-height: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 20px; padding: 24px;
+    background: radial-gradient(ellipse 62% 42% at 50% 44%, rgba(75,156,255,.08), transparent 72%);
   }
 
-  /* 오브 */
-  .orb-stage { flex-shrink: 0; display: grid; place-items: center; padding: 26px 0 14px; }
+  /* 자막 */
+  .cap-you, .cap-jv {
+    text-align: center; max-width: 600px;
+    opacity: 0; transform: translateY(9px);
+    transition: opacity .55s ease, transform .55s ease;
+  }
+  .cap-you.show, .cap-jv.show { opacity: 1; transform: none; }
+  .cap-you {
+    font-size: 13px; color: #5f6671;
+    letter-spacing: .6px; min-height: 18px;
+  }
+  .cap-jv {
+    font-size: 16.5px; line-height: 1.72; color: #e9ebef;
+    font-weight: 500; white-space: pre-wrap; word-break: break-word;
+    max-height: 32vh; overflow-y: auto;
+    padding: 0 4px;
+  }
+
+  /* 오브 = 자비스 본체 (탭하면 듣기) */
   .orb {
-    position: relative; width: 160px; height: 160px;
+    position: relative; width: 190px; height: 190px;
     display: grid; place-items: center;
+    background: transparent; border: 0; padding: 0;
     --c: #7fb3ff; --level: 0;
   }
   .orb-core {
-    width: 92px; height: 92px; border-radius: 50%;
+    width: 108px; height: 108px; border-radius: 50%;
     background: radial-gradient(circle at 38% 32%, #ffffff 0%, var(--c) 56%, rgba(0,0,0,0) 80%);
-    box-shadow: 0 0 56px 8px var(--c), 0 0 120px 30px var(--c);
+    box-shadow: 0 0 64px 10px var(--c), 0 0 150px 40px var(--c);
     transition: background .45s ease, box-shadow .45s ease;
     transform: scale(calc(1 + var(--level) * 0.45));
   }
@@ -98,10 +121,9 @@
     border: 2px solid var(--c);
     opacity: 0; transition: opacity .4s ease;
   }
-  .orb-ring.r1 { inset: 18px; }
+  .orb-ring.r1 { inset: 22px; }
   .orb-ring.r2 { inset: 2px; }
 
-  /* 상태별 */
   .orb.idle { --c: #7fb3ff; }
   .orb.idle .orb-core { animation: breathe 4.2s ease-in-out infinite; }
   .orb.listening { --c: #4b9cff; }
@@ -117,84 +139,82 @@
 
   @keyframes breathe { 0%,100%{transform:scale(.92);} 50%{transform:scale(1.05);} }
   @keyframes talk    { 0%,100%{transform:scale(.96);} 50%{transform:scale(1.12);} }
-  @keyframes ripple  { 0%{transform:scale(.7);opacity:.6;} 100%{transform:scale(1.35);opacity:0;} }
+  @keyframes ripple  { 0%{transform:scale(.7);opacity:.55;} 100%{transform:scale(1.4);opacity:0;} }
   @keyframes spin    { to{transform:rotate(360deg);} }
 
-  #status {
-    flex-shrink: 0; text-align: center;
-    font-size: 13px; color: var(--dim);
-    padding: 0 24px 6px; min-height: 20px; line-height: 1.5;
+  #hint {
+    text-align: center; font-size: 12px; color: #585e68;
+    min-height: 16px; letter-spacing: .3px; padding: 0 24px;
   }
 
-  /* 대화 */
-  #transcript {
-    flex: 1; overflow-y: auto;
-    padding: 10px 16px 16px;
-    display: flex; flex-direction: column; gap: 10px;
-  }
-  .bubble {
-    max-width: 84%; padding: 11px 14px;
-    font-size: 14px; line-height: 1.62; border-radius: 14px;
-    white-space: pre-wrap; word-break: break-word;
-  }
-  .bubble.me {
-    align-self: flex-end;
-    background: #2563eb; color: #fff;
-    border-bottom-right-radius: 4px;
-  }
-  .bubble.jv {
-    align-self: flex-start;
-    background: var(--panel); border: 1px solid var(--line);
-    border-bottom-left-radius: 4px;
-  }
-  .chips { display: flex; flex-wrap: wrap; gap: 7px; padding: 2px 0 4px; }
-  .chip {
-    background: rgba(75,156,255,.1); color: #9ec8ff;
-    border: 1px solid rgba(75,156,255,.28); border-radius: 999px;
-    padding: 7px 13px; font-size: 12px; font-weight: 600;
-  }
-  .chip:active { transform: scale(.95); }
-
-  /* 입력 바 */
-  #inputBar {
+  /* 하단 — 키보드 입력(보조) */
+  .dock {
     flex-shrink: 0;
-    display: flex; align-items: center; gap: 9px;
-    padding: 10px 14px calc(12px + env(safe-area-inset-bottom));
-    border-top: 1px solid var(--line);
-    background: var(--bg);
+    display: flex; align-items: center; gap: 8px; justify-content: center;
+    padding: 10px 16px calc(14px + env(safe-area-inset-bottom));
   }
+  #kbToggle {
+    width: 42px; height: 38px; flex-shrink: 0;
+    background: transparent; color: var(--dim);
+    border: 1px solid var(--line); border-radius: 11px;
+    font-size: 16px; opacity: .5;
+  }
+  #kbToggle.on { opacity: 1; color: #9ec8ff; border-color: rgba(75,156,255,.4); }
+  #inputWrap { display: flex; gap: 8px; flex: 1; }
+  #inputWrap[hidden] { display: none; }
   #textInput {
     flex: 1; min-width: 0;
     background: var(--panel); color: var(--text);
-    border: 1px solid var(--line); border-radius: 12px;
-    padding: 12px 14px; font-size: 15px; outline: none;
+    border: 1px solid var(--line); border-radius: 11px;
+    padding: 11px 13px; font-size: 15px; outline: none;
   }
   #textInput:focus { border-color: rgba(75,156,255,.5); }
-  #sendBtn, #micBtn {
-    flex-shrink: 0; border: 0; border-radius: 50%;
-    display: grid; place-items: center;
-  }
   #sendBtn {
-    width: 44px; height: 44px;
-    background: var(--panel); border: 1px solid var(--line);
-    color: var(--dim); font-size: 17px;
+    flex-shrink: 0; width: 42px; height: 42px;
+    border: 1px solid var(--line); border-radius: 11px;
+    background: var(--panel); color: var(--dim); font-size: 15px;
   }
-  #micBtn {
-    width: 56px; height: 56px;
-    background: #2563eb; color: #fff; font-size: 24px;
-    box-shadow: 0 0 0 0 rgba(37,99,235,.5);
-    transition: transform .15s ease;
+
+  /* ───── 음성 설정 시트 ───── */
+  #settingsModal {
+    position: fixed; inset: 0; z-index: 60;
+    display: flex; align-items: flex-end; justify-content: center;
+    background: rgba(0,0,0,.66);
   }
-  #micBtn:active { transform: scale(.92); }
-  #micBtn.live {
-    background: #4b9cff;
-    animation: micpulse 1.4s ease-out infinite;
+  #settingsModal[hidden] { display: none; }
+  #settingsModal .sheet {
+    width: 100%; max-width: 440px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 18px 18px 0 0;
+    padding: 18px 20px calc(22px + env(safe-area-inset-bottom));
+    animation: sheetup .22s ease;
   }
-  #micBtn[disabled] { opacity: .35; }
-  @keyframes micpulse {
-    0%   { box-shadow: 0 0 0 0 rgba(75,156,255,.55); }
-    100% { box-shadow: 0 0 0 18px rgba(75,156,255,0); }
+  @keyframes sheetup { from { transform: translateY(40px); opacity: 0; } }
+  .sheet-head {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 16px; font-weight: 800; margin-bottom: 14px;
   }
+  .sheet-head button { background: transparent; border: 0; color: var(--dim); font-size: 17px; }
+  .set-label {
+    display: block; font-size: 12px; color: var(--dim);
+    margin: 14px 0 6px; font-weight: 600;
+  }
+  .set-label b { color: #9ec8ff; font-weight: 800; }
+  #voiceSelect {
+    width: 100%; background: #000; color: var(--text);
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 11px 12px; font-size: 14px; outline: none;
+  }
+  .set-hint { margin: 6px 0 0; font-size: 11px; color: var(--dim); line-height: 1.5; }
+  input[type=range] { width: 100%; accent-color: #4b9cff; height: 26px; }
+  .set-test {
+    width: 100%; margin-top: 18px;
+    background: rgba(75,156,255,.12); color: #9ec8ff;
+    border: 1px solid rgba(75,156,255,.32); border-radius: 12px;
+    padding: 13px; font-size: 14px; font-weight: 700;
+  }
+  .set-test:active { transform: scale(.98); }
 </style>
 </head>
 <body>
@@ -215,31 +235,54 @@
 
   <!-- 메인 -->
   <div id="app">
-    <header>
-      <div class="brand"><span class="dot"></span><span>자비스</span></div>
-      <span class="who" id="whoText"></span>
+    <div class="topbar">
+      <button id="settingsBtn" aria-label="음성 설정">⚙</button>
       <button id="logoutBtn">로그아웃</button>
-    </header>
+    </div>
 
-    <div class="orb-stage">
-      <div class="orb idle" id="orb">
+    <div class="stage">
+      <div id="capYou" class="cap-you"></div>
+
+      <button class="orb idle" id="orb" aria-label="탭하고 말하기">
         <div class="orb-ring r2"></div>
         <div class="orb-ring r1"></div>
         <div class="orb-core"></div>
-      </div>
+      </button>
+
+      <div id="capJv" class="cap-jv"></div>
+      <div id="hint"></div>
     </div>
 
-    <div id="status">불러오는 중…</div>
-
-    <div id="transcript"></div>
-
-    <div id="inputBar">
-      <input id="textInput" type="text" placeholder="질문을 입력하거나 마이크를 누르세요" autocomplete="off" enterkeyhint="send">
-      <button id="sendBtn" aria-label="보내기">➤</button>
-      <button id="micBtn" aria-label="음성 입력">🎤</button>
+    <div class="dock">
+      <div id="inputWrap" hidden>
+        <input id="textInput" type="text" placeholder="질문을 입력하세요" autocomplete="off" enterkeyhint="send">
+        <button id="sendBtn" aria-label="보내기">➤</button>
+      </div>
+      <button id="kbToggle" aria-label="키보드 입력">⌨</button>
     </div>
   </div>
 
-  <script type="module" src="app.js?v=v1-2026-05-20"></script>
+  <!-- 음성 설정 -->
+  <div id="settingsModal" hidden>
+    <div class="sheet">
+      <div class="sheet-head">
+        <span>음성 설정</span>
+        <button id="settingsClose" aria-label="닫기">✕</button>
+      </div>
+      <label class="set-label">목소리</label>
+      <select id="voiceSelect"></select>
+      <p class="set-hint" id="voiceHint"></p>
+
+      <label class="set-label">말하기 속도 <b id="rateVal">1.00</b></label>
+      <input type="range" id="rateRange" min="0.6" max="1.4" step="0.05" value="1">
+
+      <label class="set-label">목소리 높낮이 <b id="pitchVal">1.00</b></label>
+      <input type="range" id="pitchRange" min="0.6" max="1.4" step="0.05" value="1">
+
+      <button id="voiceTestBtn" class="set-test">🔊 미리듣기</button>
+    </div>
+  </div>
+
+  <script type="module" src="app.js?v=v2-2026-05-20"></script>
 </body>
 </html>
