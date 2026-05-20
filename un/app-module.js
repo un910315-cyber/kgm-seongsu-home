@@ -281,6 +281,7 @@
     const loadingScreen = document.getElementById('loadingScreen');
 
     if(!user){
+      stopRealtimeListeners();
       if (LOCAL_DASHBOARD_PREVIEW) {
         renderLocalDashboardPreview();
         setTimeout(renderLocalDashboardPreview, 300);
@@ -297,6 +298,7 @@
     try {
       const userDoc = await getDoc(doc(fsd, 'users', user.email));
       if(!userDoc.exists()){
+        stopRealtimeListeners();
         // 미등록 사용자 → Firestore에 접근 요청 기록
         await setDoc(doc(fsd, 'access_requests', user.email), {
           email: user.email,
@@ -359,6 +361,7 @@
       }
 
       // 로그인 화면 숨기기 → 앱 표시
+      startRealtimeListeners();
       loginScreen.style.display='none';
       document.body.style.overflow='';
       // Matrix 배경 애니메이션 중지 (성능)
@@ -602,6 +605,35 @@
   const kgmDailyRef = ref(db, 'kgmDailyCount');
   const salesDailyRef = ref(db, 'salesDaily');     // { 'YYYY-MM-DD': { parts, function } }
   const depositRef = ref(db, 'monthlyDeposit');    // { 'YYYY-MM': number }
+  let realtimeReady = false;
+  let realtimeStarted = false;
+  const realtimeQueue = [];
+  const realtimeUnsubs = [];
+  function authReadyOnValue(targetRef, next, error) {
+    const start = () => onValue(targetRef, next, error);
+    if (realtimeReady) {
+      const unsub = start();
+      realtimeUnsubs.push(unsub);
+      return unsub;
+    }
+    realtimeQueue.push(start);
+    return function(){};
+  }
+  function startRealtimeListeners() {
+    if (realtimeStarted) return;
+    realtimeReady = true;
+    realtimeStarted = true;
+    while (realtimeQueue.length) {
+      try { realtimeUnsubs.push(realtimeQueue.shift()()); } catch(e) { console.warn('realtime listener start failed', e); }
+    }
+  }
+  function stopRealtimeListeners() {
+    while (realtimeUnsubs.length) {
+      try { realtimeUnsubs.pop()(); } catch(e) {}
+    }
+    realtimeReady = false;
+    realtimeStarted = false;
+  }
 
   let records = {};
   let blacklistMap = {};
@@ -621,7 +653,7 @@
   };
 
   // 블랙리스트 실시간 구독
-  onValue(blacklistRef, (snapshot) => {
+  authReadyOnValue(blacklistRef, (snapshot) => {
     blacklistMap = snapshot.val() || {};
     // 현재 열려있는 입출고 폼이 있으면 경고 다시 평가
     if (typeof window._checkBlacklistWarning === 'function') {
@@ -697,7 +729,7 @@
   };
 
   // 실시간 데이터 수신
-  onValue(recordsRef, (snapshot) => {
+  authReadyOnValue(recordsRef, (snapshot) => {
     records = snapshot.val() || {};
     document.getElementById('loadingScreen').style.display = 'none';
     refreshAll();
@@ -709,7 +741,7 @@
   });
 
   // KGM 일일 카운트 실시간 수신
-  onValue(kgmDailyRef, (snap) => {
+  authReadyOnValue(kgmDailyRef, (snap) => {
     const val = snap.val() || {};
     kgmDailyMap = {};
     Object.entries(val).forEach(([k, v]) => {
@@ -721,13 +753,13 @@
   }, (err) => { console.warn('kgmDaily subscribe', err); });
 
   // 일일 매출 실시간 수신
-  onValue(salesDailyRef, (snap) => {
+  authReadyOnValue(salesDailyRef, (snap) => {
     salesDailyMap = snap.val() || {};
     if (typeof renderSalesWidget === 'function') { try { renderSalesWidget(); } catch(e){} }
   }, (err) => { console.warn('salesDaily subscribe', err); });
 
   // 매달 보증금 실시간 수신
-  onValue(depositRef, (snap) => {
+  authReadyOnValue(depositRef, (snap) => {
     depositMap = snap.val() || {};
     if (typeof renderSalesWidget === 'function') { try { renderSalesWidget(); } catch(e){} }
   }, (err) => { console.warn('deposit subscribe', err); });
@@ -2438,8 +2470,8 @@
   let leaveUsage = {};
   let editingLeaveEmpId = null;
 
-  onValue(leaveEmpRef, (snap) => { leaveEmployees = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} try { if(window._renderMyRequests) window._renderMyRequests(); if(window._renderApprovalQueue) window._renderApprovalQueue(); } catch(e) {} try { if(window._renderOrgChart) window._renderOrgChart(); } catch(e) {} try { if(window._renderNotices) window._renderNotices(); } catch(e) {} });
-  onValue(leaveUseRef, (snap) => { leaveUsage = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} });
+  authReadyOnValue(leaveEmpRef, (snap) => { leaveEmployees = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} try { if(window._renderMyRequests) window._renderMyRequests(); if(window._renderApprovalQueue) window._renderApprovalQueue(); } catch(e) {} try { if(window._renderOrgChart) window._renderOrgChart(); } catch(e) {} try { if(window._renderNotices) window._renderNotices(); } catch(e) {} });
+  authReadyOnValue(leaveUseRef, (snap) => { leaveUsage = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} });
 
   // 총 사용 시간 (시간 단위로 통합 계산, 1일=8시간)
   function getLeaveUsedHours(empId) {
@@ -2580,7 +2612,7 @@
   const boardRef = ref(db, 'board');
   let boardPosts = {};
 
-  onValue(boardRef, (snap) => { boardPosts = snap.val() || {}; try { renderBoard(); } catch(e) { console.error(e); } });
+  authReadyOnValue(boardRef, (snap) => { boardPosts = snap.val() || {}; try { renderBoard(); } catch(e) { console.error(e); } });
 
   function renderBoard() {
     var list = Object.entries(boardPosts).map(function(e) { return {id:e[0], text:e[1].text, author:e[1].author, authorEmail:e[1].authorEmail, createdAt:e[1].createdAt}; });
@@ -2635,7 +2667,7 @@
   let boardNoticesMap = {};
   let editingBoardNoticeId = null;
 
-  onValue(boardNoticesRef, (snap) => {
+  authReadyOnValue(boardNoticesRef, (snap) => {
     boardNoticesMap = snap.val() || {};
     try { renderBoardNotices(); } catch(e) { console.error('renderBoardNotices', e); }
     if (window._userEmail) setTimeout(maybeShowImportantBoardNotice, 300);
@@ -2805,7 +2837,7 @@
   let calCursor = new Date(); calCursor.setDate(1);
   let editingEventId = null;
 
-  onValue(companyEventsRef, (snap) => { companyEvents = snap.val() || {}; try { renderCalendar(); } catch(e) { console.error(e); } });
+  authReadyOnValue(companyEventsRef, (snap) => { companyEvents = snap.val() || {}; try { renderCalendar(); } catch(e) { console.error(e); } });
 
   function leaveTypeColor(t) {
     if (t==='\uc5f0\ucc28') return 'var(--blue)';
@@ -2946,7 +2978,7 @@
   let insuranceContacts = {};
   let editingInsuranceId = null;
 
-  onValue(insuranceRef, function(snap){
+  authReadyOnValue(insuranceRef, function(snap){
     insuranceContacts = snap.val() || {};
     try { window._renderInsurance && window._renderInsurance(); } catch(e) { console.error(e); }
   });
@@ -3306,7 +3338,7 @@
   let editingRejectId = null;
   let editingRejectStage = null;
 
-  onValue(leaveRequestsRef, (snap) => { leaveRequests = snap.val() || {}; try { renderMyRequests(); renderApprovalQueue(); } catch(e) { console.error(e); } });
+  authReadyOnValue(leaveRequestsRef, (snap) => { leaveRequests = snap.val() || {}; try { renderMyRequests(); renderApprovalQueue(); } catch(e) { console.error(e); } });
 
   function getMyEmpRecord() {
     if (!window._userEmail) return null;
@@ -3746,7 +3778,7 @@
   let editingNoticeId = null;
   let viewingNoticeId = null;
 
-  onValue(noticesRef, (snap) => { leaveNotices = snap.val() || {}; try { renderNotices(); } catch(e) { console.error(e); } });
+  authReadyOnValue(noticesRef, (snap) => { leaveNotices = snap.val() || {}; try { renderNotices(); } catch(e) { console.error(e); } });
 
   function noticeStatusLabel(s) {
     if (s === 'issued') return '발행됨';
