@@ -1187,6 +1187,8 @@
     return Number.isFinite(f) ? Math.round(f) : 0;
   }
   function _aosWon(n) { return '₩' + (Number(n) || 0).toLocaleString('ko-KR'); }
+  // 보험사가 오픈링크면 목록 맨 아래로
+  function _isOpenlink(c) { return String((c && c.insurer) || '').indexOf('오픈링크') >= 0; }
 
   let aosClaimsData = {};
 
@@ -1205,7 +1207,7 @@
         const ws = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
         const claims = {};
-        let kept = 0, exStar = 0, exKgm = 0;
+        let kept = 0, exStar = 0, exKgm = 0, exRentMinus = 0;
         for (let i = 1; i < rows.length; i++) {
           const r = rows[i];
           if (!r) continue;
@@ -1214,13 +1216,16 @@
           if (String(r[9] || '').trim() === '***') { exStar++; continue; }  // J 소유자
           const carName = String(r[8] || '').trim();      // I 차량명
           if (_isKgmCar(carName)) { exKgm++; continue; }
+          const claimAmount = _aosNum(r[10]);              // K 청구금액
+          // 렌트카(하/호/허 번호판)의 마이너스 청구는 제외
+          if (claimAmount < 0 && /[하호허]/.test(carNum)) { exRentMinus++; continue; }
           const insurer = String(r[3] || '').trim();       // D 보험사
           const receiptNo = String(r[4] || '').trim();     // E 접수번호
           const key = ((insurer || '_') + '|' + (receiptNo || ('row' + i))).replace(/[.#$/\[\]]/g, '_');
           claims[key] = {
             carNum: carNum, carName: carName, insurer: insurer, receiptNo: receiptNo,
             cover: String(r[5] || '').trim(),             // F 담보
-            claimAmount: _aosNum(r[10]),                   // K 청구금액
+            claimAmount: claimAmount,                      // K 청구금액
             claimDate: String(r[11] || '').trim(),         // L 청구일자
             payAmount: _aosNum(r[12]),                     // M 지급금액
             payDate: String(r[14] || '').trim(),           // O 지급일자
@@ -1239,7 +1244,7 @@
           claims: claims
         });
         if (statusEl) {
-          statusEl.textContent = day + ' 저장 완료 — ' + kept + '건 (쌍용 제외 ' + exKgm + ', 소유자*** 제외 ' + exStar + ')';
+          statusEl.textContent = day + ' 저장 완료 — ' + kept + '건 (제외: 쌍용 ' + exKgm + ' · 소유자*** ' + exStar + ' · 렌트카 마이너스 ' + exRentMinus + ')';
         }
         showNotif('AOS 보험청구 ' + kept + '건 저장 — 미수금/입금이 갱신됩니다');
       } catch (e) {
@@ -1282,7 +1287,8 @@
       '<div class="aos-row">'
       + '<div><div class="aos-car">' + esc(c.carNum) + ' <span class="aos-sub">' + esc(c.carName) + '</span></div>'
       + '<div class="aos-sub">' + esc(c.insurer) + (c.cover ? ' · ' + esc(c.cover) : '')
-      + (c.status ? ' · ' + esc(c.status) : '') + '</div></div>'
+      + (c.status ? ' · ' + esc(c.status) : '')
+      + (c.claimDate ? ' · 청구 ' + esc(c.claimDate) : '') + '</div></div>'
       + '<div class="aos-amt ' + cls + '">' + _aosWon(amt) + '</div>'
       + '</div>';
 
@@ -1292,20 +1298,32 @@
     } else if (!paidNew.length) {
       todayBox.innerHTML = '<div class="aos-empty">' + prevDate + ' 대비 새로 입금된 건이 없어요.</div>';
     } else {
-      let sum = 0;
-      todayBox.innerHTML = paidNew.map(c => { sum += Number(c.payAmount) || 0; return rowHtml(c, 'paid', c.payAmount); }).join('')
-        + '<div class="aos-total"><span>입금 합계 ' + paidNew.length + '건</span><span class="aos-amt paid">' + _aosWon(sum) + '</span></div>';
+      const sorted = paidNew.slice().sort((a, b) => {
+        const ao = _isOpenlink(a) ? 1 : 0, bo = _isOpenlink(b) ? 1 : 0;
+        if (ao !== bo) return ao - bo;
+        return (Number(b.payAmount) || 0) - (Number(a.payAmount) || 0);
+      });
+      const sum = sorted.reduce((s, c) => s + (Number(c.payAmount) || 0), 0);
+      todayBox.innerHTML =
+        '<div class="aos-bigtotal paid"><span class="aos-bigtotal-label">입금 합계 · ' + sorted.length + '건</span>'
+        + '<span class="aos-bigtotal-amt">' + _aosWon(sum) + '</span></div>'
+        + sorted.map(c => rowHtml(c, 'paid', c.payAmount)).join('');
     }
     if (todayMeta) todayMeta.textContent = prevDate ? ('(' + prevDate + ' → ' + latestDate + ')') : ('기준일 ' + latestDate);
 
     if (!owed.length) {
       owedBox.innerHTML = '<div class="aos-empty">미수금이 없습니다.</div>';
     } else {
-      let sum = 0;
-      owedBox.innerHTML = owed
-        .slice().sort((a, b) => (Number(b.claimAmount) || 0) - (Number(a.claimAmount) || 0))
-        .map(c => { sum += Number(c.claimAmount) || 0; return rowHtml(c, 'owed', c.claimAmount); }).join('')
-        + '<div class="aos-total"><span>미수금 합계 ' + owed.length + '건</span><span class="aos-amt owed">' + _aosWon(sum) + '</span></div>';
+      const sorted = owed.slice().sort((a, b) => {
+        const ao = _isOpenlink(a) ? 1 : 0, bo = _isOpenlink(b) ? 1 : 0;
+        if (ao !== bo) return ao - bo;
+        return (Number(b.claimAmount) || 0) - (Number(a.claimAmount) || 0);
+      });
+      const sum = sorted.reduce((s, c) => s + (Number(c.claimAmount) || 0), 0);
+      owedBox.innerHTML =
+        '<div class="aos-bigtotal owed"><span class="aos-bigtotal-label">미수금 합계 · ' + sorted.length + '건</span>'
+        + '<span class="aos-bigtotal-amt">' + _aosWon(sum) + '</span></div>'
+        + sorted.map(c => rowHtml(c, 'owed', c.claimAmount)).join('');
     }
     if (owedMeta) owedMeta.textContent = owed.length ? (owed.length + '건 · ' + latestDate + ' 기준') : '';
   }
