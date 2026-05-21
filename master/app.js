@@ -717,8 +717,9 @@ function buildContext() {
     const latest = (store.aos[latestD] || {}).claims || {};
     const prevD = aosDates.length >= 2 ? aosDates[aosDates.length - 2] : null;
     const prev = prevD ? ((store.aos[prevD] || {}).claims || {}) : {};
+    const allClaims = Object.values(latest);
     // 미수 = 지급금액 없음 + 청구일자 있음 (청구 안 한 건은 미수 아님)
-    const owed = Object.values(latest).filter((c) =>
+    const owed = allClaims.filter((c) =>
       (Number(c.payAmount) || 0) <= 0 && String(c.claimDate || '').trim() !== '');
     const owedTotal = owed.reduce((s, c) => s + (Number(c.claimAmount) || 0), 0);
     const gt = { '타사차': 0, 'KGM': 0, '오픈링크': 0 };
@@ -731,24 +732,27 @@ function buildContext() {
       if ((Number(c.payAmount) || 0) > 0 && pp <= 0) paidNew.push(c);
     });
     const paidTotal = paidNew.reduce((s, c) => s + (Number(c.payAmount) || 0), 0);
-    const fmtClaim = (c, amt) => c.carNum + (c.carName ? '/' + c.carName : '')
-      + (c.insurer ? ' ' + c.insurer : '') + ' ' + won(amt);
     lines.push('');
-    lines.push('[AOS 보험청구 미수금] ' + latestD + ' 기준 (미수 = 청구했고 미지급인 것)');
-    lines.push('미수금 총계: ' + won(owedTotal) + ' (' + owed.length + '건)');
+    lines.push('[AOS 보험청구] ' + latestD + ' 기준 — 총 ' + allClaims.length + '건');
+    lines.push('미수금 총계(청구했고 미지급): ' + won(owedTotal) + ' (' + owed.length + '건)');
     lines.push('  분류별 — 타사차 ' + won(gt['타사차']) + '(' + gc['타사차'] + '건)'
       + ' / KGM ' + won(gt['KGM']) + '(' + gc['KGM'] + '건)'
       + ' / 오픈링크 ' + won(gt['오픈링크']) + '(' + gc['오픈링크'] + '건)');
     if (prevD) {
       lines.push('최근 입금(' + prevD + '→' + latestD + '): ' + won(paidTotal) + ' (' + paidNew.length + '건)');
-      if (paidNew.length) {
-        lines.push('입금된 청구: ' + paidNew.slice(0, 40).map((c) => fmtClaim(c, c.payAmount)).join('; '));
-      }
     }
-    if (owed.length) {
-      const owedSorted = owed.slice().sort((a, b) => (Number(b.claimAmount) || 0) - (Number(a.claimAmount) || 0));
-      lines.push('미수 청구(금액 큰 순): ' + owedSorted.slice(0, 40).map((c) => '[' + aosGroup(c) + '] ' + fmtClaim(c, c.claimAmount)).join('; '));
-    }
+    // 전체 청구 목록 — 차량별 입금/미수 조회용
+    const claimLine = (c) => {
+      const paid = Number(c.payAmount) || 0;
+      return c.carNum + (c.carName ? '(' + c.carName + ')' : '')
+        + ' [' + aosGroup(c) + '] ' + (c.insurer || '') + (c.cover ? '/' + c.cover : '')
+        + ' 청구' + won(c.claimAmount)
+        + (paid > 0 ? ' 지급' + won(paid) + (c.payDate ? '(' + c.payDate + ')' : '')
+          : (String(c.claimDate || '').trim() ? ' 미지급(미수)' : ' 청구전'));
+    };
+    lines.push('청구 목록(차량별 입금 조회용):');
+    allClaims.slice(0, 220).forEach((c) => lines.push('- ' + claimLine(c)));
+    if (allClaims.length > 220) lines.push('...외 ' + (allClaims.length - 220) + '건');
   }
 
   return lines.join('\n');
