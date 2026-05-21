@@ -758,11 +758,13 @@ function buildContext() {
   return lines.join('\n');
 }
 
-async function askWorker(question) {
+async function askWorker(question, alts) {
+  const body = { question: question, context: buildContext() };
+  if (alts && alts.length > 1) body.alternatives = alts.slice(0, 5);
   const res = await fetch(WORKER_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question: question, context: buildContext() }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error('worker ' + res.status);
   const data = await res.json();
@@ -773,7 +775,7 @@ async function askWorker(question) {
 // ════════════════════════════════════════════════
 //  질문 처리 흐름
 // ════════════════════════════════════════════════
-async function handleQuery(text) {
+async function handleQuery(text, alts) {
   const q = String(text || '').trim();
   if (!q) return;
   fadeIn(capYou, '“' + q + '”');
@@ -784,7 +786,7 @@ async function handleQuery(text) {
   let reply, audio = null;
   if (WORKER_URL) {
     try {
-      const data = await askWorker(q);
+      const data = await askWorker(q, alts);
       reply = data.answer;
       audio = data.audio || null;
     } catch (e) {
@@ -872,19 +874,27 @@ if (SR) {
   recog.lang = 'ko-KR';
   recog.interimResults = true;
   recog.continuous = false;
-  recog.maxAlternatives = 1;
+  recog.maxAlternatives = 4;
 
   recog.onresult = (e) => {
     let interim = '', final = '';
+    const alts = [];
     for (let i = e.resultIndex; i < e.results.length; i++) {
       const r = e.results[i];
-      if (r.isFinal) final += r[0].transcript;
-      else interim += r[0].transcript;
+      if (r.isFinal) {
+        final += r[0].transcript;
+        for (let j = 0; j < r.length; j++) {
+          const t = (r[j].transcript || '').trim();
+          if (t && alts.indexOf(t) < 0) alts.push(t);
+        }
+      } else {
+        interim += r[0].transcript;
+      }
     }
     if (interim) setStatus('“' + interim + '”');
     if (final.trim()) {
       stopListening();
-      handleQuery(final.trim());
+      handleQuery(final.trim(), alts);
     }
   };
   recog.onerror = (e) => {

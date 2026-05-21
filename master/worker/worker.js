@@ -40,6 +40,13 @@ const SYSTEM_PROMPT = [
   '- 날씨 정보가 함께 주어지면 그 값을 사용해 답하세요.',
   '- 일반 상식이나 잡담 질문에는 비서답게 친절히 도와드리세요.',
   '- 대표님을 "대표님"이라고 부르세요.',
+  '',
+  '음성 인식 대응 (중요):',
+  '- 질문은 음성을 받아쓴 것이라 부정확할 수 있습니다. 특히 차량번호가 자주 틀립니다.',
+  '- 차량번호가 한글 숫자로 인식될 수 있습니다 (예: "백이십이러 팔오오일"=122러8551, "이십오보 칠팔팔구"=25보7889). 숫자로 바꿔 해석하세요.',
+  '- [음성 인식 후보]가 주어지면, 그 후보들 중 [정비소 현황]의 차량번호·차종에 가장 잘 맞는 것을 골라 해석하세요.',
+  '- 인식이 조금 어긋나도, [정비소 현황]에 비슷한 차량번호가 하나뿐이면 그 차량으로 간주하고 답하세요.',
+  '- 못 알아들었을 때 "못 알아들었어요"라고만 하지 마세요. 데이터에서 비슷한 차량을 찾아 "혹시 122러8551 차량 말씀이신가요?"처럼 구체적으로 되물으세요.',
 ].join('\n');
 
 // Open-Meteo weather_code → 한국어
@@ -180,7 +187,10 @@ export default {
     catch { return json({ error: 'invalid json' }, 400, origin); }
 
     const question = String(body.question || '').trim().slice(0, 1000);
-    const context = String(body.context || '').slice(0, 8000);
+    const context = String(body.context || '').slice(0, 24000);
+    const alternatives = Array.isArray(body.alternatives)
+      ? body.alternatives.slice(0, 6).map((a) => String(a).slice(0, 200)).filter((a) => a)
+      : [];
     if (!question) return json({ error: 'no question' }, 400, origin);
 
     // 날씨 관련 질문이면 Open-Meteo 조회
@@ -192,7 +202,11 @@ export default {
     const userContent =
       '[정비소 현황]\n' + (context || '(데이터 없음)')
       + (weather ? '\n\n' + weather : '')
-      + '\n\n[질문]\n' + question;
+      + '\n\n[질문]\n' + question
+      + (alternatives.length > 1
+        ? '\n\n[음성 인식 후보] 위 질문은 음성 인식 결과라 부정확할 수 있습니다. 같은 말의 다른 인식 후보들이니, 정비소 데이터에 가장 잘 맞는 것으로 해석하세요:\n'
+          + alternatives.map((a, i) => (i + 1) + ') ' + a).join('\n')
+        : '');
 
     const payload = {
       model: MODEL,
