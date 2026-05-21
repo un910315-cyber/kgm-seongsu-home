@@ -46,7 +46,7 @@ const inputWrap = $('inputWrap');
 const handsfreeBtn = $('handsfreeBtn');
 
 // 버전 표시 — 캐시 갱신 확인용
-const JARVIS_VERSION = 'v18';
+const JARVIS_VERSION = 'v19';
 { const _ve = document.getElementById('appVer'); if (_ve) _ve.textContent = JARVIS_VERSION; }
 
 // ── 데이터 저장소 (Firebase 실시간 동기화) ──
@@ -327,9 +327,7 @@ const jarvisAvatar = (function () {
     });
   }
 
-  function drawCore(cx, cy, radius, mode) {
-    const beat = Math.sin(t * 0.08 * mode.speed);
-    const pulseRadius = radius * (0.14 + Math.abs(beat) * mode.pulse);
+  function drawCore(cx, cy, radius) {
     const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius * 0.5);
     glow.addColorStop(0, 'rgba(255,255,255,0.95)');
     glow.addColorStop(0.2, 'rgba(126,233,255,0.78)');
@@ -341,34 +339,6 @@ const jarvisAvatar = (function () {
     ctx.beginPath();
     ctx.arc(cx, cy, radius * 0.48, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
-    ctx.lineWidth = 1.5;
-    ctx.shadowBlur = 28;
-    ctx.shadowColor = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(cx, cy, pulseRadius, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  function drawRings(cx, cy, radius, mode) {
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.globalCompositeOperation = 'lighter';
-    for (let i = 0; i < 7; i++) {
-      const spin = t * 0.004 * mode.speed * (i % 2 ? -1 : 1);
-      const rx = radius * (0.45 + i * 0.075);
-      const ry = radius * (0.18 + i * 0.047);
-      ctx.rotate(spin);
-      ctx.beginPath();
-      ctx.ellipse(0, 0, rx, ry, spin, 0, Math.PI * 2);
-      ctx.strokeStyle = i % 2 ? 'rgba(255,156,82,0.16)' : 'rgba(126,233,255,0.18)';
-      ctx.lineWidth = 1.2;
-      ctx.shadowBlur = 18;
-      ctx.shadowColor = i % 2 ? '#ff9c52' : '#7ee9ff';
-      ctx.stroke();
-      ctx.rotate(-spin);
-    }
     ctx.restore();
   }
 
@@ -425,9 +395,8 @@ const jarvisAvatar = (function () {
       bg.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, h);
-      drawRings(cx, cy, radius, mode);
       drawParticles(cx, cy, radius, mode);
-      drawCore(cx, cy, radius, mode);
+      drawCore(cx, cy, radius);
     }
     requestAnimationFrame(draw);
   }

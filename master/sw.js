@@ -1,7 +1,7 @@
 // KGM 자비스 — Service Worker
 // /master/ 경로만 가로챔. /un/ 및 메인 사이트와 캐시 완전 분리.
 
-const CACHE_VERSION = 'v18-2026-05-21';
+const CACHE_VERSION = 'v19-2026-05-21';
 const CACHE_NAME = `kgm-master-${CACHE_VERSION}`;
 
 const APP_SHELL = [
