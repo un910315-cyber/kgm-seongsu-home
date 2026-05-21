@@ -369,17 +369,46 @@ function speak(text) {
   setTimeout(() => { if (!started) onSpeakDone(); }, 1600);
 }
 
-// 중계서버가 보내준 자연스러운 음성(data URI) 재생. 실패 시 폰 기본 음성으로 폴백.
+// 중계서버가 보내준 자연스러운 음성 재생. 실패 시 폰 기본 음성으로 폴백.
+// data URI를 바로 재생하면 모바일에서 시작이 끊기므로, Blob URL로 변환하고
+// 충분히 버퍼된 뒤(canplaythrough) 재생한다.
 const jarvisAudio = new Audio();
+jarvisAudio.preload = 'auto';
+let jarvisAudioUrl = null;
+function revokeJarvisUrl() {
+  if (jarvisAudioUrl) {
+    try { URL.revokeObjectURL(jarvisAudioUrl); } catch (e) {}
+    jarvisAudioUrl = null;
+  }
+}
 function speakAudio(dataUri, fallbackText) {
   try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {}
-  let started = false;
+  let started = false, handled = false;
+  const fallback = () => {
+    if (!started && !handled) { handled = true; revokeJarvisUrl(); speak(fallbackText); }
+  };
+
+  let url;
+  try {
+    const b64 = dataUri.slice(dataUri.indexOf(',') + 1);
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    url = URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' }));
+  } catch (e) { speak(fallbackText); return; }
+
+  revokeJarvisUrl();
+  jarvisAudioUrl = url;
+
   jarvisAudio.onplay = () => { started = true; setOrb('speaking'); };
-  jarvisAudio.onended = () => onSpeakDone();
-  jarvisAudio.onerror = () => { if (!started) speak(fallbackText); };
-  jarvisAudio.src = dataUri;
-  const p = jarvisAudio.play();
-  if (p && p.catch) p.catch(() => { if (!started) speak(fallbackText); });
+  jarvisAudio.onended = () => { revokeJarvisUrl(); onSpeakDone(); };
+  jarvisAudio.onerror = fallback;
+  jarvisAudio.oncanplaythrough = () => { jarvisAudio.play().catch(fallback); };
+
+  jarvisAudio.src = url;
+  jarvisAudio.load();
+  // canplaythrough 가 안 와도 0.9초 뒤엔 재생 시도
+  setTimeout(() => { if (!started) jarvisAudio.play().catch(fallback); }, 900);
 }
 
 // ── 음성 설정 시트 ──
