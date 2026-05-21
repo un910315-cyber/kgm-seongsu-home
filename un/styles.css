@@ -5506,3 +5506,10 @@ body:has(#page-dashboard.active) #page-dashboard .kgm-section .stats-grid[style*
 .aos-bigtotal-amt { font-family: 'JetBrains Mono', monospace; font-size: 25px; font-weight: 800; line-height: 1.1; }
 .aos-bigtotal.paid .aos-bigtotal-amt { color: #34d399; }
 .aos-bigtotal.owed .aos-bigtotal-amt { color: #fca5a5; }
+.aos-group-head {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px; font-weight: 700; color: var(--text);
+  margin: 16px 0 4px; padding: 7px 9px; border-radius: 6px;
+  background: rgba(255,255,255,.05);
+}
+.aos-group-sum { font-family: 'JetBrains Mono', monospace; color: #fca5a5; }

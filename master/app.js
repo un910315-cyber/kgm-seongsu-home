@@ -115,6 +115,15 @@ function recordsArr() {
 function won(n) { return '₩' + Number(n || 0).toLocaleString('ko-KR'); }
 function normCar(s) { return String(s || '').replace(/\s+/g, '').toUpperCase(); }
 
+// AOS 청구 3분류 — 타사차 / KGM(쌍용) / 오픈링크
+const AOS_KGM_MODELS = ['렉스턴', '무쏘', '무소', '로디우스', '코란도', '액티언', '엑티언', '이스타나', '체어맨', '카이런', '티볼리', '토레스', '토래스'];
+function aosGroup(c) {
+  if (String((c && c.insurer) || '').indexOf('오픈링크') >= 0) return '오픈링크';
+  const name = String((c && c.carName) || '');
+  if (AOS_KGM_MODELS.some((k) => name.indexOf(k) >= 0)) return 'KGM';
+  return '타사차';
+}
+
 // ════════════════════════════════════════════════
 //  의도 해석 — 질문 → 답변 문자열
 // ════════════════════════════════════════════════
@@ -708,8 +717,13 @@ function buildContext() {
     const latest = (store.aos[latestD] || {}).claims || {};
     const prevD = aosDates.length >= 2 ? aosDates[aosDates.length - 2] : null;
     const prev = prevD ? ((store.aos[prevD] || {}).claims || {}) : {};
-    const owed = Object.values(latest).filter((c) => (Number(c.payAmount) || 0) <= 0);
+    // 미수 = 지급금액 없음 + 청구일자 있음 (청구 안 한 건은 미수 아님)
+    const owed = Object.values(latest).filter((c) =>
+      (Number(c.payAmount) || 0) <= 0 && String(c.claimDate || '').trim() !== '');
     const owedTotal = owed.reduce((s, c) => s + (Number(c.claimAmount) || 0), 0);
+    const gt = { '타사차': 0, 'KGM': 0, '오픈링크': 0 };
+    const gc = { '타사차': 0, 'KGM': 0, '오픈링크': 0 };
+    owed.forEach((c) => { const g = aosGroup(c); gt[g] += (Number(c.claimAmount) || 0); gc[g]++; });
     const paidNew = [];
     Object.keys(latest).forEach((k) => {
       const c = latest[k];
@@ -720,8 +734,11 @@ function buildContext() {
     const fmtClaim = (c, amt) => c.carNum + (c.carName ? '/' + c.carName : '')
       + (c.insurer ? ' ' + c.insurer : '') + ' ' + won(amt);
     lines.push('');
-    lines.push('[AOS 보험청구 미수금] ' + latestD + ' 기준');
-    lines.push('미수금 합계: ' + won(owedTotal) + ' (' + owed.length + '건)');
+    lines.push('[AOS 보험청구 미수금] ' + latestD + ' 기준 (미수 = 청구했고 미지급인 것)');
+    lines.push('미수금 총계: ' + won(owedTotal) + ' (' + owed.length + '건)');
+    lines.push('  분류별 — 타사차 ' + won(gt['타사차']) + '(' + gc['타사차'] + '건)'
+      + ' / KGM ' + won(gt['KGM']) + '(' + gc['KGM'] + '건)'
+      + ' / 오픈링크 ' + won(gt['오픈링크']) + '(' + gc['오픈링크'] + '건)');
     if (prevD) {
       lines.push('최근 입금(' + prevD + '→' + latestD + '): ' + won(paidTotal) + ' (' + paidNew.length + '건)');
       if (paidNew.length) {
@@ -730,7 +747,7 @@ function buildContext() {
     }
     if (owed.length) {
       const owedSorted = owed.slice().sort((a, b) => (Number(b.claimAmount) || 0) - (Number(a.claimAmount) || 0));
-      lines.push('미수 청구(금액 큰 순): ' + owedSorted.slice(0, 40).map((c) => fmtClaim(c, c.claimAmount)).join('; '));
+      lines.push('미수 청구(금액 큰 순): ' + owedSorted.slice(0, 40).map((c) => '[' + aosGroup(c) + '] ' + fmtClaim(c, c.claimAmount)).join('; '));
     }
   }
 

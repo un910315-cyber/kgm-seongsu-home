@@ -1207,15 +1207,14 @@
         const ws = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
         const claims = {};
-        let kept = 0, exStar = 0, exKgm = 0, exRentMinus = 0;
+        let kept = 0, exStar = 0, exRentMinus = 0;
         for (let i = 1; i < rows.length; i++) {
           const r = rows[i];
           if (!r) continue;
           const carNum = String(r[7] || '').trim();      // H 차량번호
           if (!carNum) continue;
           if (String(r[9] || '').trim() === '***') { exStar++; continue; }  // J 소유자
-          const carName = String(r[8] || '').trim();      // I 차량명
-          if (_isKgmCar(carName)) { exKgm++; continue; }
+          const carName = String(r[8] || '').trim();      // I 차량명 (KGM 쌍용차 포함)
           const claimAmount = _aosNum(r[10]);              // K 청구금액
           // 렌트카(하/호/허 번호판)의 마이너스 청구는 제외
           if (claimAmount < 0 && /[하호허]/.test(carNum)) { exRentMinus++; continue; }
@@ -1244,7 +1243,7 @@
           claims: claims
         });
         if (statusEl) {
-          statusEl.textContent = day + ' 저장 완료 — ' + kept + '건 (제외: 쌍용 ' + exKgm + ' · 소유자*** ' + exStar + ' · 렌트카 마이너스 ' + exRentMinus + ')';
+          statusEl.textContent = day + ' 저장 완료 — ' + kept + '건 (제외: 소유자*** ' + exStar + ' · 렌트카 마이너스 ' + exRentMinus + ')';
         }
         showNotif('AOS 보험청구 ' + kept + '건 저장 — 미수금/입금이 갱신됩니다');
       } catch (e) {
@@ -1281,7 +1280,9 @@
       const prevPaid = prev[k] ? (Number(prev[k].payAmount) || 0) : 0;
       if ((Number(c.payAmount) || 0) > 0 && prevPaid <= 0) paidNew.push(c);
     });
-    const owed = Object.keys(latest).map(k => latest[k]).filter(c => (Number(c.payAmount) || 0) <= 0);
+    // 미수 = 지급금액 없음 + 청구일자 있음 (청구 안 한 건은 아직 미수 아님)
+    const owed = Object.keys(latest).map(k => latest[k]).filter(c =>
+      (Number(c.payAmount) || 0) <= 0 && String(c.claimDate || '').trim() !== '');
 
     const rowHtml = (c, cls, amt) =>
       '<div class="aos-row">'
@@ -1312,18 +1313,31 @@
     if (todayMeta) todayMeta.textContent = prevDate ? ('(' + prevDate + ' → ' + latestDate + ')') : ('기준일 ' + latestDate);
 
     if (!owed.length) {
-      owedBox.innerHTML = '<div class="aos-empty">미수금이 없습니다.</div>';
+      owedBox.innerHTML = '<div class="aos-empty">청구한 미수금이 없습니다.</div>';
     } else {
-      const sorted = owed.slice().sort((a, b) => {
-        const ao = _isOpenlink(a) ? 1 : 0, bo = _isOpenlink(b) ? 1 : 0;
-        if (ao !== bo) return ao - bo;
-        return (Number(b.claimAmount) || 0) - (Number(a.claimAmount) || 0);
+      // 3분류 — 타사차 / KGM(쌍용) / 오픈링크
+      const G = { other: [], kgm: [], openlink: [] };
+      owed.forEach(c => {
+        if (_isOpenlink(c)) G.openlink.push(c);
+        else if (_isKgmCar(c.carName)) G.kgm.push(c);
+        else G.other.push(c);
       });
-      const sum = sorted.reduce((s, c) => s + (Number(c.claimAmount) || 0), 0);
+      const groupBlock = (label, arr) => {
+        if (!arr.length) return '';
+        const sorted = arr.slice().sort((a, b) => (Number(b.claimAmount) || 0) - (Number(a.claimAmount) || 0));
+        const sub = sorted.reduce((s, c) => s + (Number(c.claimAmount) || 0), 0);
+        return '<div class="aos-group-head"><span>' + label + ' · ' + sorted.length + '건</span>'
+          + '<span class="aos-group-sum">' + _aosWon(sub) + '</span></div>'
+          + sorted.map(c => rowHtml(c, 'owed', c.claimAmount)).join('');
+      };
+      const grand = owed.reduce((s, c) => s + (Number(c.claimAmount) || 0), 0);
       owedBox.innerHTML =
-        '<div class="aos-bigtotal owed"><span class="aos-bigtotal-label">미수금 합계 · ' + sorted.length + '건</span>'
-        + '<span class="aos-bigtotal-amt">' + _aosWon(sum) + '</span></div>'
-        + sorted.map(c => rowHtml(c, 'owed', c.claimAmount)).join('');
+        groupBlock('타사차', G.other)
+        + groupBlock('KGM (쌍용)', G.kgm)
+        + groupBlock('오픈링크', G.openlink)
+        + '<div class="aos-bigtotal owed" style="margin:14px 0 0;">'
+        + '<span class="aos-bigtotal-label">미수금 총계 · ' + owed.length + '건</span>'
+        + '<span class="aos-bigtotal-amt">' + _aosWon(grand) + '</span></div>';
     }
     if (owedMeta) owedMeta.textContent = owed.length ? (owed.length + '건 · ' + latestDate + ' 기준') : '';
   }
