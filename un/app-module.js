@@ -246,7 +246,7 @@
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
     admin: ['dashboard','list','status','complete','out','migyeol','leave','board','estimate','insurance','sales','usermgmt'],
-    staff: ['status','complete','leave','board','estimate','insurance','sales'],
+    staff: ['status','complete','leave','board','estimate','insurance'],
     viewer: ['status','complete','leave','board']
   };
   // 'blacklist' 페이지는 ROLE_MENUS에 포함하지 않음 — 출고완료 페이지의 작은 버튼으로만 진입 (admin 전용 가드)
@@ -1169,6 +1169,185 @@
       if (file) handleSalesExcel(file);
     });
   })();
+
+  // ══════════════════════════════════════════════════════════════════
+  //  AOS 보험청구 미수금 / 입금 추적 (관리자 전용 — 매출 보고 > AOS)
+  // ══════════════════════════════════════════════════════════════════
+  // 쌍용(KGM) 차종 — 차량명에 아래 키워드가 들어가면 AOS에서 제외
+  const KGM_MODELS = ['렉스턴','무쏘','무소','로디우스','코란도','액티언','엑티언','이스타나','체어맨','카이런','티볼리','토레스','토래스'];
+  function _isKgmCar(carName) {
+    const s = String(carName || '');
+    return KGM_MODELS.some(k => s.indexOf(k) >= 0);
+  }
+  function _aosNum(v) {
+    if (typeof v === 'number') return Math.round(v);
+    const s = String(v == null ? '' : v).trim();
+    if (!s) return 0;
+    const f = parseFloat(s.replace(/,/g, ''));
+    return Number.isFinite(f) ? Math.round(f) : 0;
+  }
+  function _aosWon(n) { return '₩' + (Number(n) || 0).toLocaleString('ko-KR'); }
+
+  let aosClaimsData = {};
+
+  // 보험청구 현황 엑셀 파싱 → 소유자***·쌍용차 제외 → 오늘 날짜로 저장
+  function handleAosExcel(file) {
+    if (!file) return;
+    const statusEl = document.getElementById('aosExcelStatus');
+    if (typeof XLSX === 'undefined') {
+      if (statusEl) statusEl.textContent = '엑셀 라이브러리 로드 실패 — 새로고침 후 다시 시도';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async function(ev) {
+      try {
+        const wb = XLSX.read(new Uint8Array(ev.target.result), { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+        const claims = {};
+        let kept = 0, exStar = 0, exKgm = 0;
+        for (let i = 1; i < rows.length; i++) {
+          const r = rows[i];
+          if (!r) continue;
+          const carNum = String(r[7] || '').trim();      // H 차량번호
+          if (!carNum) continue;
+          if (String(r[9] || '').trim() === '***') { exStar++; continue; }  // J 소유자
+          const carName = String(r[8] || '').trim();      // I 차량명
+          if (_isKgmCar(carName)) { exKgm++; continue; }
+          const insurer = String(r[3] || '').trim();       // D 보험사
+          const receiptNo = String(r[4] || '').trim();     // E 접수번호
+          const key = ((insurer || '_') + '|' + (receiptNo || ('row' + i))).replace(/[.#$/\[\]]/g, '_');
+          claims[key] = {
+            carNum: carNum, carName: carName, insurer: insurer, receiptNo: receiptNo,
+            cover: String(r[5] || '').trim(),             // F 담보
+            claimAmount: _aosNum(r[10]),                   // K 청구금액
+            claimDate: String(r[11] || '').trim(),         // L 청구일자
+            payAmount: _aosNum(r[12]),                     // M 지급금액
+            payDate: String(r[14] || '').trim(),           // O 지급일자
+            status: String(r[15] || '').trim()             // P 상태
+          };
+          kept++;
+        }
+        if (!kept) {
+          if (statusEl) statusEl.textContent = '유효한 청구 데이터를 찾지 못했어요 — 보험청구 현황 파일인지 확인해주세요';
+          return;
+        }
+        const day = _todayStr();
+        await set(ref(db, 'aosClaims/' + day), {
+          uploadedAt: new Date().toISOString(),
+          uploadedBy: (window._userEmail || ''),
+          claims: claims
+        });
+        if (statusEl) {
+          statusEl.textContent = day + ' 저장 완료 — ' + kept + '건 (쌍용 제외 ' + exKgm + ', 소유자*** 제외 ' + exStar + ')';
+        }
+        showNotif('AOS 보험청구 ' + kept + '건 저장 — 미수금/입금이 갱신됩니다');
+      } catch (e) {
+        console.error('handleAosExcel', e);
+        if (statusEl) statusEl.textContent = '파일을 읽지 못했어요 — 파일을 확인해주세요';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+  window._handleAosExcel = handleAosExcel;
+
+  function renderAosReport() {
+    const todayBox = document.getElementById('aosTodayBox');
+    const owedBox = document.getElementById('aosOwedBox');
+    const todayMeta = document.getElementById('aosTodayMeta');
+    const owedMeta = document.getElementById('aosOwedMeta');
+    if (!todayBox || !owedBox) return;
+    const dates = Object.keys(aosClaimsData || {}).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+    if (!dates.length) {
+      todayBox.innerHTML = '<div class="aos-empty">아직 업로드된 보험청구 자료가 없어요. 위에서 엑셀을 올려주세요.</div>';
+      owedBox.innerHTML = '';
+      if (todayMeta) todayMeta.textContent = '';
+      if (owedMeta) owedMeta.textContent = '';
+      return;
+    }
+    const latestDate = dates[dates.length - 1];
+    const latest = (aosClaimsData[latestDate] || {}).claims || {};
+    const prevDate = dates.length >= 2 ? dates[dates.length - 2] : null;
+    const prev = prevDate ? ((aosClaimsData[prevDate] || {}).claims || {}) : {};
+
+    const paidNew = [];
+    Object.keys(latest).forEach(k => {
+      const c = latest[k];
+      const prevPaid = prev[k] ? (Number(prev[k].payAmount) || 0) : 0;
+      if ((Number(c.payAmount) || 0) > 0 && prevPaid <= 0) paidNew.push(c);
+    });
+    const owed = Object.keys(latest).map(k => latest[k]).filter(c => (Number(c.payAmount) || 0) <= 0);
+
+    const rowHtml = (c, cls, amt) =>
+      '<div class="aos-row">'
+      + '<div><div class="aos-car">' + esc(c.carNum) + ' <span class="aos-sub">' + esc(c.carName) + '</span></div>'
+      + '<div class="aos-sub">' + esc(c.insurer) + (c.cover ? ' · ' + esc(c.cover) : '')
+      + (c.status ? ' · ' + esc(c.status) : '') + '</div></div>'
+      + '<div class="aos-amt ' + cls + '">' + _aosWon(amt) + '</div>'
+      + '</div>';
+
+    if (!prevDate) {
+      todayBox.innerHTML = '<div class="aos-empty">' + latestDate
+        + ' 자료가 기준일로 저장됐어요. 내일 다시 올리면 그날 입금된 건이 여기 표시됩니다.</div>';
+    } else if (!paidNew.length) {
+      todayBox.innerHTML = '<div class="aos-empty">' + prevDate + ' 대비 새로 입금된 건이 없어요.</div>';
+    } else {
+      let sum = 0;
+      todayBox.innerHTML = paidNew.map(c => { sum += Number(c.payAmount) || 0; return rowHtml(c, 'paid', c.payAmount); }).join('')
+        + '<div class="aos-total"><span>입금 합계 ' + paidNew.length + '건</span><span class="aos-amt paid">' + _aosWon(sum) + '</span></div>';
+    }
+    if (todayMeta) todayMeta.textContent = prevDate ? ('(' + prevDate + ' → ' + latestDate + ')') : ('기준일 ' + latestDate);
+
+    if (!owed.length) {
+      owedBox.innerHTML = '<div class="aos-empty">미수금이 없습니다.</div>';
+    } else {
+      let sum = 0;
+      owedBox.innerHTML = owed
+        .slice().sort((a, b) => (Number(b.claimAmount) || 0) - (Number(a.claimAmount) || 0))
+        .map(c => { sum += Number(c.claimAmount) || 0; return rowHtml(c, 'owed', c.claimAmount); }).join('')
+        + '<div class="aos-total"><span>미수금 합계 ' + owed.length + '건</span><span class="aos-amt owed">' + _aosWon(sum) + '</span></div>';
+    }
+    if (owedMeta) owedMeta.textContent = owed.length ? (owed.length + '건 · ' + latestDate + ' 기준') : '';
+  }
+  window._renderAosReport = renderAosReport;
+
+  window._switchSalesCat = function(cat) {
+    const kgm = document.getElementById('sales-cat-kgm');
+    const aos = document.getElementById('sales-cat-aos');
+    const kBtn = document.getElementById('salesCatKgmBtn');
+    const aBtn = document.getElementById('salesCatAosBtn');
+    const isAos = cat === 'aos';
+    if (kgm) kgm.style.display = isAos ? 'none' : '';
+    if (aos) aos.style.display = isAos ? '' : 'none';
+    if (kBtn) kBtn.classList.toggle('active', !isAos);
+    if (aBtn) aBtn.classList.toggle('active', isAos);
+    if (isAos) { try { renderAosReport(); } catch (e) {} }
+  };
+
+  (function bindAosExcelDrop() {
+    const drop = document.getElementById('aosExcelDrop');
+    const input = document.getElementById('aosExcelInput');
+    if (!drop || !input) return;
+    drop.addEventListener('click', () => input.click());
+    input.addEventListener('change', () => {
+      if (input.files && input.files[0]) handleAosExcel(input.files[0]);
+      input.value = '';
+    });
+    ['dragenter', 'dragover'].forEach(ev =>
+      drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('dragover'); }));
+    ['dragleave', 'drop'].forEach(ev =>
+      drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('dragover'); }));
+    drop.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) handleAosExcel(file);
+    });
+  })();
+
+  authReadyOnValue(ref(db, 'aosClaims'), function(snap) {
+    aosClaimsData = snap.val() || {};
+    try { renderAosReport(); } catch (e) {}
+  });
 
   // 일일 매출 저장 (부품 / 기능) — 매출 보고 페이지에서 호출
   window._salesSavePage = async function(cat) {

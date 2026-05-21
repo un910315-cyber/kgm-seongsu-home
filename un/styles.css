@@ -5453,3 +5453,46 @@ body:has(#page-dashboard.active) #page-dashboard .kgm-section .stats-grid[style*
   .org-card { min-width: 80px; font-size: 12px; padding: 8px 10px; }
   .org-card-name { font-size: 12px; }
 }
+
+/* ───── 매출 보고 KGM/AOS 토글 ───── */
+.sales-cat-toggle { display: flex; gap: 6px; margin-bottom: 14px; }
+.sales-cat-btn {
+  flex: 1; padding: 10px; border-radius: 8px; cursor: pointer;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text-dim); font-size: 13px; font-weight: 700;
+  font-family: inherit; letter-spacing: .5px;
+}
+.sales-cat-btn.active {
+  background: rgba(139,92,246,.18);
+  border-color: rgba(139,92,246,.5);
+  color: #c4b5fd;
+}
+
+/* ───── AOS 보험청구 미수금 ───── */
+.aos-section { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+.aos-section-head {
+  font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; gap: 7px; margin-bottom: 10px;
+}
+.aos-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.aos-meta { font-size: 11px; color: var(--text-dim); font-weight: 500; margin-left: 4px; }
+.aos-empty { font-size: 12px; color: var(--text-dim); padding: 10px 2px; line-height: 1.6; }
+.aos-row {
+  display: grid; grid-template-columns: 1fr auto;
+  align-items: center; gap: 4px 12px;
+  padding: 8px 2px; border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.aos-row:last-child { border-bottom: 0; }
+.aos-car { font-size: 12px; font-weight: 700; color: var(--text); }
+.aos-sub { font-size: 11px; color: var(--text-dim); }
+.aos-amt {
+  font-family: 'JetBrains Mono', monospace; font-weight: 700;
+  font-size: 12px; text-align: right; white-space: nowrap;
+}
+.aos-amt.paid { color: #34d399; }
+.aos-amt.owed { color: #fca5a5; }
+.aos-total {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px; font-weight: 700; padding: 10px 2px 0;
+  border-top: 1px solid rgba(255,255,255,.08); margin-top: 4px;
+}

@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v59-trend-wait-model">
+<link rel="stylesheet" href="styles.css?v=v60-aos-receivables">
 </head>
 <body>
 
@@ -555,6 +555,13 @@
 <div id="page-sales" class="page">
   <div class="main">
 
+    <!-- KGM / AOS 카테고리 토글 -->
+    <div class="sales-cat-toggle">
+      <button type="button" class="sales-cat-btn active" id="salesCatKgmBtn" onclick="window._switchSalesCat&&window._switchSalesCat('kgm')">KGM</button>
+      <button type="button" class="sales-cat-btn" id="salesCatAosBtn" onclick="window._switchSalesCat&&window._switchSalesCat('aos')">AOS</button>
+    </div>
+
+    <div id="sales-cat-kgm">
     <!-- 일일 매출 보고 -->
     <div class="chart-card widget-card">
       <div class="chart-header" style="justify-content:space-between;flex-wrap:wrap;gap:10px;">
@@ -654,7 +661,36 @@
       <input type="hidden" id="si-received">
       <input type="hidden" id="si-kgm">
     </div>
+    </div><!-- /sales-cat-kgm -->
 
+    <!-- AOS 보험청구 미수금 -->
+    <div id="sales-cat-aos" style="display:none;">
+      <div class="chart-card widget-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">AOS 보험청구 미수금</div>
+            <div class="chart-subtitle">보험청구 현황 엑셀을 매일 올리면 입금·미수금이 자동 집계됩니다</div>
+          </div>
+        </div>
+
+        <div class="sales-excel-drop" id="aosExcelDrop">
+          <input type="file" id="aosExcelInput" accept=".xls,.xlsx" style="display:none">
+          <div class="sed-icon">📂</div>
+          <div class="sed-main">보험청구 현황 엑셀을 끌어다 놓거나 클릭해서 선택</div>
+          <div class="sed-sub" id="aosExcelStatus">소유자 *** 및 쌍용(KGM) 차량은 자동 제외됩니다</div>
+        </div>
+
+        <div class="aos-section">
+          <div class="aos-section-head"><span class="aos-dot" style="background:#34d399;"></span>입금 확인<span class="aos-meta" id="aosTodayMeta"></span></div>
+          <div id="aosTodayBox"></div>
+        </div>
+
+        <div class="aos-section">
+          <div class="aos-section-head"><span class="aos-dot" style="background:#ef4444;"></span>미수금 현황<span class="aos-meta" id="aosOwedMeta"></span></div>
+          <div id="aosOwedBox"></div>
+        </div>
+      </div>
+    </div>
 
   </div>
 </div>
@@ -1020,13 +1056,13 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v59-trend-wait-model"></script>
+<script type="module" src="app-module.js?v=v60-aos-receivables"></script>
 
-<script defer src="app-pages.js?v=v59-trend-wait-model"></script>
+<script defer src="app-pages.js?v=v60-aos-receivables"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script defer src="app-insurance.js?v=v59-trend-wait-model"></script>
+<script defer src="app-insurance.js?v=v60-aos-receivables"></script>
 
 
 <div id="page-estimate" class="page">
@@ -2367,6 +2403,6 @@
   setTimeout(previewSalesBars, 3200);
 })();
 </script>
-<script defer src="app-features.js?v=v59-trend-wait-model"></script>
+<script defer src="app-features.js?v=v60-aos-receivables"></script>
 </body>
 </html>
