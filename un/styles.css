@@ -4595,7 +4595,12 @@ body:has(.page.active) .sidebar-links a:hover {
   color: #fff;
 }
 
-@media (max-width: 1180px) {
+/* 화면이 작으면 좌하단 간편버튼·상태배지 숨김 — 메뉴 가림 방지 */
+@media (max-width: 1600px) {
+  .sidebar-status,
+  .sidebar-links { display: none !important; }
+}
+@media (max-height: 880px) {
   .sidebar-status,
   .sidebar-links { display: none !important; }
 }
