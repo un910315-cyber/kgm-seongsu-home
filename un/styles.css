@@ -5513,3 +5513,20 @@ body:has(#page-dashboard.active) #page-dashboard .kgm-section .stats-grid[style*
   background: rgba(255,255,255,.05);
 }
 .aos-group-sum { font-family: 'JetBrains Mono', monospace; color: #fca5a5; }
+/* 상단 3분류 요약 네모칸 */
+.aos-summary {
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px 14px; margin-bottom: 14px;
+  background: rgba(255,255,255,.03);
+}
+.aos-summary-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 5px 0; font-size: 13px;
+}
+.aos-summary-label { color: var(--text-dim); font-weight: 600; }
+.aos-summary-amt { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #fca5a5; }
+.aos-summary-row.total {
+  border-top: 1px solid var(--border); margin-top: 5px; padding-top: 9px;
+}
+.aos-summary-row.total .aos-summary-label { color: var(--text); font-weight: 800; }
+.aos-summary-row.total .aos-summary-amt { font-size: 20px; font-weight: 800; }

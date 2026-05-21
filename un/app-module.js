@@ -1322,22 +1322,31 @@
         else if (_isKgmCar(c.carName)) G.kgm.push(c);
         else G.other.push(c);
       });
+      const sumOf = (arr) => arr.reduce((s, c) => s + (Number(c.claimAmount) || 0), 0);
+      const sOther = sumOf(G.other), sKgm = sumOf(G.kgm), sOpen = sumOf(G.openlink);
+      const grand = sOther + sKgm + sOpen;
+      const sumRow = (label, n, amt) =>
+        '<div class="aos-summary-row"><span class="aos-summary-label">' + label + ' · ' + n + '건</span>'
+        + '<span class="aos-summary-amt">' + _aosWon(amt) + '</span></div>';
+      const summary =
+        '<div class="aos-summary">'
+        + sumRow('타사차', G.other.length, sOther)
+        + sumRow('KGM (쌍용)', G.kgm.length, sKgm)
+        + sumRow('오픈링크', G.openlink.length, sOpen)
+        + '<div class="aos-summary-row total"><span class="aos-summary-label">총계 · ' + owed.length + '건</span>'
+        + '<span class="aos-summary-amt">' + _aosWon(grand) + '</span></div>'
+        + '</div>';
       const groupBlock = (label, arr) => {
         if (!arr.length) return '';
         const sorted = arr.slice().sort((a, b) => (Number(b.claimAmount) || 0) - (Number(a.claimAmount) || 0));
-        const sub = sorted.reduce((s, c) => s + (Number(c.claimAmount) || 0), 0);
         return '<div class="aos-group-head"><span>' + label + ' · ' + sorted.length + '건</span>'
-          + '<span class="aos-group-sum">' + _aosWon(sub) + '</span></div>'
+          + '<span class="aos-group-sum">' + _aosWon(sumOf(sorted)) + '</span></div>'
           + sorted.map(c => rowHtml(c, 'owed', c.claimAmount)).join('');
       };
-      const grand = owed.reduce((s, c) => s + (Number(c.claimAmount) || 0), 0);
-      owedBox.innerHTML =
-        groupBlock('타사차', G.other)
+      owedBox.innerHTML = summary
+        + groupBlock('타사차', G.other)
         + groupBlock('KGM (쌍용)', G.kgm)
-        + groupBlock('오픈링크', G.openlink)
-        + '<div class="aos-bigtotal owed" style="margin:14px 0 0;">'
-        + '<span class="aos-bigtotal-label">미수금 총계 · ' + owed.length + '건</span>'
-        + '<span class="aos-bigtotal-amt">' + _aosWon(grand) + '</span></div>';
+        + groupBlock('오픈링크', G.openlink);
     }
     if (owedMeta) owedMeta.textContent = owed.length ? (owed.length + '건 · ' + latestDate + ' 기준') : '';
   }
