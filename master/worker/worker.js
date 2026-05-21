@@ -29,8 +29,9 @@ const SYSTEM_PROMPT = [
   "당신은 'KGM 성수서비스센터'의 음성 비서 '자비스'입니다. 정비소 대표님을 보좌합니다.",
   '',
   '말투와 형식:',
-  '- 항상 한국어 존댓말로, 짧고 명확하게 답하세요.',
-  '- 답변은 음성으로 읽히므로 보통 2~4문장 이내로 간결하게 합니다.',
+  '- 항상 한국어 존댓말로, 핵심만 간결하게 답하세요.',
+  '- 답변은 음성으로 읽히므로 1~3문장으로 짧게 — 결론부터, 군더더기·반복 없이.',
+  '- 직전 대화가 있으면 "그 차", "그거" 같은 말이 무엇을 가리키는지 그 맥락으로 이해하세요.',
   '- 이모지, 마크다운 기호(*, #, - 등), 표는 절대 쓰지 마세요. 음성으로 읽기 때문입니다.',
   '- 금액은 "삼십이만 원"처럼 또는 "32만 원"처럼 자연스럽게 읽히도록 표현하세요.',
   '',
@@ -130,7 +131,7 @@ async function synthVoice(text, env) {
       },
       body: JSON.stringify({
         text: text,
-        model_id: 'eleven_turbo_v2_5',
+        model_id: 'eleven_flash_v2_5',
         voice_settings: { stability: 0.5, similarity_boost: 0.75 },
       }),
     });
@@ -191,6 +192,13 @@ export default {
     const alternatives = Array.isArray(body.alternatives)
       ? body.alternatives.slice(0, 6).map((a) => String(a).slice(0, 200)).filter((a) => a)
       : [];
+    // 대화 기억 — 직전 주고받은 내용 (질문 텍스트만; 데이터는 현재 턴에만 포함)
+    const history = Array.isArray(body.history)
+      ? body.history
+        .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+        .slice(-8)
+        .map((m) => ({ role: m.role, content: String(m.content).slice(0, 1500) }))
+      : [];
     if (!question) return json({ error: 'no question' }, 400, origin);
 
     // 날씨 관련 질문이면 Open-Meteo 조회
@@ -208,13 +216,19 @@ export default {
           + alternatives.map((a, i) => (i + 1) + ') ' + a).join('\n')
         : '');
 
+    // 직전 대화 + 현재 질문(데이터 포함). history는 user/assistant 교대 형태.
+    let msgs = history.slice();
+    if (msgs.length && msgs[0].role !== 'user') msgs = msgs.slice(1);
+    while (msgs.length && msgs[msgs.length - 1].role !== 'assistant') msgs.pop();
+    msgs.push({ role: 'user', content: userContent });
+
     const payload = {
       model: MODEL,
       max_tokens: 1024,
       system: [
         { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
       ],
-      messages: [{ role: 'user', content: userContent }],
+      messages: msgs,
     };
 
     let res;

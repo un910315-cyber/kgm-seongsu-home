@@ -46,7 +46,7 @@ const inputWrap = $('inputWrap');
 const handsfreeBtn = $('handsfreeBtn');
 
 // 버전 표시 — 캐시 갱신 확인용
-const JARVIS_VERSION = 'v20';
+const JARVIS_VERSION = 'v21';
 { const _ve = document.getElementById('appVer'); if (_ve) _ve.textContent = JARVIS_VERSION; }
 
 // ── 데이터 저장소 (Firebase 실시간 동기화) ──
@@ -731,9 +731,13 @@ function buildContext() {
   return lines.join('\n');
 }
 
-async function askWorker(question, alts) {
+// 대화 기억 — 최근 주고받은 질문/답변 (참조 해소용)
+let convoHistory = [];
+
+async function askWorker(question, alts, history) {
   const body = { question: question, context: buildContext() };
   if (alts && alts.length > 1) body.alternatives = alts.slice(0, 5);
+  if (history && history.length) body.history = history;
   const res = await fetch(WORKER_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -759,7 +763,7 @@ async function handleQuery(text, alts) {
   let reply, audio = null;
   if (WORKER_URL) {
     try {
-      const data = await askWorker(q, alts);
+      const data = await askWorker(q, alts, convoHistory.slice(-8));
       reply = data.answer;
       audio = data.audio || null;
     } catch (e) {
@@ -770,6 +774,9 @@ async function handleQuery(text, alts) {
     await new Promise((r) => setTimeout(r, 360));
     reply = answer(q);
   }
+  convoHistory.push({ role: 'user', content: q });
+  convoHistory.push({ role: 'assistant', content: reply });
+  if (convoHistory.length > 12) convoHistory = convoHistory.slice(-12);
   fadeIn(capJv, reply);
   capJv.scrollTop = 0;
   if (audio) speakAudio(audio, reply);
