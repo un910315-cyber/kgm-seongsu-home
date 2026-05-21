@@ -45,6 +45,10 @@ const kbToggle = $('kbToggle');
 const inputWrap = $('inputWrap');
 const handsfreeBtn = $('handsfreeBtn');
 
+// 버전 표시 — 캐시 갱신 확인용
+const JARVIS_VERSION = 'v18';
+{ const _ve = document.getElementById('appVer'); if (_ve) _ve.textContent = JARVIS_VERSION; }
+
 // ── 데이터 저장소 (Firebase 실시간 동기화) ──
 const store = { records: {}, blacklist: {}, salesDaily: {}, kgmDaily: {}, emps: {}, usage: {}, aos: {} };
 let dataReady = false;
@@ -751,8 +755,8 @@ function buildContext() {
           : (String(c.claimDate || '').trim() ? ' 미지급(미수)' : ' 청구전'));
     };
     lines.push('청구 목록(차량별 입금 조회용):');
-    allClaims.slice(0, 220).forEach((c) => lines.push('- ' + claimLine(c)));
-    if (allClaims.length > 220) lines.push('...외 ' + (allClaims.length - 220) + '건');
+    allClaims.slice(0, 350).forEach((c) => lines.push('- ' + claimLine(c)));
+    if (allClaims.length > 350) lines.push('...외 ' + (allClaims.length - 350) + '건');
   }
 
   return lines.join('\n');
