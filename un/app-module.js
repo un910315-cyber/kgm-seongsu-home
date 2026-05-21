@@ -1730,9 +1730,13 @@
 
     const rowsHtml = (rows) => rows.map(r => {
       const inD = r.inDate ? String(r.inDate).slice(5).replace('-', '/') : '-';
+      const model = r.carModel ? '<span class="tw-model">' + esc(r.carModel) + '</span>' : '';
       return '<div class="trend-wait-row">'
         + '<span class="tw-date">' + inD + '</span>'
-        + '<span class="tw-car" onclick="openDetailModal(\'' + esc(r.id) + '\')" title="클릭하여 상세보기">' + esc(r.carNum) + '</span>'
+        + '<span class="tw-carbox" onclick="openDetailModal(\'' + esc(r.id) + '\')" title="클릭하여 상세보기">'
+        +   '<span class="tw-car">' + esc(r.carNum) + '</span>'
+        +   model
+        + '</span>'
         + '<span class="tw-loc">' + (esc(r.location) || '-') + '</span>'
         + '</div>';
     }).join('');

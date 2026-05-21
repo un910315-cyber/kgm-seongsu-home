@@ -1128,14 +1128,32 @@ body > div[style*="position:fixed;top:0;"] {
   color: var(--text-dim);
 }
 
+#page-dashboard .tw-carbox {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  cursor: pointer;
+  line-height: 1.3;
+}
+
 #page-dashboard .tw-car {
   font-weight: 700;
   color: #c4b5fd;
-  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-#page-dashboard .tw-car:hover {
+#page-dashboard .tw-carbox:hover .tw-car {
   text-decoration: underline;
+}
+
+#page-dashboard .tw-model {
+  font-size: 10px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #page-dashboard .tw-loc {
