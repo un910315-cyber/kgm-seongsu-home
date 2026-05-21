@@ -10,7 +10,8 @@
 //   - 선택 환경변수: ELEVENLABS_API_KEY (있으면 자연스러운 사람 음성으로 답변),
 //                    ELEVENLABS_VOICE_ID (특정 목소리 지정; 없으면 계정 첫 목소리 사용)
 
-const MODEL = 'claude-haiku-4-5';
+// 모델 — claude-sonnet-4-6(똑똑함) / claude-haiku-4-5(저렴·빠름) / claude-opus-4-7(최상)
+const MODEL = 'claude-sonnet-4-6';
 
 // CORS 허용 출처
 const ALLOWED_ORIGINS = [
