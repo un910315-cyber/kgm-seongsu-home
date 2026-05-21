@@ -249,13 +249,22 @@ function monthSales() {
          ', 수납금계 ' + won(received) + '입니다. ' + days + '일치 보고 기준이에요.';
 }
 
+// 직원 연차 사용 시간 — 내부 페이지와 동일 규칙
+// (연차=8h, 반차=4h는 type으로만 저장됨 / 조퇴·외출은 hours 값 사용)
+function leaveUsedHours(empId) {
+  let h = 0;
+  Object.values(store.usage || {}).forEach((u) => {
+    if (!u || u.empId !== empId) return;
+    if (u.type === '연차') h += 8;
+    else if (u.type === '오전반차' || u.type === '오후반차' || u.type === '반차') h += 4;
+    else h += (parseInt(u.hours, 10) || 0);
+  });
+  return h;
+}
+
 function leaveOf(emp) {
   const total = Number(emp.totalLeave) || 0;
-  let usedHours = 0;
-  Object.values(store.usage || {}).forEach((u) => {
-    if (u && u.empId === emp.id) usedHours += Number(u.hours) || 0;
-  });
-  const usedDays = Math.round((usedHours / 8) * 10) / 10;
+  const usedDays = Math.round((leaveUsedHours(emp.id) / 8) * 10) / 10;
   const remain = Math.round((total - usedDays) * 10) / 10;
   if (!total) return emp.name + '님의 연차 일수가 아직 등록되어 있지 않습니다.';
   return emp.name + '님은 연차 ' + total + '일 중 ' + usedDays + '일 사용, ' +
@@ -681,9 +690,7 @@ function buildContext() {
 
   Object.entries(store.emps || {}).forEach(([id, e]) => {
     if (!e || !e.name) return;
-    let uh = 0;
-    Object.values(store.usage || {}).forEach((u) => { if (u && u.empId === id) uh += Number(u.hours) || 0; });
-    const ud = Math.round((uh / 8) * 10) / 10;
+    const ud = Math.round((leaveUsedHours(id) / 8) * 10) / 10;
     const total = Number(e.totalLeave) || 0;
     lines.push('연차 ' + e.name + ': 총 ' + total + '일, 사용 ' + ud + '일, 잔여 ' + (Math.round((total - ud) * 10) / 10) + '일');
   });
