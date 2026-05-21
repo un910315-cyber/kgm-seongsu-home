@@ -286,7 +286,8 @@ function greet(name) {
   if (greeted) return;
   greeted = true;
   fadeIn(capJv, (name ? name + '님, ' : '') + '안녕하세요. 자비스입니다.\n무엇을 도와드릴까요?');
-  setStatus(recog ? IDLE_HINT : '음성 입력이 안 되는 기기예요. 키보드로 입력해 주세요.');
+  setStatus(!recog ? '음성 입력이 안 되는 기기예요. 키보드로 입력해 주세요.'
+    : (continuousMode ? '오브를 한 번 탭하면 계속 대화할 수 있어요' : IDLE_HINT));
   setOrb('idle');
   if (!recog) openKeyboard();
 }
@@ -336,9 +337,11 @@ function primeTTS() {
   } catch (e) {}
 }
 
-// ── 연속 대화(핸즈프리) 모드 ──
-// 켜면 답변이 끝날 때마다 마이크가 자동으로 다시 열려서, 매번 탭하지 않아도 됨.
-let continuousMode = false;
+// ── 연속 대화(핸즈프리) 모드 ── 기본 ON
+// 답변이 끝날 때마다 마이크가 자동으로 다시 열려서, 매번 탭하지 않아도 됨.
+// (브라우저 보안상 첫 마이크는 사용자가 한 번 탭해야 켜짐)
+let continuousMode = true;
+try { if (localStorage.getItem('jarvis_handsfree') === '0') continuousMode = false; } catch (e) {}
 function reListen() {
   if (!continuousMode) return;
   setTimeout(() => { if (continuousMode && !listening) startListening(); }, 450);
@@ -712,8 +715,15 @@ function stopListening() {
 orb.addEventListener('click', () => {
   if (!settingsModal.hidden) return;
   primeTTS();
-  if (continuousMode) { setContinuous(false); return; }
   if (listening) { stopListening(); return; }
+  // 말하는 중에 탭하면 멈춤
+  if (orb.classList.contains('speaking')) {
+    try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {}
+    try { jarvisAudio.pause(); } catch (e) {}
+    setOrb('idle');
+    setStatus(continuousMode ? '연속 대화 모드 — 말씀하세요' : IDLE_HINT);
+    return;
+  }
   if (!recog) { openKeyboard(); return; }
   startListening();
 });
@@ -721,6 +731,7 @@ orb.addEventListener('click', () => {
 // 연속 대화(핸즈프리) 모드 토글
 function setContinuous(on) {
   continuousMode = on;
+  try { localStorage.setItem('jarvis_handsfree', on ? '1' : '0'); } catch (e) {}
   if (handsfreeBtn) handsfreeBtn.classList.toggle('on', on);
   if (on) {
     primeTTS();
@@ -741,6 +752,7 @@ function setContinuous(on) {
   }
 }
 if (handsfreeBtn) {
+  handsfreeBtn.classList.toggle('on', continuousMode);
   handsfreeBtn.addEventListener('click', () => {
     if (!settingsModal.hidden) return;
     setContinuous(!continuousMode);
