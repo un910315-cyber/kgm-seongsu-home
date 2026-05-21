@@ -266,9 +266,162 @@ function leaveOf(emp) {
 // ════════════════════════════════════════════════
 function setStatus(t) { hint.textContent = t || ''; }
 
+// ── 자비스 아바타 (캔버스 — idle/listening/thinking/speaking) ──
+const jarvisAvatar = (function () {
+  const canvas = document.getElementById('jarvisAvatar');
+  if (!canvas || !canvas.getContext) return { setState: function () {} };
+  const ctx = canvas.getContext('2d');
+  let w = 0, h = 0, dpr = 1, t = 0;
+  let avState = 'idle';
+  let particles = [];
+
+  const config = {
+    idle:      { speed: 0.55, pulse: 0.025, density: 0.78 },
+    listening: { speed: 0.95, pulse: 0.05,  density: 1.0 },
+    thinking:  { speed: 1.2,  pulse: 0.065, density: 1.12 },
+    speaking:  { speed: 1.7,  pulse: 0.11,  density: 1.35 }
+  };
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = canvas.clientWidth;
+    h = canvas.clientHeight;
+    if (!w || !h) return;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const count = Math.floor(Math.min(820, Math.max(420, w * h / 1400)));
+    particles = Array.from({ length: count }, function () {
+      return {
+        a: Math.random() * Math.PI * 2,
+        r: Math.pow(Math.random(), 0.48),
+        z: Math.random(),
+        s: 0.002 + Math.random() * 0.004,
+        size: 0.7 + Math.random() * 2.1,
+        hot: Math.random() > 0.64,
+        wobble: Math.random() * Math.PI * 2
+      };
+    });
+  }
+
+  function drawCore(cx, cy, radius, mode) {
+    const beat = Math.sin(t * 0.08 * mode.speed);
+    const pulseRadius = radius * (0.14 + Math.abs(beat) * mode.pulse);
+    const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius * 0.5);
+    glow.addColorStop(0, 'rgba(255,255,255,0.95)');
+    glow.addColorStop(0.2, 'rgba(126,233,255,0.78)');
+    glow.addColorStop(0.52, 'rgba(255,150,70,0.3)');
+    glow.addColorStop(1, 'rgba(255,150,70,0)');
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius * 0.48, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+    ctx.lineWidth = 1.5;
+    ctx.shadowBlur = 28;
+    ctx.shadowColor = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(cx, cy, pulseRadius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawRings(cx, cy, radius, mode) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 7; i++) {
+      const spin = t * 0.004 * mode.speed * (i % 2 ? -1 : 1);
+      const rx = radius * (0.45 + i * 0.075);
+      const ry = radius * (0.18 + i * 0.047);
+      ctx.rotate(spin);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, rx, ry, spin, 0, Math.PI * 2);
+      ctx.strokeStyle = i % 2 ? 'rgba(255,156,82,0.16)' : 'rgba(126,233,255,0.18)';
+      ctx.lineWidth = 1.2;
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = i % 2 ? '#ff9c52' : '#7ee9ff';
+      ctx.stroke();
+      ctx.rotate(-spin);
+    }
+    ctx.restore();
+  }
+
+  function drawParticles(cx, cy, radius, mode) {
+    const visibleCount = Math.floor(particles.length * mode.density);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < visibleCount; i++) {
+      const p = particles[i];
+      if (!p) continue;
+      const angle = p.a + t * p.s * mode.speed + Math.sin(t * 0.018 + p.wobble) * 0.08;
+      const shell = radius * (0.2 + p.r * 0.92);
+      const flat = 0.56 + Math.sin(angle * 2 + t * 0.012) * 0.14;
+      const x = cx + Math.cos(angle) * shell * (0.88 + p.z * 0.2);
+      const y = cy + Math.sin(angle) * shell * flat + Math.cos(angle * 3) * 18 * p.z;
+      const alpha = 0.25 + Math.random() * 0.45;
+      ctx.beginPath();
+      ctx.fillStyle = p.hot ? 'rgba(255,156,82,' + alpha + ')' : 'rgba(126,233,255,' + alpha + ')';
+      ctx.shadowBlur = p.hot ? 15 : 11;
+      ctx.shadowColor = p.hot ? '#ff9c52' : '#7ee9ff';
+      ctx.arc(x, y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      if (i % 7 === 0) {
+        const p2 = particles[(i + 31) % visibleCount];
+        if (!p2) continue;
+        const angle2 = p2.a + t * p2.s * mode.speed;
+        const shell2 = radius * (0.2 + p2.r * 0.92);
+        const x2 = cx + Math.cos(angle2) * shell2;
+        const y2 = cy + Math.sin(angle2) * shell2 * 0.56;
+        if (Math.hypot(x - x2, y - y2) < radius * 0.42) {
+          ctx.beginPath();
+          ctx.strokeStyle = 'rgba(126,233,255,0.12)';
+          ctx.lineWidth = 0.8;
+          ctx.moveTo(x, y);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  function draw() {
+    t += 1;
+    const mode = config[avState] || config.idle;
+    if (w && h) {
+      const cx = w * 0.5;
+      const cy = h * 0.5;
+      const radius = Math.min(w, h) * 0.38 * (1 + Math.sin(t * 0.04) * mode.pulse);
+      ctx.clearRect(0, 0, w, h);
+      const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(1, radius * 1.6));
+      bg.addColorStop(0, 'rgba(80,190,230,0.16)');
+      bg.addColorStop(0.48, 'rgba(255,140,70,0.06)');
+      bg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+      drawRings(cx, cy, radius, mode);
+      drawParticles(cx, cy, radius, mode);
+      drawCore(cx, cy, radius, mode);
+    }
+    requestAnimationFrame(draw);
+  }
+
+  if (window.ResizeObserver) {
+    try { new ResizeObserver(resize).observe(canvas); } catch (e) {}
+  }
+  window.addEventListener('resize', resize);
+  resize();
+  requestAnimationFrame(draw);
+
+  return { setState: function (s) { if (config[s]) avState = s; } };
+})();
+
 function setOrb(state) {
   orb.className = 'orb ' + state;
-  if (state !== 'listening') orb.style.setProperty('--level', 0);
+  jarvisAvatar.setState(state);
 }
 
 // 자막 페이드 인 (영화처럼 떠올랐다 사라짐)
