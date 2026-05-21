@@ -1281,8 +1281,12 @@
       if ((Number(c.payAmount) || 0) > 0 && prevPaid <= 0) paidNew.push(c);
     });
     // 미수 = 지급금액 없음 + 청구일자 있음 (청구 안 한 건은 아직 미수 아님)
-    const owed = Object.keys(latest).map(k => latest[k]).filter(c =>
+    let owed = Object.keys(latest).map(k => latest[k]).filter(c =>
       (Number(c.payAmount) || 0) <= 0 && String(c.claimDate || '').trim() !== '');
+    // 동일 차량에 자차·대물이 함께 미수면 → 자차만 반영 (대물 제외)
+    const _carHasJacha = {};
+    owed.forEach(c => { if (c.cover === '자차') _carHasJacha[c.carNum] = true; });
+    owed = owed.filter(c => !(c.cover === '대물' && _carHasJacha[c.carNum]));
 
     const rowHtml = (c, cls, amt) =>
       '<div class="aos-row">'

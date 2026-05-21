@@ -46,7 +46,7 @@ const inputWrap = $('inputWrap');
 const handsfreeBtn = $('handsfreeBtn');
 
 // 버전 표시 — 캐시 갱신 확인용
-const JARVIS_VERSION = 'v21';
+const JARVIS_VERSION = 'v22';
 { const _ve = document.getElementById('appVer'); if (_ve) _ve.textContent = JARVIS_VERSION; }
 
 // ── 데이터 저장소 (Firebase 실시간 동기화) ──
@@ -692,8 +692,12 @@ function buildContext() {
     const prev = prevD ? ((store.aos[prevD] || {}).claims || {}) : {};
     const allClaims = Object.values(latest);
     // 미수 = 지급금액 없음 + 청구일자 있음 (청구 안 한 건은 미수 아님)
-    const owed = allClaims.filter((c) =>
+    let owed = allClaims.filter((c) =>
       (Number(c.payAmount) || 0) <= 0 && String(c.claimDate || '').trim() !== '');
+    // 동일 차량에 자차·대물이 함께 미수면 → 자차만 반영 (대물 제외)
+    const _carHasJacha = {};
+    owed.forEach((c) => { if (c.cover === '자차') _carHasJacha[c.carNum] = true; });
+    owed = owed.filter((c) => !(c.cover === '대물' && _carHasJacha[c.carNum]));
     const owedTotal = owed.reduce((s, c) => s + (Number(c.claimAmount) || 0), 0);
     const gt = { '타사차': 0, 'KGM': 0, '오픈링크': 0 };
     const gc = { '타사차': 0, 'KGM': 0, '오픈링크': 0 };
