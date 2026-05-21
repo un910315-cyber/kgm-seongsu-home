@@ -46,7 +46,7 @@ const inputWrap = $('inputWrap');
 const handsfreeBtn = $('handsfreeBtn');
 
 // ── 데이터 저장소 (Firebase 실시간 동기화) ──
-const store = { records: {}, blacklist: {}, salesDaily: {}, kgmDaily: {}, emps: {}, usage: {} };
+const store = { records: {}, blacklist: {}, salesDaily: {}, kgmDaily: {}, emps: {}, usage: {}, aos: {} };
 let dataReady = false;
 
 // ════════════════════════════════════════════════
@@ -94,6 +94,7 @@ function startDataSync() {
   bind('kgmDailyCount', 'kgmDaily');
   bind('leaveEmployees', 'emps');
   bind('leaveUsage', 'usage');
+  bind('aosClaims', 'aos');
 }
 
 // ════════════════════════════════════════════════
@@ -692,6 +693,40 @@ function buildContext() {
     lines.push('블랙리스트 ' + bl.length + '대: ' +
       bl.slice(0, 20).map((b) => b.carNum + '(' + (b.reason || '사유미기재') + ')').join('; '));
   }
+
+  // AOS 보험청구 미수금
+  const aosDates = Object.keys(store.aos || {}).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+  if (aosDates.length) {
+    const latestD = aosDates[aosDates.length - 1];
+    const latest = (store.aos[latestD] || {}).claims || {};
+    const prevD = aosDates.length >= 2 ? aosDates[aosDates.length - 2] : null;
+    const prev = prevD ? ((store.aos[prevD] || {}).claims || {}) : {};
+    const owed = Object.values(latest).filter((c) => (Number(c.payAmount) || 0) <= 0);
+    const owedTotal = owed.reduce((s, c) => s + (Number(c.claimAmount) || 0), 0);
+    const paidNew = [];
+    Object.keys(latest).forEach((k) => {
+      const c = latest[k];
+      const pp = prev[k] ? (Number(prev[k].payAmount) || 0) : 0;
+      if ((Number(c.payAmount) || 0) > 0 && pp <= 0) paidNew.push(c);
+    });
+    const paidTotal = paidNew.reduce((s, c) => s + (Number(c.payAmount) || 0), 0);
+    const fmtClaim = (c, amt) => c.carNum + (c.carName ? '/' + c.carName : '')
+      + (c.insurer ? ' ' + c.insurer : '') + ' ' + won(amt);
+    lines.push('');
+    lines.push('[AOS 보험청구 미수금] ' + latestD + ' 기준');
+    lines.push('미수금 합계: ' + won(owedTotal) + ' (' + owed.length + '건)');
+    if (prevD) {
+      lines.push('최근 입금(' + prevD + '→' + latestD + '): ' + won(paidTotal) + ' (' + paidNew.length + '건)');
+      if (paidNew.length) {
+        lines.push('입금된 청구: ' + paidNew.slice(0, 40).map((c) => fmtClaim(c, c.payAmount)).join('; '));
+      }
+    }
+    if (owed.length) {
+      const owedSorted = owed.slice().sort((a, b) => (Number(b.claimAmount) || 0) - (Number(a.claimAmount) || 0));
+      lines.push('미수 청구(금액 큰 순): ' + owedSorted.slice(0, 40).map((c) => fmtClaim(c, c.claimAmount)).join('; '));
+    }
+  }
+
   return lines.join('\n');
 }
 
