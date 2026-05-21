@@ -187,7 +187,7 @@ export default {
     catch { return json({ error: 'invalid json' }, 400, origin); }
 
     const question = String(body.question || '').trim().slice(0, 1000);
-    const context = String(body.context || '').slice(0, 40000);
+    const context = String(body.context || '').slice(0, 200000);
     const alternatives = Array.isArray(body.alternatives)
       ? body.alternatives.slice(0, 6).map((a) => String(a).slice(0, 200)).filter((a) => a)
       : [];
