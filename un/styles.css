@@ -5535,3 +5535,45 @@ body:has(#page-dashboard.active) #page-dashboard .kgm-section .stats-grid[style*
 }
 .aos-summary-row.total .aos-summary-label { color: var(--text); font-weight: 800; }
 .aos-summary-row.total .aos-summary-amt { font-size: 20px; font-weight: 800; }
+
+/* ───── 누적매출 — 주차별 막대 차트 (라인차트 대체) ───── */
+body:has(#page-dashboard.active) #page-dashboard .sales-chart-section .cumulative-sales-card .cum-sales-chart {
+  height: auto !important;
+  min-height: 0 !important;
+  flex: none !important;
+  display: flex !important;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px 2px 0;
+}
+body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sales-legend {
+  display: none !important;
+}
+.cum-week-bar {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 5px;
+}
+.cum-week-amt {
+  font-size: 10px; font-weight: 800;
+  color: #cbd5e1; font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+}
+.cum-week-track {
+  width: 100%; height: 92px;
+  display: flex; align-items: flex-end;
+  background: rgba(255, 255, 255, .03);
+  border-radius: 5px 5px 3px 3px;
+}
+.cum-week-track > i {
+  display: block; width: 100%;
+  border-radius: 5px 5px 3px 3px;
+  background: linear-gradient(180deg, #38bdf8, #0ea5e9);
+  box-shadow: 0 0 14px rgba(56, 189, 248, .22);
+  min-height: 3px;
+}
+.cum-week-label { font-size: 10px; font-weight: 700; color: #8b95a8; }
+.cum-week-empty {
+  width: 100%; text-align: center;
+  color: #6b7280; font-size: 11px; padding: 34px 0;
+}

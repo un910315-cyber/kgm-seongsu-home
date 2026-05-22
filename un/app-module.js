@@ -126,9 +126,12 @@
     }
 
     renderCumulativeSalesChart({
-      parts: [18,22,21,25,30,28,33,36,34,38,41,43],
-      func: [9,11,13,12,16,18,17,21,23,22,25,27],
-      deposit: [5,6,6,7,7,8,9,9,10,11,12,13],
+      weeks: [
+        { label: '1주', value: 3200000 },
+        { label: '2주', value: 4800000 },
+        { label: '3주', value: 4100000 },
+        { label: '4주', value: 6540000 }
+      ],
       partsAmount: 11820000,
       functionAmount: 6820000,
       depositAmount: 4800000,
@@ -153,65 +156,41 @@
 
   function renderCumulativeSalesChart(opts) {
     const chart = document.getElementById('cumSalesChart');
-    if (!chart) return;
-    const parts = opts?.parts || [];
-    const func = opts?.func || [];
-    const deposit = opts?.deposit || [];
-    const partsAmount = Number(opts?.partsAmount ?? parts[parts.length - 1]) || 0;
-    const funcAmount = Number(opts?.functionAmount ?? func[func.length - 1]) || 0;
-    const depositAmount = Number(opts?.depositAmount ?? deposit[deposit.length - 1]) || 0;
+    const partsAmount = Number(opts?.partsAmount) || 0;
+    const funcAmount = Number(opts?.functionAmount) || 0;
+    const depositAmount = Number(opts?.depositAmount) || 0;
     const totalEl = document.getElementById('cum-sales-total');
     const partsEl = document.getElementById('cum-sales-parts');
     const funcEl = document.getElementById('cum-sales-function');
     if (totalEl) totalEl.textContent = opts?.totalText || '0원';
     if (partsEl) partsEl.textContent = opts?.partsText || '0원';
     if (funcEl) funcEl.textContent = opts?.functionText || '0원';
-    const len = Math.max(parts.length, func.length, deposit.length, 1);
-    const carry = (arr) => Array.from({ length: len }, (_, i) => {
-      if (!arr.length) return 0;
-      return Number(arr[Math.min(i, arr.length - 1)]) || 0;
-    });
-    const pSeries = carry(parts);
-    const fSeries = carry(func);
-    const dSeries = carry(deposit);
-    const totals = pSeries.map((v, i) => v + fSeries[i] + dSeries[i]);
-    const max = Math.max(1, ...totals, ...pSeries, ...fSeries, ...dSeries);
-    const W = 760, H = 210, padL = 34, padR = 26, padT = 22, padB = 34;
-    const innerW = W - padL - padR;
-    const innerH = H - padT - padB;
-    const pt = (value, i) => ({
-      x: padL + (len === 1 ? innerW / 2 : i * (innerW / (len - 1))),
-      y: padT + innerH - (value / max) * innerH
-    });
-    const path = (values) => values.map((v, i) => {
-      const p = pt(v, i);
-      return (i ? 'L' : 'M') + p.x.toFixed(1) + ' ' + p.y.toFixed(1);
-    }).join(' ');
-    const areaPath = (() => {
-      const top = path(totals);
-      const first = pt(totals[0], 0);
-      const last = pt(totals[totals.length - 1], totals.length - 1);
-      const base = padT + innerH;
-      return `${top} L ${last.x.toFixed(1)} ${base} L ${first.x.toFixed(1)} ${base} Z`;
-    })();
-    const lastX = pt(totals[totals.length - 1], totals.length - 1).x.toFixed(1);
+    // 주차별 매출 막대
+    if (chart) {
+      const weeks = Array.isArray(opts?.weeks) ? opts.weeks : [];
+      if (!weeks.length || weeks.every(w => !(Number(w.value) > 0))) {
+        chart.innerHTML = '<div class="cum-week-empty">이번 달 매출 데이터 대기 중</div>';
+      } else {
+        const wkMax = Math.max(1, ...weeks.map(w => Number(w.value) || 0));
+        const compact = (v) => v >= 10000
+          ? Math.round(v / 10000).toLocaleString('ko-KR') + '만'
+          : (v ? v.toLocaleString('ko-KR') : '0');
+        chart.innerHTML = weeks.map(w => {
+          const val = Number(w.value) || 0;
+          const h = val > 0 ? Math.max(4, Math.round(val / wkMax * 100)) : 0;
+          return '<div class="cum-week-bar">'
+            + '<div class="cum-week-amt">' + (val ? compact(val) : '—') + '</div>'
+            + '<div class="cum-week-track"><i style="height:' + h + '%;"></i></div>'
+            + '<div class="cum-week-label">' + esc(w.label) + '</div>'
+            + '</div>';
+        }).join('');
+      }
+    }
     const labels = [
       { name: '\uBD80\uD488', value: partsAmount, color: '#fb923c' },
       { name: '\uAE30\uB2A5', value: funcAmount, color: '#34d399' },
       { name: '\uBCF4\uC99D', value: depositAmount, color: '#fbbf24' }
     ];
-    chart.innerHTML = '<svg viewBox="0 0 760 210" preserveAspectRatio="none" style="width:100%;height:100%;display:block;">'
-      + '<defs><linearGradient id="cumSalesTotalArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38bdf8" stop-opacity=".22"/><stop offset="100%" stop-color="#38bdf8" stop-opacity=".015"/></linearGradient><filter id="cumSalesGlow"><feGaussianBlur stdDeviation="2.2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'
-      + '<line x1="'+padL+'" y1="'+(padT+innerH)+'" x2="'+(W-padR)+'" y2="'+(padT+innerH)+'" stroke="rgba(255,255,255,.08)"/>'
-      + '<line x1="'+padL+'" y1="'+(padT+innerH/2)+'" x2="'+(W-padR)+'" y2="'+(padT+innerH/2)+'" stroke="rgba(255,255,255,.055)" stroke-dasharray="4,6"/>'
-      + '<path d="'+areaPath+'" fill="url(#cumSalesTotalArea)"/>'
-      + '<path d="'+path(totals)+'" fill="none" stroke="#38bdf8" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round" filter="url(#cumSalesGlow)"/>'
-      + '<path d="'+path(pSeries)+'" fill="none" stroke="#fb923c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" opacity=".95"/>'
-      + '<path d="'+path(fSeries)+'" fill="none" stroke="#34d399" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" opacity=".95"/>'
-      + '<path d="'+path(dSeries)+'" fill="none" stroke="#fbbf24" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>'
-      + '<circle cx="'+lastX+'" cy="'+pt(totals[totals.length - 1], totals.length - 1).y.toFixed(1)+'" r="5.5" fill="#e0f2fe" stroke="#0b1020" stroke-width="2.5"/>'
-      + '<text x="'+lastX+'" y="'+Math.max(15, pt(totals[totals.length - 1], totals.length - 1).y - 12).toFixed(1)+'" text-anchor="middle" fill="#e0f2fe" font-size="11" font-weight="900">TOTAL</text>'
-      + '</svg>';
 
     const mix = document.getElementById('cumSalesMixChart');
     if (mix) {
@@ -974,23 +953,28 @@
     if (dateEl) dateEl.textContent = refDay.replace(/^\d{4}-/, '').replace('-', '/') + ' (전날)';
     renderSalesTrendChart(_last5Weekdays());
 
-    // 이번 달 누적 매출 차트 — 부품(보증부품+기능부품) / 기능 공임 / 보증 공임
+    // 이번 달 매출 — 부품(보증부품+기능부품) / 기능 공임 / 보증 공임, 주차별 집계
     const mo = _thisMonthStr();
     const monthDays = Object.keys(salesDailyMap).filter(d => d.startsWith(mo)).sort();
     let partsRun = 0, funcRun = 0, warrRun = 0;
-    const partsCum = [], funcCum = [], warrCum = [];
+    const wkTotals = {};
     monthDays.forEach(d => {
       const r = salesDailyMap[d] || {};
       const ww = r.warranty || {}, ff = r.func || {};
-      partsRun += (Number(ww.parts) || 0) + (Number(ff.parts) || 0);
-      funcRun  += Number(ff.labor) || 0;
-      warrRun  += Number(ww.labor) || 0;
-      partsCum.push(partsRun); funcCum.push(funcRun); warrCum.push(warrRun);
+      const dp = (Number(ww.parts) || 0) + (Number(ff.parts) || 0);
+      const df = Number(ff.labor) || 0;
+      const dw = Number(ww.labor) || 0;
+      partsRun += dp; funcRun += df; warrRun += dw;
+      const wk = Math.ceil((parseInt(d.slice(8, 10), 10) || 1) / 7);
+      wkTotals[wk] = (wkTotals[wk] || 0) + dp + df + dw;
     });
+    const curWeek = Math.ceil((new Date().getDate()) / 7);
+    const weeks = [];
+    for (let w = 1; w <= Math.max(curWeek, 1); w++) {
+      weeks.push({ label: w + '주', value: wkTotals[w] || 0 });
+    }
     renderCumulativeSalesChart({
-      parts:    partsCum.length ? partsCum : [0],
-      func:     funcCum.length ? funcCum : [0],
-      deposit:  warrCum.length ? warrCum : [0],
+      weeks: weeks,
       partsAmount: partsRun,
       functionAmount: funcRun,
       depositAmount: warrRun,
