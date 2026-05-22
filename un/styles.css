@@ -5577,3 +5577,16 @@ body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sal
   width: 100%; text-align: center;
   color: #6b7280; font-size: 11px; padding: 34px 0;
 }
+.cum-chart-label {
+  font-size: 10px; font-weight: 700; color: #8b95a8;
+  letter-spacing: .4px; margin: 14px 0 1px;
+}
+.cum-month-chart {
+  display: flex; align-items: flex-end;
+  gap: 6px; padding: 8px 2px 0;
+}
+.cum-month-chart .cum-week-track { height: 70px; }
+.cum-month-chart .cum-week-track > i {
+  background: linear-gradient(180deg, #a78bfa, #7c3aed);
+  box-shadow: 0 0 14px rgba(139, 92, 246, .22);
+}

@@ -132,6 +132,12 @@
         { label: '3주', value: 4100000 },
         { label: '4주', value: 6540000 }
       ],
+      months: [
+        { label: '2월', value: 14200000 },
+        { label: '3월', value: 16800000 },
+        { label: '4월', value: 15500000 },
+        { label: '5월', value: 18640000 }
+      ],
       partsAmount: 11820000,
       functionAmount: 6820000,
       depositAmount: 4800000,
@@ -154,6 +160,28 @@
     }
   }
 
+  // 막대그래프 렌더 — 주차별·월별 공용
+  function _renderSalesBars(el, items, emptyMsg) {
+    if (!el) return;
+    if (!items.length || items.every(x => !(Number(x.value) > 0))) {
+      el.innerHTML = '<div class="cum-week-empty">' + emptyMsg + '</div>';
+      return;
+    }
+    const mx = Math.max(1, ...items.map(x => Number(x.value) || 0));
+    const compact = (v) => v >= 10000
+      ? Math.round(v / 10000).toLocaleString('ko-KR') + '만'
+      : (v ? v.toLocaleString('ko-KR') : '0');
+    el.innerHTML = items.map(x => {
+      const val = Number(x.value) || 0;
+      const h = val > 0 ? Math.max(4, Math.round(val / mx * 100)) : 0;
+      return '<div class="cum-week-bar">'
+        + '<div class="cum-week-amt">' + (val ? compact(val) : '—') + '</div>'
+        + '<div class="cum-week-track"><i style="height:' + h + '%;"></i></div>'
+        + '<div class="cum-week-label">' + esc(x.label) + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
   function renderCumulativeSalesChart(opts) {
     const chart = document.getElementById('cumSalesChart');
     const partsAmount = Number(opts?.partsAmount) || 0;
@@ -165,27 +193,9 @@
     if (totalEl) totalEl.textContent = opts?.totalText || '0원';
     if (partsEl) partsEl.textContent = opts?.partsText || '0원';
     if (funcEl) funcEl.textContent = opts?.functionText || '0원';
-    // 주차별 매출 막대
-    if (chart) {
-      const weeks = Array.isArray(opts?.weeks) ? opts.weeks : [];
-      if (!weeks.length || weeks.every(w => !(Number(w.value) > 0))) {
-        chart.innerHTML = '<div class="cum-week-empty">이번 달 매출 데이터 대기 중</div>';
-      } else {
-        const wkMax = Math.max(1, ...weeks.map(w => Number(w.value) || 0));
-        const compact = (v) => v >= 10000
-          ? Math.round(v / 10000).toLocaleString('ko-KR') + '만'
-          : (v ? v.toLocaleString('ko-KR') : '0');
-        chart.innerHTML = weeks.map(w => {
-          const val = Number(w.value) || 0;
-          const h = val > 0 ? Math.max(4, Math.round(val / wkMax * 100)) : 0;
-          return '<div class="cum-week-bar">'
-            + '<div class="cum-week-amt">' + (val ? compact(val) : '—') + '</div>'
-            + '<div class="cum-week-track"><i style="height:' + h + '%;"></i></div>'
-            + '<div class="cum-week-label">' + esc(w.label) + '</div>'
-            + '</div>';
-        }).join('');
-      }
-    }
+    // 주차별 / 월별 매출 막대
+    _renderSalesBars(chart, Array.isArray(opts?.weeks) ? opts.weeks : [], '이번 달 매출 데이터 대기 중');
+    _renderSalesBars(document.getElementById('cumMonthChart'), Array.isArray(opts?.months) ? opts.months : [], '월별 매출 데이터 대기 중');
     const labels = [
       { name: '\uBD80\uD488', value: partsAmount, color: '#fb923c' },
       { name: '\uAE30\uB2A5', value: funcAmount, color: '#34d399' },
@@ -973,8 +983,22 @@
     for (let w = 1; w <= Math.max(curWeek, 1); w++) {
       weeks.push({ label: w + '주', value: wkTotals[w] || 0 });
     }
+    // 월별 매출 — 최근 12개월
+    const monthAgg = {};
+    Object.keys(salesDailyMap).forEach(d => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return;
+      const r = salesDailyMap[d] || {};
+      const ww = r.warranty || {}, ff = r.func || {};
+      const tot = (Number(ww.parts) || 0) + (Number(ff.parts) || 0)
+        + (Number(ff.labor) || 0) + (Number(ww.labor) || 0);
+      const ym = d.slice(0, 7);
+      monthAgg[ym] = (monthAgg[ym] || 0) + tot;
+    });
+    const months = Object.keys(monthAgg).sort().slice(-12)
+      .map(ym => ({ label: (parseInt(ym.slice(5, 7), 10) || 0) + '월', value: monthAgg[ym] }));
     renderCumulativeSalesChart({
       weeks: weeks,
+      months: months,
       partsAmount: partsRun,
       functionAmount: funcRun,
       depositAmount: warrRun,
