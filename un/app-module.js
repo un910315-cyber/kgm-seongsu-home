@@ -939,11 +939,15 @@
       + '</svg>';
   }
 
-  // 대시보드 매출 보고 위젯 — 전날 기준 (하루 한 번 업무 후 입력하므로 당일은 비어있음)
+  // 대시보드 매출 보고 위젯 — 매출이 기록된 가장 최근 날(오늘 이전) 기준.
+  // 토·일·휴무일은 입력이 없어 자동으로 건너뜀 (예: 화요일에 금요일 데이터 표시)
   function renderSalesWidget() {
-    const y = new Date(); y.setDate(y.getDate() - 1);
-    const refDay = y.getFullYear() + '-' + String(y.getMonth() + 1).padStart(2, '0') + '-' + String(y.getDate()).padStart(2, '0');
-    const rec = salesDailyMap[refDay] || {};
+    const todayStr = _todayStr();
+    const pastDays = Object.keys(salesDailyMap)
+      .filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && d < todayStr)
+      .sort();
+    const refDay = pastDays.length ? pastDays[pastDays.length - 1] : '';
+    const rec = (refDay && salesDailyMap[refDay]) || {};
     const w = rec.warranty || {};
     const f = rec.func || {};
     const dz = rec.disaster || {};
@@ -960,7 +964,14 @@
     set('dash-d-labor', dl); set('dash-d-parts', dp); set('dash-d-total', dl + dp);
     set('dash-received', received);
     const dateEl = document.getElementById('daily-sales-date');
-    if (dateEl) dateEl.textContent = refDay.replace(/^\d{4}-/, '').replace('-', '/') + ' (전날)';
+    if (dateEl) {
+      if (refDay) {
+        const wd = ['일','월','화','수','목','금','토'][new Date(refDay + 'T00:00:00').getDay()];
+        dateEl.textContent = refDay.replace(/^\d{4}-/, '').replace('-', '/') + ' (' + wd + ') 기준';
+      } else {
+        dateEl.textContent = '매출 데이터 없음';
+      }
+    }
     renderSalesTrendChart(_last5Weekdays());
 
     // 이번 달 매출 — 부품(보증부품+기능부품) / 기능 공임 / 보증 공임, 주차별 집계
