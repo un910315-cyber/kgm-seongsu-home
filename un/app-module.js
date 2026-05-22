@@ -1364,6 +1364,19 @@
   }
   window._renderAosReport = renderAosReport;
 
+  // ESC 키 = 열린 팝업/모달 닫기 (위에 뜬 것부터)
+  document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Escape' && e.key !== 'Esc') return;
+    const shown = (id) => {
+      const el = document.getElementById(id);
+      return el && el.style.display && el.style.display !== 'none';
+    };
+    if (shown('cameraModal')) { if (window._closeCameraModal) window._closeCameraModal(); return; }
+    if (shown('photoLightbox')) { if (window._closeLightbox) window._closeLightbox(); return; }
+    const opens = document.querySelectorAll('.modal-overlay.open');
+    if (opens.length) { opens[opens.length - 1].classList.remove('open'); }
+  });
+
   window._switchSalesCat = function(cat) {
     const kgm = document.getElementById('sales-cat-kgm');
     const aos = document.getElementById('sales-cat-aos');
