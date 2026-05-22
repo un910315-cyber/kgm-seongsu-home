@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v67-monthly-bars">
+<link rel="stylesheet" href="styles.css?v=v68-photo-zindex">
 </head>
 <body>
 
@@ -1059,13 +1059,13 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v67-monthly-bars"></script>
+<script type="module" src="app-module.js?v=v68-photo-zindex"></script>
 
-<script defer src="app-pages.js?v=v67-monthly-bars"></script>
+<script defer src="app-pages.js?v=v68-photo-zindex"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script defer src="app-insurance.js?v=v67-monthly-bars"></script>
+<script defer src="app-insurance.js?v=v68-photo-zindex"></script>
 
 
 <div id="page-estimate" class="page">
@@ -1861,7 +1861,7 @@
 </div>
 
 <!-- 사진 라이트박스 (전체화면 보기) -->
-<div id="photoLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:300;align-items:center;justify-content:center;flex-direction:column;">
+<div id="photoLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:700;align-items:center;justify-content:center;flex-direction:column;">
   <div style="position:absolute;top:14px;right:14px;display:flex;gap:8px;z-index:2;flex-wrap:wrap;justify-content:flex-end;">
     <button class="btn btn-sm" onclick="window._lightboxShare()" style="background:#FEE500;color:#3C1E1E;border:1px solid #E0CC00;font-weight:700;"> 카톡 보내기</button>
     <button class="btn btn-ghost btn-sm" onclick="window._lightboxDownload()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);"> 다운로드</button>
@@ -1875,7 +1875,7 @@
 </div>
 
 <!-- 카메라 모달 (연속 촬영용 인-앱 카메라) -->
-<div id="cameraModal" style="display:none;position:fixed;inset:0;background:#000;z-index:310;flex-direction:column;">
+<div id="cameraModal" style="display:none;position:fixed;inset:0;background:#000;z-index:710;flex-direction:column;">
   <!-- 상단 바: 차량 정보 + 닫기 -->
   <div style="position:absolute;top:0;left:0;right:0;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,rgba(0,0,0,0.7),transparent);z-index:2;">
     <div id="camTitle" style="color:#fff;font-size:14px;font-weight:700;"></div>
@@ -2406,6 +2406,6 @@
   setTimeout(previewSalesBars, 3200);
 })();
 </script>
-<script defer src="app-features.js?v=v67-monthly-bars"></script>
+<script defer src="app-features.js?v=v68-photo-zindex"></script>
 </body>
 </html>
