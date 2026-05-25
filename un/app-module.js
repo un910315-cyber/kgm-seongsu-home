@@ -240,12 +240,12 @@
   };
   // 'blacklist' 페이지는 ROLE_MENUS에 포함하지 않음 — 출고완료 페이지의 작은 버튼으로만 진입 (admin 전용 가드)
 
-  // Google 로그인 — 팝업 방식 (모바일 포함)
+  // Google 로그인 — 팝업 방식 우선 (최신 크롬의 third-party 쿠키 차단 회피)
   window.authGoogleLogin = async function(){
     try {
       document.getElementById('loginError').style.display='none';
       document.getElementById('loginDenied').style.display='none';
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
     } catch(e) {
       document.getElementById('googleLoginBtn').style.pointerEvents='';
       document.getElementById('googleLoginBtn').style.opacity='';
@@ -373,10 +373,17 @@
       if (err) err.style.display='none';
       if (denied) denied.style.display='none';
       if (btn) { btn.style.pointerEvents=''; btn.style.opacity=''; }
-      await signInWithRedirect(auth, provider);
+      // 팝업 방식 우선 — 최신 크롬의 third-party 쿠키 차단 회피
+      await signInWithPopup(auth, provider);
     } catch(e) {
+      // 사용자가 팝업을 직접 닫은 경우는 에러로 표시하지 않음
+      if (e && (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request')) {
+        if (btn) { btn.style.pointerEvents=''; btn.style.opacity=''; }
+        return;
+      }
+      // 팝업이 차단되었을 때만 redirect 폴백
       try {
-        await signInWithPopup(auth, provider);
+        await signInWithRedirect(auth, provider);
         return;
       } catch (redirectError) {
         e = redirectError;
