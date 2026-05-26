@@ -1618,7 +1618,7 @@ body > div[style*="position:fixed;top:0;"] {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   .header {
     align-items: flex-start;
     flex-direction: column;
@@ -2872,7 +2872,7 @@ body:has(.page.active) .page.active > .main {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   #page-estimate.active {
     width: 100%;
     margin: 0;
@@ -2946,7 +2946,7 @@ body:has(.page.active) .page.active > .main {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   #page-board .section-header {
     align-items: flex-start;
   }
@@ -3009,7 +3009,7 @@ body:has(.page.active) .page.active > .main {
   border-radius: 8px;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   body:has(.page.active) {
     min-width: 0;
     overflow-x: hidden;
@@ -3781,7 +3781,7 @@ body:has(#page-dashboard.active) #page-dashboard .status-pill.wait {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   body.dashboard-preview:has(#page-dashboard.active) .header {
     position: sticky;
     top: 30px;
@@ -3886,7 +3886,7 @@ body:has(#page-dashboard.active) #page-dashboard .status-pill.wait {
 }
 
 /* Compact screens: wrap the manual instead of hiding categories behind horizontal scroll. */
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   body:has(.page.active) .nav-tabs,
   body[data-page] .nav-tabs,
   body.dashboard-preview:has(#page-dashboard.active) .nav-tabs {
@@ -4080,7 +4080,7 @@ body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sal
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card,
   body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card {
     max-height: none;
@@ -4182,7 +4182,7 @@ body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card div[style*=
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   body:has(#page-dashboard.active) #page-dashboard .monthly-insight-bar {
     grid-template-columns: 1fr;
     margin-top: 12px;
@@ -4348,7 +4348,7 @@ body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card div[style*=
   box-shadow: 0 28px 80px rgba(0, 0, 0, .55);
 }
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   .dash-out-side,
   .dash-res-side {
     top: 142px;
@@ -4610,7 +4610,7 @@ body:has(.page.active) .sidebar-links a:hover {
    여러 미디어쿼리 충돌로 사이드바가 어중간하게 보이는 문제 fix.
    :has() 미지원 환경 포함 모든 모바일에 강제.
    ========================================================================== */
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   body,
   body[data-page] {
     min-width: 0 !important;
@@ -5421,7 +5421,7 @@ body:has(#page-dashboard.active) #page-dashboard .kgm-section .stats-grid[style*
 }
 
 /* 모바일(<=760px): 대시보드 가운데 줄 3칸은 폰에서 1칸으로 (세로 스택) */
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   body:has(#page-dashboard.active) #page-dashboard .dashboard-row {
     grid-template-columns: 1fr !important;
   }
