@@ -2239,7 +2239,8 @@
       document.querySelectorAll('input[name="location"]').forEach(el => el.checked = false);
       document.querySelectorAll('input[name="carType"]').forEach(el => el.checked = false);
       document.getElementById('f-status').value = '입고';
-      document.getElementById('f-indate').value = new Date().toISOString().split('T')[0];
+      // 입고일 = 오늘 (한국 시간 기준 — UTC 쓰면 새벽에 어제로 잡힘)
+      document.getElementById('f-indate').value = _todayStr();
     }
     document.getElementById('formModal').classList.add('open');
     // 블랙 경고 평가 (수정 모드면 기존 차량번호로 즉시, 신규면 비워둠)
