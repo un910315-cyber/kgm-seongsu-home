@@ -1792,6 +1792,13 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js', { scope: './' })
       .catch(function(err) { console.warn('SW 등록 실패:', err); });
   });
+  // 새 버전 배포 시 자동 새로고침 — 수동 갱신 불필요
+  var _swRefreshed = false;
+  navigator.serviceWorker.addEventListener('controllerchange', function() {
+    if (_swRefreshed) return;
+    _swRefreshed = true;
+    location.reload();
+  });
 }
 
 // PWA 설치 안내 — Android는 beforeinstallprompt, iOS는 안내 문구만
