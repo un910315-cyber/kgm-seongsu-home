@@ -758,6 +758,41 @@
     if (typeof renderSalesWidget === 'function') { try { renderSalesWidget(); } catch(e){} }
   }, (err) => { console.warn('deposit subscribe', err); });
 
+  // 월별 목표 (KGM 입고 대수) — { 'YYYY-MM': number }
+  let monthlyTargetMap = {};
+  window._monthlyTargetMap = monthlyTargetMap;
+  const monthlyTargetRef = ref(db, 'monthlyTarget');
+  authReadyOnValue(monthlyTargetRef, (snap) => {
+    monthlyTargetMap = snap.val() || {};
+    window._monthlyTargetMap = monthlyTargetMap;
+    try { if (window._renderStats) window._renderStats(); } catch(e) {}
+  }, (err) => { console.warn('monthlyTarget subscribe', err); });
+
+  // 관리자: 이번 달 목표 설정 (insight bar 클릭)
+  window._setMonthlyTargetPrompt = async function() {
+    if (window._userRole !== 'admin') {
+      if (typeof showNotif === 'function') showNotif('관리자만 목표를 설정할 수 있어요', true);
+      return;
+    }
+    const now = new Date();
+    const ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    const current = monthlyTargetMap[ym] || '';
+    const v = prompt(ym + ' KGM 입고 목표(대수)를 입력하세요. 0 또는 빈칸 = 목표 해제', current);
+    if (v == null) return;
+    const n = parseInt(String(v).replace(/[^0-9]/g, ''), 10);
+    try {
+      if (!n) {
+        await set(ref(db, 'monthlyTarget/' + ym), null);
+        if (typeof showNotif === 'function') showNotif(ym + ' 목표 해제됨');
+      } else {
+        await set(ref(db, 'monthlyTarget/' + ym), n);
+        if (typeof showNotif === 'function') showNotif(ym + ' 목표 ' + n + '대 저장');
+      }
+    } catch (e) {
+      if (typeof showNotif === 'function') showNotif('목표 저장 실패: ' + (e && e.message), true);
+    }
+  };
+
   // ── 매출 / 보증금 위젯 ──
   const SALES_CATS = ['parts', 'function'];
   const SALES_LABELS = { parts: '부품', function: '기능' };
@@ -2495,16 +2530,62 @@
     const diffClass = diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat';
     const diffText = prevTotal ? (diff > 0 ? '+' : '') + diff + '대' : '전월 없음';
     const diffMeta = prevTotal ? '전월 ' + prevTotal + '대 기준' : '비교 데이터 대기';
-    const forecastLabel = isCurrentMonth ? '목표 마감' : '마감 대수';
     const monthLabel = monthNo + '월';
     const bestLabel = (best && best.total) ? best.m + '월 ' + best.total + '대' : '-';
+
+    // 월 목표 타일 — 현재월: 실제 목표 비교(달성 시 축하), 다른 월: 마감 대수
+    let targetTile;
+    if (isCurrentMonth) {
+      const ymKey = currentYear + '-' + String(currentMonth).padStart(2, '0');
+      const target = Number((window._monthlyTargetMap || {})[ymKey]) || 0;
+      if (target > 0) {
+        const pct = Math.round((current.total / target) * 100);
+        if (current.total >= target) {
+          const over = current.total - target;
+          targetTile = {
+            cls: 'forecast achieved',
+            label: '🎉 목표 달성!',
+            value: current.total + ' / ' + target + '대',
+            meta: over > 0 ? '+' + over + '대 초과 · ' + pct + '%' : '딱 목표 달성 · 100%',
+            clickable: true
+          };
+        } else {
+          targetTile = {
+            cls: 'forecast',
+            label: '월 목표',
+            value: current.total + ' / ' + target + '대',
+            meta: pct + '% · ' + (target - current.total) + '대 남음',
+            clickable: true
+          };
+        }
+      } else {
+        targetTile = {
+          cls: 'forecast unset',
+          label: '월 목표',
+          value: '미설정',
+          meta: '관리자: 클릭해 설정',
+          clickable: true
+        };
+      }
+    } else {
+      targetTile = {
+        cls: 'forecast',
+        label: '마감 대수',
+        value: current.total + '대',
+        meta: '선택월 기준',
+        clickable: false
+      };
+    }
+
     bar.innerHTML = [
       { cls: 'now', label: monthLabel + ' 현재', value: current.total + '대', meta: 'KGM 비중 ' + kgmPct + '%' },
       { cls: diffClass, label: '전월 대비', value: diffText, meta: diffMeta },
-      { cls: 'forecast', label: forecastLabel, value: targetClose + '대', meta: isCurrentMonth ? current.total + '대 + 남은 ' + remainingDays + '일' : '선택월 기준' },
+      targetTile,
       { cls: 'best', label: '올해 최고월', value: bestLabel, meta: '월별 입고 피크' }
     ].map(item => (
-      '<div class="monthly-insight-item ' + item.cls + '">' +
+      '<div class="monthly-insight-item ' + item.cls + '"'
+        + (item.clickable ? ' onclick="window._setMonthlyTargetPrompt&&window._setMonthlyTargetPrompt()" style="cursor:pointer;"' : '')
+        + '>' +
         '<span>' + item.label + '</span>' +
         '<strong>' + item.value + '</strong>' +
         '<em>' + item.meta + '</em>' +
