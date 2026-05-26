@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v76-workcode-ref">
+<link rel="stylesheet" href="styles.css?v=v77-workcode-cards">
 </head>
 <body>
 
@@ -1059,13 +1059,13 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v76-workcode-ref"></script>
+<script type="module" src="app-module.js?v=v77-workcode-cards"></script>
 
-<script defer src="app-pages.js?v=v76-workcode-ref"></script>
+<script defer src="app-pages.js?v=v77-workcode-cards"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script defer src="app-insurance.js?v=v76-workcode-ref"></script>
+<script defer src="app-insurance.js?v=v77-workcode-cards"></script>
 
 
 <div id="page-estimate" class="page">
@@ -2423,13 +2423,13 @@
         <button type="button" class="btn btn-ghost btn-sm" id="workCodeUploadBtn" onclick="document.getElementById('workCodeUpload').click()" style="white-space:nowrap;">📂 엑셀 갱신 (관리자)</button>
       </div>
       <div id="workCodeStatus" style="font-size:11px;color:var(--text-dim);"></div>
-      <div id="workCodeTableWrap" style="overflow:auto;flex:1;border:1px solid var(--border);border-radius:8px;background:var(--surface2);">
-        <table id="workCodeTable" style="width:100%;border-collapse:collapse;font-size:12px;"></table>
+      <div id="workCodeTableWrap" style="overflow:auto;flex:1;padding:4px 2px;">
+        <div id="workCodeTable" class="wc-grid"></div>
       </div>
     </div>
   </div>
 </div>
 
-<script defer src="app-features.js?v=v76-workcode-ref"></script>
+<script defer src="app-features.js?v=v77-workcode-cards"></script>
 </body>
 </html>

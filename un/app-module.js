@@ -808,22 +808,76 @@
     try { _renderWorkCodeTable(); } catch(_) {}
   }, (err) => { console.warn('workCodes subscribe', err); });
 
+  // 엑셀 2D 배열을 부품 카테고리별 섹션으로 파싱
+  function _parseWorkCodeSections(rows) {
+    const codeOf = (row, cols) => {
+      for (const i of cols) {
+        const v = String((row && row[i]) || '').trim();
+        if (v && /\d{3,}/.test(v)) return v;
+      }
+      return '';
+    };
+    const isHeader = (text) => !!text && text.length <= 30 && !/\d{3,}/.test(text);
+    const extractInline = (text) => {
+      // "이름 ... 코드숫자" 패턴 분리 (B 셀 안에 이름+코드가 함께 있는 행)
+      const m = text.match(/^(.+?)\s{2,}([0-9][\w\s\/.\-,()]*?)$/);
+      if (m && /\d{3,}/.test(m[2])) return { name: m[1].trim(), code: m[2].trim() };
+      return null;
+    };
+    const sections = [];
+    let curB = null, curJ = null;
+    const pushItem = (cur, item) => {
+      if (!cur) { cur = { name: '기타', items: [] }; sections.push(cur); }
+      cur.items.push(item);
+      return cur;
+    };
+    rows.forEach((row) => {
+      if (!Array.isArray(row)) return;
+      const b = String(row[1] || '').trim();
+      const j = String(row[9] || '').trim();
+      const bCode = codeOf(row, [5, 2, 3, 4, 6, 7]);
+      const jCode = codeOf(row, [13, 10, 11, 12, 14, 15, 16]);
+      // B-side
+      if (b) {
+        if (!bCode && isHeader(b)) {
+          curB = { name: b.replace(/\s+/g, ' '), items: [] };
+          sections.push(curB);
+        } else if (bCode) {
+          curB = pushItem(curB, { name: b, code: bCode });
+        } else {
+          const inline = extractInline(b);
+          if (inline) curB = pushItem(curB, inline);
+        }
+      }
+      // J-side
+      if (j) {
+        if (!jCode && isHeader(j)) {
+          curJ = { name: j.replace(/\s+/g, ' '), items: [] };
+          sections.push(curJ);
+        } else if (jCode) {
+          curJ = pushItem(curJ, { name: j, code: jCode });
+        } else {
+          const inline = extractInline(j);
+          if (inline) curJ = pushItem(curJ, inline);
+        }
+      }
+    });
+    return sections.filter(s => s.items.length > 0);
+  }
+
   function _renderWorkCodeTable() {
-    const tbl = document.getElementById('workCodeTable');
-    if (!tbl) return;
+    const grid = document.getElementById('workCodeTable');
+    if (!grid) return;
     const statusEl = document.getElementById('workCodeStatus');
     const searchEl = document.getElementById('workCodeSearch');
     const q = (searchEl && searchEl.value || '').trim().toLowerCase();
     const rows = workCodeData.rows || [];
     if (!rows.length) {
-      tbl.innerHTML = '<tbody><tr><td style="padding:30px;text-align:center;color:var(--text-dim);">아직 업로드된 작업코드가 없습니다. 관리자가 엑셀 파일을 올려주세요.</td></tr></tbody>';
+      grid.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text-dim);grid-column:1/-1;">아직 업로드된 작업코드가 없습니다. 관리자가 엑셀 파일을 올려주세요.</div>';
       if (statusEl) statusEl.textContent = '';
       return;
     }
-    let filtered = rows;
-    if (q) {
-      filtered = rows.filter(r => Array.isArray(r) && r.some(cell => String(cell || '').toLowerCase().includes(q)));
-    }
+    const sections = _parseWorkCodeSections(rows);
     const highlight = (s) => {
       const txt = String(s == null ? '' : s);
       if (!q) return esc(txt);
@@ -832,20 +886,36 @@
       return esc(txt.slice(0, idx)) + '<mark style="background:rgba(251,191,36,.45);color:inherit;padding:0 2px;border-radius:2px;">'
         + esc(txt.slice(idx, idx + q.length)) + '</mark>' + esc(txt.slice(idx + q.length));
     };
-    const maxCols = rows.reduce((m, r) => Math.max(m, Array.isArray(r) ? r.length : 0), 0);
-    const html = filtered.map((r) => {
-      let tds = '';
-      for (let i = 0; i < maxCols; i++) {
-        const v = Array.isArray(r) ? r[i] : '';
-        tds += '<td style="padding:6px 9px;border:1px solid rgba(255,255,255,.06);white-space:nowrap;vertical-align:top;">' + highlight(v) + '</td>';
-      }
-      return '<tr>' + tds + '</tr>';
-    }).join('');
-    tbl.innerHTML = '<tbody>' + html + '</tbody>';
+    const sideClass = (name) => {
+      if (/^\s*(LH|좌)\b|좌\)/i.test(name)) return 'lh';
+      if (/^\s*(RH|우)\b|우\)/i.test(name)) return 'rh';
+      return '';
+    };
+    let totalItems = 0, shownItems = 0;
+    const cards = sections.map(sec => {
+      const items = q
+        ? sec.items.filter(it => ((it.name || '') + ' ' + (it.code || '')).toLowerCase().includes(q))
+        : sec.items;
+      totalItems += sec.items.length;
+      shownItems += items.length;
+      if (!items.length) return '';
+      const sc = sideClass(sec.name);
+      const rowsHtml = items.map(it =>
+        '<div class="wc-item">'
+        + '<span class="wc-item-name">' + highlight(it.name) + '</span>'
+        + '<span class="wc-item-code">' + highlight(it.code) + '</span>'
+        + '</div>'
+      ).join('');
+      return '<div class="wc-card ' + sc + '">'
+        + '<div class="wc-card-head">' + esc(sec.name) + ' <em>' + items.length + '</em></div>'
+        + '<div class="wc-card-items">' + rowsHtml + '</div>'
+        + '</div>';
+    }).filter(Boolean).join('');
+    grid.innerHTML = cards || '<div style="padding:30px;text-align:center;color:var(--text-dim);grid-column:1/-1;">검색 결과가 없어요.</div>';
     if (statusEl) {
       const meta = workCodeData.uploadedAt ? (' · 갱신 ' + String(workCodeData.uploadedAt).slice(0, 10)) : '';
       const sn = workCodeData.sheetName ? ('"' + workCodeData.sheetName + '" · ') : '';
-      statusEl.textContent = sn + filtered.length + ' / ' + rows.length + '행' + meta;
+      statusEl.textContent = sn + sections.length + '개 섹션 · ' + (q ? (shownItems + ' / ' + totalItems + '개 일치') : (totalItems + '개 항목')) + meta;
     }
   }
 
