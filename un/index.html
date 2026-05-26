@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v75-indate-today">
+<link rel="stylesheet" href="styles.css?v=v76-workcode-ref">
 </head>
 <body>
 
@@ -1059,16 +1059,19 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v75-indate-today"></script>
+<script type="module" src="app-module.js?v=v76-workcode-ref"></script>
 
-<script defer src="app-pages.js?v=v75-indate-today"></script>
+<script defer src="app-pages.js?v=v76-workcode-ref"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script defer src="app-insurance.js?v=v75-indate-today"></script>
+<script defer src="app-insurance.js?v=v76-workcode-ref"></script>
 
 
 <div id="page-estimate" class="page">
+<div style="display:flex;justify-content:flex-end;padding:8px 12px 0;">
+  <button type="button" class="btn btn-ghost btn-sm" onclick="window._openWorkCodeRef&&window._openWorkCodeRef()" style="display:inline-flex;align-items:center;gap:6px;">📚 작업코드 참고</button>
+</div>
 <div class="etop-row">
 <div class="eparts-panel">
   <div class="epc-label">전면</div>
@@ -2406,6 +2409,27 @@
   setTimeout(previewSalesBars, 3200);
 })();
 </script>
-<script defer src="app-features.js?v=v75-indate-today"></script>
+<!-- 작업코드 참고 모달 -->
+<div class="modal-overlay" id="workCodeRefModal">
+  <div class="modal" style="max-width:1000px;width:96vw;max-height:92vh;display:flex;flex-direction:column;">
+    <div class="modal-header">
+      <div class="modal-title">📚 작업코드 참고 — 최종본</div>
+      <button class="modal-close" onclick="document.getElementById('workCodeRefModal').classList.remove('open')">×</button>
+    </div>
+    <div class="modal-body" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-height:0;flex:1;">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="text" id="workCodeSearch" placeholder="검색 — 작업명·코드 (예: 앞범퍼, 8228, 휀더)" style="flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:13px;">
+        <input type="file" id="workCodeUpload" accept=".xls,.xlsx" style="display:none" onchange="window._uploadWorkCodes&&window._uploadWorkCodes(this.files[0])">
+        <button type="button" class="btn btn-ghost btn-sm" id="workCodeUploadBtn" onclick="document.getElementById('workCodeUpload').click()" style="white-space:nowrap;">📂 엑셀 갱신 (관리자)</button>
+      </div>
+      <div id="workCodeStatus" style="font-size:11px;color:var(--text-dim);"></div>
+      <div id="workCodeTableWrap" style="overflow:auto;flex:1;border:1px solid var(--border);border-radius:8px;background:var(--surface2);">
+        <table id="workCodeTable" style="width:100%;border-collapse:collapse;font-size:12px;"></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script defer src="app-features.js?v=v76-workcode-ref"></script>
 </body>
 </html>

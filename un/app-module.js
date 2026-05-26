@@ -793,6 +793,113 @@
     }
   };
 
+  // ══════════════════════════════════════════════════════════════════
+  //  작업코드 참고표 — 견적 페이지에서 엑셀 시트를 검색 가능한 표로
+  // ══════════════════════════════════════════════════════════════════
+  let workCodeData = { rows: [], sheetName: '', uploadedAt: '', uploadedBy: '' };
+  authReadyOnValue(ref(db, 'workCodes'), (snap) => {
+    const v = snap.val() || {};
+    workCodeData = {
+      rows: Array.isArray(v.rows) ? v.rows : [],
+      sheetName: v.sheetName || '',
+      uploadedAt: v.uploadedAt || '',
+      uploadedBy: v.uploadedBy || ''
+    };
+    try { _renderWorkCodeTable(); } catch(_) {}
+  }, (err) => { console.warn('workCodes subscribe', err); });
+
+  function _renderWorkCodeTable() {
+    const tbl = document.getElementById('workCodeTable');
+    if (!tbl) return;
+    const statusEl = document.getElementById('workCodeStatus');
+    const searchEl = document.getElementById('workCodeSearch');
+    const q = (searchEl && searchEl.value || '').trim().toLowerCase();
+    const rows = workCodeData.rows || [];
+    if (!rows.length) {
+      tbl.innerHTML = '<tbody><tr><td style="padding:30px;text-align:center;color:var(--text-dim);">아직 업로드된 작업코드가 없습니다. 관리자가 엑셀 파일을 올려주세요.</td></tr></tbody>';
+      if (statusEl) statusEl.textContent = '';
+      return;
+    }
+    let filtered = rows;
+    if (q) {
+      filtered = rows.filter(r => Array.isArray(r) && r.some(cell => String(cell || '').toLowerCase().includes(q)));
+    }
+    const highlight = (s) => {
+      const txt = String(s == null ? '' : s);
+      if (!q) return esc(txt);
+      const idx = txt.toLowerCase().indexOf(q);
+      if (idx < 0) return esc(txt);
+      return esc(txt.slice(0, idx)) + '<mark style="background:rgba(251,191,36,.45);color:inherit;padding:0 2px;border-radius:2px;">'
+        + esc(txt.slice(idx, idx + q.length)) + '</mark>' + esc(txt.slice(idx + q.length));
+    };
+    const maxCols = rows.reduce((m, r) => Math.max(m, Array.isArray(r) ? r.length : 0), 0);
+    const html = filtered.map((r) => {
+      let tds = '';
+      for (let i = 0; i < maxCols; i++) {
+        const v = Array.isArray(r) ? r[i] : '';
+        tds += '<td style="padding:6px 9px;border:1px solid rgba(255,255,255,.06);white-space:nowrap;vertical-align:top;">' + highlight(v) + '</td>';
+      }
+      return '<tr>' + tds + '</tr>';
+    }).join('');
+    tbl.innerHTML = '<tbody>' + html + '</tbody>';
+    if (statusEl) {
+      const meta = workCodeData.uploadedAt ? (' · 갱신 ' + String(workCodeData.uploadedAt).slice(0, 10)) : '';
+      const sn = workCodeData.sheetName ? ('"' + workCodeData.sheetName + '" · ') : '';
+      statusEl.textContent = sn + filtered.length + ' / ' + rows.length + '행' + meta;
+    }
+  }
+
+  window._openWorkCodeRef = function() {
+    document.getElementById('workCodeRefModal').classList.add('open');
+    // 관리자만 업로드 버튼 노출
+    const upBtn = document.getElementById('workCodeUploadBtn');
+    if (upBtn) upBtn.style.display = (window._userRole === 'admin') ? '' : 'none';
+    _renderWorkCodeTable();
+  };
+
+  window._uploadWorkCodes = function(file) {
+    if (!file) return;
+    if (window._userRole !== 'admin') {
+      if (typeof showNotif === 'function') showNotif('관리자만 갱신할 수 있어요', true);
+      return;
+    }
+    const statusEl = document.getElementById('workCodeStatus');
+    if (typeof XLSX === 'undefined') {
+      if (statusEl) statusEl.textContent = '엑셀 라이브러리 로드 실패';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      try {
+        const wb = XLSX.read(new Uint8Array(ev.target.result), { type: 'array' });
+        // '최종본' 들어간 시트 우선, 없으면 첫 시트
+        const sheetName = wb.SheetNames.find(n => n.indexOf('최종본') >= 0) || wb.SheetNames[0];
+        const ws = wb.Sheets[sheetName];
+        const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+        // 모두 빈칸인 행 제거
+        const cleaned = raw.filter(r => Array.isArray(r) && r.some(c => String(c || '').trim() !== ''));
+        await set(ref(db, 'workCodes'), {
+          uploadedAt: new Date().toISOString(),
+          uploadedBy: window._userEmail || '',
+          sheetName: sheetName,
+          rows: cleaned
+        });
+        if (typeof showNotif === 'function') showNotif('작업코드 ' + cleaned.length + '행 갱신 완료');
+      } catch (e) {
+        console.error('uploadWorkCodes', e);
+        if (statusEl) statusEl.textContent = '파일을 읽지 못했어요 — 엑셀 형식을 확인해주세요';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  // 검색창 실시간 필터
+  document.addEventListener('input', function(e) {
+    if (e.target && e.target.id === 'workCodeSearch') {
+      try { _renderWorkCodeTable(); } catch(_) {}
+    }
+  });
+
   // ── 매출 / 보증금 위젯 ──
   const SALES_CATS = ['parts', 'function'];
   const SALES_LABELS = { parts: '부품', function: '기능' };
