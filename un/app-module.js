@@ -25,7 +25,8 @@
   // Persistence — IndexedDB(local) → sessionStorage → memory 순으로 폴백.
   // Firebase Hosting init.json 부재로 토큰 검증이 IndexedDB 단계에서 깨질 때
   // sessionStorage(또는 memory)로 우회.
-  setPersistence(auth, browserSessionPersistence)
+  setPersistence(auth, browserLocalPersistence)
+    .catch(() => setPersistence(auth, browserSessionPersistence))
     .catch(() => setPersistence(auth, inMemoryPersistence))
     .catch(function(e){ console.warn('persistence fallback failed', e); });
   const provider = new GoogleAuthProvider();
@@ -246,21 +247,8 @@
   };
   // 'blacklist' 페이지는 ROLE_MENUS에 포함하지 않음 — 출고완료 페이지의 작은 버튼으로만 진입 (admin 전용 가드)
 
-  // Google 로그인 — 팝업 방식 우선 (최신 크롬의 third-party 쿠키 차단 회피)
-  window.authGoogleLogin = async function(){
-    try {
-      document.getElementById('loginError').style.display='none';
-      document.getElementById('loginDenied').style.display='none';
-      await signInWithPopup(auth, provider);
-    } catch(e) {
-      document.getElementById('googleLoginBtn').style.pointerEvents='';
-      document.getElementById('googleLoginBtn').style.opacity='';
-      // 사용자가 직접 취소한 경우는 에러 안 보여줌
-      if(e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return;
-      document.getElementById('loginError').textContent='로그인 실패: '+e.message;
-      document.getElementById('loginError').style.display='block';
-    }
-  };
+  // (이전에 여기에도 authGoogleLogin 정의가 있었는데 아래쪽 두 번째 정의가
+  //  덮어써서 의도 불분명한 상태였음 — 첫 정의 제거하고 단일 정의만 유지)
   window.authSignOut = async function(){
     await signOut(auth);
     document.getElementById('loginDenied').style.display='none';
