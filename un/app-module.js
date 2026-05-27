@@ -913,9 +913,9 @@
 
   window._openWorkCodeRef = function() {
     document.getElementById('workCodeRefModal').classList.add('open');
-    // 관리자만 업로드 버튼 노출
+    // 정적 임베드 사용 — 업로드 버튼은 누구에게도 보이지 않게(항상 숨김)
     const upBtn = document.getElementById('workCodeUploadBtn');
-    if (upBtn) upBtn.style.display = (window._userRole === 'admin') ? '' : 'none';
+    if (upBtn) upBtn.style.display = 'none';
     _renderWorkCodeTable();
   };
 
