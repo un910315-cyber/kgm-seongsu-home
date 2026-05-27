@@ -2973,6 +2973,34 @@
     } else if (bar) {
       bar.innerHTML = `<div style="color:var(--text-dim);text-align:center;padding:20px;">데이터가 없습니다</div>`;
     }
+
+    // 이번 달 차량 구분 비율 — 항상 현재 월 기준 (필터 무관)
+    const tmBar = document.getElementById('thisMonthRatioBar');
+    if (tmBar) {
+      const now = new Date();
+      const moPrefix = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+      const tmData = list.filter(r => (r.inDate || '').startsWith(moPrefix));
+      if (tmData.length > 0) {
+        const tmKgm = tmData.filter(r => r.carType === 'KGM').length;
+        const tmDom = tmData.filter(r => r.carType === '국산차').length;
+        const tmFor = tmData.filter(r => r.carType === '외산차').length;
+        const tmTot = tmData.length;
+        const pct = (n) => Math.round(n / tmTot * 100);
+        const kP = pct(tmKgm), dP = pct(tmDom), fP = pct(tmFor);
+        const uP = Math.max(0, 100 - kP - dP - fP);
+        const moLabel = (now.getMonth() + 1) + '월';
+        tmBar.innerHTML = `
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;font-weight:600;letter-spacing:.3px;">이번 달(${moLabel}) 차량 구분 · 총 ${tmTot}대</div>
+          <div style="display:flex;border-radius:6px;overflow:hidden;height:26px;">
+            ${kP ? `<div style="width:${kP}%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#000;">KGM ${tmKgm} (${kP}%)</div>` : ''}
+            ${dP ? `<div style="width:${dP}%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#000;">국산 ${tmDom} (${dP}%)</div>` : ''}
+            ${fP ? `<div style="width:${fP}%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">외산 ${tmFor} (${fP}%)</div>` : ''}
+            ${uP > 0 ? `<div style="width:${uP}%;background:var(--border);"></div>` : ''}
+          </div>`;
+      } else {
+        tmBar.innerHTML = `<div style="font-size:11px;color:var(--text-dim);text-align:center;padding:6px 0;">이번 달 입고 데이터 없음</div>`;
+      }
+    }
   }
   window.renderStats = renderStats;
   window.initYearSelect = initYearSelect;
