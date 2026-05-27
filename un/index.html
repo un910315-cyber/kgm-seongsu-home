@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v78-workcode-cards">
+<link rel="stylesheet" href="styles.css?v=v79-static-embed">
 </head>
 <body>
 
@@ -1059,13 +1059,13 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v78-workcode-cards"></script>
+<script type="module" src="app-module.js?v=v79-static-embed"></script>
 
-<script defer src="app-pages.js?v=v78-workcode-cards"></script>
+<script defer src="app-pages.js?v=v79-static-embed"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script defer src="app-insurance.js?v=v78-workcode-cards"></script>
+<script defer src="app-insurance.js?v=v79-static-embed"></script>
 
 
 <div id="page-estimate" class="page">
@@ -2420,7 +2420,7 @@
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
         <input type="text" id="workCodeSearch" placeholder="검색 — 작업명·코드 (예: 앞범퍼, 8228, 휀더)" style="flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:13px;">
         <input type="file" id="workCodeUpload" accept=".xls,.xlsx" style="display:none" onchange="window._uploadWorkCodes&&window._uploadWorkCodes(this.files[0])">
-        <button type="button" class="btn btn-ghost btn-sm" id="workCodeUploadBtn" onclick="document.getElementById('workCodeUpload').click()" style="white-space:nowrap;">📂 엑셀 갱신 (관리자)</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="workCodeUploadBtn" onclick="document.getElementById('workCodeUpload').click()" style="white-space:nowrap;display:none;">📂 엑셀 갱신 (관리자)</button>
       </div>
       <div id="workCodeStatus" style="font-size:11px;color:var(--text-dim);"></div>
       <div id="workCodeTableWrap" style="overflow:auto;flex:1;padding:4px 2px;">
@@ -2430,6 +2430,7 @@
   </div>
 </div>
 
-<script defer src="app-features.js?v=v78-workcode-cards"></script>
+<script src="work-codes-data.js?v=v79-static-embed"></script>
+<script defer src="app-features.js?v=v79-static-embed"></script>
 </body>
 </html>

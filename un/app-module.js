@@ -871,7 +871,10 @@
     const statusEl = document.getElementById('workCodeStatus');
     const searchEl = document.getElementById('workCodeSearch');
     const q = (searchEl && searchEl.value || '').trim().toLowerCase();
-    const rows = workCodeData.rows || [];
+    // Firebase에 업로드된 게 있으면 그걸 우선, 없으면 정적 임베드 데이터 사용
+    const rows = (workCodeData.rows && workCodeData.rows.length)
+      ? workCodeData.rows
+      : (Array.isArray(window._workCodeStatic) ? window._workCodeStatic : []);
     if (!rows.length) {
       grid.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text-dim);grid-column:1/-1;">아직 업로드된 작업코드가 없습니다. 관리자가 엑셀 파일을 올려주세요.</div>';
       if (statusEl) statusEl.textContent = '';
@@ -934,30 +937,51 @@
       return;
     }
     const statusEl = document.getElementById('workCodeStatus');
+    const setStatus = (t) => { if (statusEl) statusEl.textContent = t; };
+    setStatus('📂 파일 처리 중…');
     if (typeof XLSX === 'undefined') {
-      if (statusEl) statusEl.textContent = '엑셀 라이브러리 로드 실패';
+      setStatus('엑셀 라이브러리 로드 실패 — 새로고침 후 다시 시도');
+      if (typeof showNotif === 'function') showNotif('엑셀 라이브러리 로드 실패', true);
       return;
     }
     const reader = new FileReader();
+    reader.onerror = () => {
+      setStatus('파일을 읽지 못했어요');
+      if (typeof showNotif === 'function') showNotif('파일을 읽지 못했어요', true);
+    };
     reader.onload = async (ev) => {
+      let sheetName = '', cleaned = [];
       try {
         const wb = XLSX.read(new Uint8Array(ev.target.result), { type: 'array' });
-        // '최종본' 들어간 시트 우선, 없으면 첫 시트
-        const sheetName = wb.SheetNames.find(n => n.indexOf('최종본') >= 0) || wb.SheetNames[0];
+        sheetName = wb.SheetNames.find(n => n.indexOf('최종본') >= 0) || wb.SheetNames[0];
         const ws = wb.Sheets[sheetName];
         const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-        // 모두 빈칸인 행 제거
-        const cleaned = raw.filter(r => Array.isArray(r) && r.some(c => String(c || '').trim() !== ''));
+        cleaned = raw.filter(r => Array.isArray(r) && r.some(c => String(c || '').trim() !== ''));
+        setStatus('💾 저장 중… (' + cleaned.length + '행)');
+      } catch (e) {
+        console.error('uploadWorkCodes parse', e);
+        setStatus('엑셀 파싱 실패: ' + (e && e.message || '알 수 없음'));
+        if (typeof showNotif === 'function') showNotif('엑셀 파싱 실패 — 파일 확인해주세요', true);
+        return;
+      }
+      try {
         await set(ref(db, 'workCodes'), {
           uploadedAt: new Date().toISOString(),
           uploadedBy: window._userEmail || '',
           sheetName: sheetName,
           rows: cleaned
         });
+        setStatus('✅ 저장 완료 — ' + cleaned.length + '행');
         if (typeof showNotif === 'function') showNotif('작업코드 ' + cleaned.length + '행 갱신 완료');
       } catch (e) {
-        console.error('uploadWorkCodes', e);
-        if (statusEl) statusEl.textContent = '파일을 읽지 못했어요 — 엑셀 형식을 확인해주세요';
+        console.error('uploadWorkCodes save', e);
+        const txt = String((e && e.code) || (e && e.message) || '');
+        const isPerm = /PERMISSION_DENIED|permission/i.test(txt);
+        const msg = isPerm
+          ? '⚠️ Firebase 규칙에 workCodes 권한이 없어요 — 규칙 페이지에서 추가해주세요'
+          : '저장 실패: ' + (e && e.message || '알 수 없음');
+        setStatus(msg);
+        if (typeof showNotif === 'function') showNotif(msg, true);
       }
     };
     reader.readAsArrayBuffer(file);
