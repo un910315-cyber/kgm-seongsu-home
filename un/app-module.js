@@ -860,10 +860,9 @@
     const statusEl = document.getElementById('workCodeStatus');
     const searchEl = document.getElementById('workCodeSearch');
     const q = (searchEl && searchEl.value || '').trim().toLowerCase();
-    // Firebase에 업로드된 게 있으면 그걸 우선, 없으면 정적 임베드 데이터 사용
-    const rows = (workCodeData.rows && workCodeData.rows.length)
-      ? workCodeData.rows
-      : (Array.isArray(window._workCodeStatic) ? window._workCodeStatic : []);
+    // 정적 임베드(work-codes-data.js) 우선 — Firebase의 옛 업로드 데이터는 무시.
+    // (RTDB가 2D 배열을 object로 변환해서 파싱이 깨지는 문제 회피)
+    const rows = Array.isArray(window._workCodeStatic) ? window._workCodeStatic : [];
     if (!rows.length) {
       grid.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text-dim);grid-column:1/-1;">아직 업로드된 작업코드가 없습니다. 관리자가 엑셀 파일을 올려주세요.</div>';
       if (statusEl) statusEl.textContent = '';
@@ -905,9 +904,8 @@
     }).filter(Boolean).join('');
     grid.innerHTML = cards || '<div style="padding:30px;text-align:center;color:var(--text-dim);grid-column:1/-1;">검색 결과가 없어요.</div>';
     if (statusEl) {
-      const meta = workCodeData.uploadedAt ? (' · 갱신 ' + String(workCodeData.uploadedAt).slice(0, 10)) : '';
-      const sn = workCodeData.sheetName ? ('"' + workCodeData.sheetName + '" · ') : '';
-      statusEl.textContent = sn + sections.length + '개 섹션 · ' + (q ? (shownItems + ' / ' + totalItems + '개 일치') : (totalItems + '개 항목')) + meta;
+      statusEl.textContent = '작업코드 최종본 · ' + sections.length + '개 섹션 · '
+        + (q ? (shownItems + ' / ' + totalItems + '개 일치') : (totalItems + '개 항목'));
     }
   }
 
