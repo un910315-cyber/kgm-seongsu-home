@@ -4,7 +4,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, onValue, push, update, remove, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getFirestore, collection, doc, setDoc, getDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject, listAll } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
   const firebaseConfig = {
@@ -22,6 +22,12 @@
   const db = getDatabase(app);
   const fsd = getFirestore(app);
   const auth = getAuth(app);
+  // Persistence — IndexedDB(local) → sessionStorage → memory 순으로 폴백.
+  // Firebase Hosting init.json 부재로 토큰 검증이 IndexedDB 단계에서 깨질 때
+  // sessionStorage(또는 memory)로 우회.
+  setPersistence(auth, browserSessionPersistence)
+    .catch(() => setPersistence(auth, inMemoryPersistence))
+    .catch(function(e){ console.warn('persistence fallback failed', e); });
   const provider = new GoogleAuthProvider();
   const storage = getStorage(app);
   getRedirectResult(auth).catch(function(e){
