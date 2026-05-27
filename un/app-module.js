@@ -251,21 +251,32 @@
   };
 
   // 인증 상태 감시
-  // 진단용 — auth 이벤트 추적 (콘솔 + 페이지 상단 빨간 박스)
+  // 진단용 — sessionStorage에 누적 저장해서 리로드 너머로도 로그 보존
   function _authDiag(msg) {
+    const line = new Date().toISOString().slice(11, 23) + ' ' + msg;
+    try { console.log('[AUTH-DIAG]', line); } catch(_) {}
     try {
-      console.log('[AUTH-DIAG]', new Date().toISOString().slice(11, 23), msg);
+      const prev = sessionStorage.getItem('_authDiagLog') || '';
+      sessionStorage.setItem('_authDiagLog', prev + line + '\n');
+    } catch(_) {}
+    try {
       let box = document.getElementById('__authDiagBox');
+      const stored = (function(){ try { return sessionStorage.getItem('_authDiagLog') || ''; } catch(_){ return ''; } })();
       if (!box) {
         box = document.createElement('div');
         box.id = '__authDiagBox';
-        box.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ff0;color:#000;font:11px monospace;padding:4px 8px;z-index:99999;max-height:120px;overflow:auto;white-space:pre-wrap;';
-        document.body.appendChild(box);
+        box.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ff0;color:#000;font:11px monospace;padding:4px 8px;z-index:99999;max-height:200px;overflow:auto;white-space:pre-wrap;';
+        if (document.body) document.body.appendChild(box);
+        else document.addEventListener('DOMContentLoaded', function(){ if (document.body) document.body.appendChild(box); });
       }
-      box.textContent += new Date().toISOString().slice(11, 23) + ' ' + msg + '\n';
+      box.textContent = stored;
     } catch(_) {}
   }
-  _authDiag('module loaded');
+  // 진단 리셋 버튼 (URL에 ?diagreset 붙이면 비움)
+  if (location.search.indexOf('diagreset') >= 0) {
+    try { sessionStorage.removeItem('_authDiagLog'); } catch(_) {}
+  }
+  _authDiag('=== module loaded ===');
   onAuthStateChanged(auth, async(user)=>{
     _authDiag('onAuthStateChanged: ' + (user ? user.email : 'NULL'));
     const loginScreen = document.getElementById('loginScreen');
@@ -375,25 +386,21 @@
     var btn = document.getElementById('googleLoginBtn');
     var err = document.getElementById('loginError');
     var denied = document.getElementById('loginDenied');
+    _authDiag('authGoogleLogin called');
     try {
       if (err) err.style.display='none';
       if (denied) denied.style.display='none';
       if (btn) { btn.style.pointerEvents=''; btn.style.opacity=''; }
-      // 팝업 방식 우선 — 최신 크롬의 third-party 쿠키 차단 회피
+      _authDiag('calling signInWithPopup...');
       await signInWithPopup(auth, provider);
+      _authDiag('signInWithPopup RESOLVED');
     } catch(e) {
-      // 사용자가 팝업을 직접 닫은 경우는 에러로 표시하지 않음
+      _authDiag('signInWithPopup REJECTED code=' + (e && e.code) + ' msg=' + (e && e.message));
       if (e && (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request')) {
         if (btn) { btn.style.pointerEvents=''; btn.style.opacity=''; }
         return;
       }
-      // 팝업이 차단되었을 때만 redirect 폴백
-      try {
-        await signInWithRedirect(auth, provider);
-        return;
-      } catch (redirectError) {
-        e = redirectError;
-      }
+      // redirect 폴백 제거 — popup만 사용, 실패 시 에러 메시지만
       if (btn) { btn.style.pointerEvents=''; btn.style.opacity=''; }
       if (err) {
         err.textContent = '로그인 실패: ' + (e && e.message ? e.message : e);
