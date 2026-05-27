@@ -257,11 +257,28 @@
   };
 
   // 인증 상태 감시
+  // 진단용 — auth 이벤트 추적 (콘솔 + 페이지 상단 빨간 박스)
+  function _authDiag(msg) {
+    try {
+      console.log('[AUTH-DIAG]', new Date().toISOString().slice(11, 23), msg);
+      let box = document.getElementById('__authDiagBox');
+      if (!box) {
+        box = document.createElement('div');
+        box.id = '__authDiagBox';
+        box.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ff0;color:#000;font:11px monospace;padding:4px 8px;z-index:99999;max-height:120px;overflow:auto;white-space:pre-wrap;';
+        document.body.appendChild(box);
+      }
+      box.textContent += new Date().toISOString().slice(11, 23) + ' ' + msg + '\n';
+    } catch(_) {}
+  }
+  _authDiag('module loaded');
   onAuthStateChanged(auth, async(user)=>{
+    _authDiag('onAuthStateChanged: ' + (user ? user.email : 'NULL'));
     const loginScreen = document.getElementById('loginScreen');
     const loadingScreen = document.getElementById('loadingScreen');
 
     if(!user){
+      _authDiag('-> showing login screen (no user)');
       stopRealtimeListeners();
       if (LOCAL_DASHBOARD_PREVIEW) {
         renderLocalDashboardPreview();
