@@ -251,34 +251,9 @@
   };
 
   // 인증 상태 감시
-  // 진단용 — sessionStorage에 누적 저장해서 리로드 너머로도 로그 보존
-  function _authDiag(msg) {
-    const line = new Date().toISOString().slice(11, 23) + ' ' + msg;
-    try { console.log('[AUTH-DIAG]', line); } catch(_) {}
-    try {
-      const prev = sessionStorage.getItem('_authDiagLog') || '';
-      sessionStorage.setItem('_authDiagLog', prev + line + '\n');
-    } catch(_) {}
-    try {
-      let box = document.getElementById('__authDiagBox');
-      const stored = (function(){ try { return sessionStorage.getItem('_authDiagLog') || ''; } catch(_){ return ''; } })();
-      if (!box) {
-        box = document.createElement('div');
-        box.id = '__authDiagBox';
-        box.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ff0;color:#000;font:11px monospace;padding:4px 8px;z-index:99999;max-height:200px;overflow:auto;white-space:pre-wrap;';
-        if (document.body) document.body.appendChild(box);
-        else document.addEventListener('DOMContentLoaded', function(){ if (document.body) document.body.appendChild(box); });
-      }
-      box.textContent = stored;
-    } catch(_) {}
-  }
-  // 진단 리셋 버튼 (URL에 ?diagreset 붙이면 비움)
-  if (location.search.indexOf('diagreset') >= 0) {
-    try { sessionStorage.removeItem('_authDiagLog'); } catch(_) {}
-  }
-  _authDiag('=== module loaded ===');
+  function _authDiag(){}  // no-op (진단 종료)
+  try { sessionStorage.removeItem('_authDiagLog'); } catch(_) {}
   onAuthStateChanged(auth, async(user)=>{
-    _authDiag('onAuthStateChanged: ' + (user ? user.email : 'NULL'));
     const loginScreen = document.getElementById('loginScreen');
     const loadingScreen = document.getElementById('loadingScreen');
 
@@ -408,7 +383,8 @@
       }
     }
   };
-  document.getElementById('googleLoginBtn').addEventListener('click', window.authGoogleLogin);
+  // (addEventListener 제거 — index.html의 onclick과 중복 호출 일으킴.
+  //  onclick 한 곳에서만 authGoogleLogin 호출.)
 
   // 관리자: 접근 요청 목록 로드
   window.loadAccessRequests = async function(){
