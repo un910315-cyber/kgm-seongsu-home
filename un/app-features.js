@@ -1792,16 +1792,8 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js', { scope: './' })
       .catch(function(err) { console.warn('SW 등록 실패:', err); });
   });
-  // 이미 컨트롤러가 있을 때(=이전 방문)만 새 버전 활성화 시 자동 새로고침.
-  // 첫 설치/캐시 청소 직후엔 reload 안 함 — 로그인 흐름 깨짐 방지.
-  if (navigator.serviceWorker.controller) {
-    var _swRefreshed = false;
-    navigator.serviceWorker.addEventListener('controllerchange', function() {
-      if (_swRefreshed) return;
-      _swRefreshed = true;
-      location.reload();
-    });
-  }
+  // 자동 새로고침(controllerchange→reload)은 로그인 흐름과 충돌 가능 — 비활성화.
+  // 새 버전은 수동 새로고침(Ctrl+Shift+R)으로 받음.
 }
 
 // PWA 설치 안내 — Android는 beforeinstallprompt, iOS는 안내 문구만
