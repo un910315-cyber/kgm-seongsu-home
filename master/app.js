@@ -46,7 +46,7 @@ const inputWrap = $('inputWrap');
 const handsfreeBtn = $('handsfreeBtn');
 
 // 버전 표시 — 캐시 갱신 확인용
-const JARVIS_VERSION = 'v22';
+const JARVIS_VERSION = 'v23';
 { const _ve = document.getElementById('appVer'); if (_ve) _ve.textContent = JARVIS_VERSION; }
 
 // ── 데이터 저장소 (Firebase 실시간 동기화) ──
@@ -70,6 +70,31 @@ loginBtn.addEventListener('click', () => {
 });
 
 logoutBtn.addEventListener('click', () => signOut(auth));
+
+// PWA 설치 버튼
+let _deferredInstall = null;
+const installBtn = document.getElementById('installBtn');
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _deferredInstall = e;
+  if (installBtn) installBtn.hidden = false;
+});
+if (installBtn) {
+  installBtn.addEventListener('click', async () => {
+    if (!_deferredInstall) return;
+    _deferredInstall.prompt();
+    try { await _deferredInstall.userChoice; } catch (_) {}
+    _deferredInstall = null;
+    installBtn.hidden = true;
+  });
+}
+window.addEventListener('appinstalled', () => {
+  if (installBtn) installBtn.hidden = true;
+});
+// 이미 PWA로 설치돼서 standalone으로 떠 있으면 버튼 숨김
+if (window.matchMedia('(display-mode: standalone)').matches) {
+  if (installBtn) installBtn.hidden = true;
+}
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
