@@ -235,9 +235,9 @@
 
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
-    admin: ['dashboard','list','status','complete','out','migyeol','leave','board','estimate','insurance','sales','usermgmt'],
-    staff: ['status','complete','leave','board','estimate','insurance'],
-    viewer: ['status','complete','leave','board']
+    admin: ['dashboard','list','status','complete','out','migyeol','leave','board','estimate','insurance','vendors','sales','usermgmt'],
+    staff: ['status','complete','leave','board','estimate','insurance','vendors'],
+    viewer: ['status','complete','leave','board','vendors']
   };
   // 'blacklist' 페이지는 ROLE_MENUS에 포함하지 않음 — 출고완료 페이지의 작은 버튼으로만 진입 (admin 전용 가드)
 
@@ -4012,6 +4012,157 @@
     } catch(e) { showNotif('삭제 실패: ' + e.message, true); }
   };
 
+
+  // ---- VENDOR CONTACTS (거래처 연락처 — 전 직원 보기, 관리자만 등록·삭제) ----
+  const vendorRef = ref(db, 'vendorContacts');
+  let vendorContacts = {};
+  let editingVendorId = null;
+
+  authReadyOnValue(vendorRef, function(snap){
+    vendorContacts = snap.val() || {};
+    try { window._renderVendors && window._renderVendors(); } catch(e) { console.error(e); }
+  });
+
+  window._renderVendors = function() {
+    var listEl = document.getElementById('vendor-list');
+    var emptyEl = document.getElementById('vendor-empty');
+    var noresEl = document.getElementById('vendor-noresult');
+    if (!listEl) return;
+    var isAdmin = window._userRole === 'admin';
+    document.querySelectorAll('.vendor-admin-only').forEach(function(el){ el.style.display = isAdmin ? '' : 'none'; });
+
+    var entries = Object.entries(vendorContacts).filter(function(e){ return e[1] && (e[1].name || e[1].phone); });
+    entries.sort(function(a, b){
+      var ca = (a[1].category || ''), cb = (b[1].category || '');
+      if (ca !== cb) return ca.localeCompare(cb, 'ko');
+      return (a[1].name || '').localeCompare(b[1].name || '', 'ko');
+    });
+
+    if (!entries.length) {
+      listEl.innerHTML = '';
+      if (emptyEl) emptyEl.style.display = '';
+      if (noresEl) noresEl.style.display = 'none';
+      return;
+    }
+    if (emptyEl) emptyEl.style.display = 'none';
+
+    var html = entries.map(function(en){
+      var id = en[0], v = en[1];
+      var name = v.name || '(이름 없음)';
+      var phone = v.phone || '';
+      var person = v.person || '';
+      var category = v.category || '';
+      var memo = v.memo || '';
+      var digits = String(phone).replace(/[^0-9+]/g, '');
+      var searchText = (name + ' ' + phone + ' ' + person + ' ' + category + ' ' + memo).toLowerCase();
+      var catBadge = category
+        ? '<span style="display:inline-block;padding:2px 8px;border-radius:10px;background:rgba(139,92,246,.18);color:#c4b5fd;font-size:10px;font-weight:700;margin-left:6px;">' + esc(category) + '</span>'
+        : '';
+      var phoneLink = phone
+        ? '<a href="tel:' + esc(digits) + '" style="display:flex;align-items:center;gap:8px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.32);border-radius:8px;padding:10px 12px;color:#86efac;text-decoration:none;font-size:15px;font-weight:700;font-family:\'JetBrains Mono\',monospace;margin-top:8px;">'
+          + '<span style="font-size:14px;">📞</span>'
+          + '<span>' + esc(phone) + '</span>'
+          + '</a>'
+        : '<div style="font-size:12px;color:var(--text-dim);padding:8px 0;">전화번호 없음</div>';
+      var adminBtns = isAdmin
+        ? '<div class="vendor-admin-only" style="display:flex;gap:4px;">'
+          + '<button class="btn btn-ghost btn-sm" onclick="window._editVendor(\'' + esc(id) + '\')">수정</button>'
+          + '<button class="btn btn-ghost btn-sm" onclick="window._deleteVendor(\'' + esc(id) + '\')">삭제</button>'
+          + '</div>'
+        : '';
+      return '<div class="vendor-card" data-id="' + esc(id) + '" data-search="' + esc(searchText) + '" '
+        + 'style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;">'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">'
+          + '<div style="font-size:15px;font-weight:800;color:var(--text);display:flex;align-items:center;flex-wrap:wrap;">'
+            + esc(name) + catBadge
+          + '</div>'
+          + adminBtns
+        + '</div>'
+        + (person ? '<div style="font-size:12px;color:var(--text-dim);">담당 ' + esc(person) + '</div>' : '')
+        + phoneLink
+        + (memo ? '<div style="font-size:12px;color:var(--text-dim);white-space:pre-wrap;border-top:1px dashed var(--border);padding-top:7px;margin-top:4px;">' + esc(memo) + '</div>' : '')
+        + '</div>';
+    }).join('');
+    listEl.innerHTML = html;
+
+    var searchEl = document.getElementById('vendor-search');
+    if (searchEl && searchEl.value) window._setVendorSearch(searchEl.value);
+  };
+
+  window._setVendorSearch = function(q) {
+    var qq = String(q || '').trim().toLowerCase();
+    var cards = document.querySelectorAll('#vendor-list .vendor-card');
+    var visible = 0;
+    cards.forEach(function(card){
+      var match = !qq || (card.getAttribute('data-search') || '').includes(qq);
+      card.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    var noresEl = document.getElementById('vendor-noresult');
+    if (noresEl) noresEl.style.display = (qq && visible === 0) ? '' : 'none';
+  };
+
+  window._openVendorModal = function(id) {
+    if (window._userRole !== 'admin') return;
+    editingVendorId = id || null;
+    document.getElementById('vendorModalTitle').textContent = id ? '거래처 수정' : '거래처 등록';
+    var v = (id && vendorContacts[id]) || {};
+    document.getElementById('vendor-name').value = v.name || '';
+    document.getElementById('vendor-phone').value = v.phone || '';
+    document.getElementById('vendor-person').value = v.person || '';
+    document.getElementById('vendor-category').value = v.category || '';
+    document.getElementById('vendor-memo').value = v.memo || '';
+    document.getElementById('vendorModal').classList.add('open');
+    setTimeout(function(){ document.getElementById('vendor-name').focus(); }, 50);
+  };
+
+  window._editVendor = function(id) { window._openVendorModal(id); };
+
+  window._saveVendor = async function() {
+    if (window._userRole !== 'admin') { showNotif('관리자만 등록할 수 있어요', true); return; }
+    var name = document.getElementById('vendor-name').value.trim();
+    var phone = document.getElementById('vendor-phone').value.trim();
+    var person = document.getElementById('vendor-person').value.trim();
+    var category = document.getElementById('vendor-category').value;
+    var memo = document.getElementById('vendor-memo').value.trim();
+    if (!name) { showNotif('거래처 이름을 입력해주세요', true); return; }
+    if (!phone) { showNotif('전화번호를 입력해주세요', true); return; }
+    var data = {
+      name: name, phone: phone, person: person, category: category, memo: memo
+    };
+    try {
+      if (editingVendorId) {
+        data.updatedAt = new Date().toISOString();
+        data.updatedBy = window._userEmail || '';
+        await update(ref(db, 'vendorContacts/' + editingVendorId), data);
+        showNotif(name + ' 수정 완료');
+      } else {
+        data.addedAt = new Date().toISOString();
+        data.addedBy = window._userEmail || '';
+        await push(ref(db, 'vendorContacts'), data);
+        showNotif(name + ' 등록 완료');
+      }
+      document.getElementById('vendorModal').classList.remove('open');
+      editingVendorId = null;
+    } catch (e) {
+      console.error('saveVendor', e);
+      var msg = /PERMISSION_DENIED|permission/i.test(String(e && (e.code || e.message) || ''))
+        ? 'Firebase 규칙에 vendorContacts 권한 추가 필요'
+        : '저장 실패: ' + (e && e.message);
+      showNotif(msg, true);
+    }
+  };
+
+  window._deleteVendor = async function(id) {
+    if (window._userRole !== 'admin') return;
+    var v = vendorContacts[id];
+    var name = (v && v.name) ? v.name : '';
+    if (!confirm((name ? '[' + name + '] ' : '') + '이 거래처를 삭제하시겠습니까?')) return;
+    try {
+      await remove(ref(db, 'vendorContacts/' + id));
+      showNotif('삭제되었습니다');
+    } catch (e) { showNotif('삭제 실패: ' + e.message, true); }
+  };
 
   window._openDateDetail = function(dateStr) {
     var titleEl = document.getElementById('dateDetailTitle');

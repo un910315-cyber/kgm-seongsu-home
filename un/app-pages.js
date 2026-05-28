@@ -27,6 +27,7 @@
       if (name==='leave' && window._renderLeave) window._renderLeave();
       if (name==='board') { if(window._renderBoardNotices) window._renderBoardNotices(); if(window._renderBoard) window._renderBoard(); if(window._renderCalendar) window._renderCalendar(); }
       if (name==='insurance' && window._renderInsurance) window._renderInsurance();
+      if (name==='vendors' && window._renderVendors) window._renderVendors();
       if (name==='blacklist' && window._renderBlacklist) window._renderBlacklist();
       if (name==='sales') { if(window._renderSalesReport) window._renderSalesReport(); if(window._renderAosReport) window._renderAosReport(); }
     } catch(e) {

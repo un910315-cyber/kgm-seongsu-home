@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v91-bigger-cards">
+<link rel="stylesheet" href="styles.css?v=v92-vendors">
 </head>
 <body>
 
@@ -99,6 +99,7 @@
   <div class="nav-tab" onclick="switchPage('sales')" id="tab-sales">매출 보고</div>
   <div class="nav-tab" onclick="switchPage('estimate')">견적 도우미</div>
   <div class="nav-tab" onclick="switchPage('insurance')" id="tab-insurance">보험사 연락처</div>
+  <div class="nav-tab" onclick="switchPage('vendors')" id="tab-vendors">거래처 연락처</div>
   <div class="nav-tab" onclick="switchPage('usermgmt')" id="tab-usermgmt" style="display:none">사용자 관리</div>
 </div>
 
@@ -1060,13 +1061,13 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v91-bigger-cards"></script>
+<script type="module" src="app-module.js?v=v92-vendors"></script>
 
-<script defer src="app-pages.js?v=v91-bigger-cards"></script>
+<script defer src="app-pages.js?v=v92-vendors"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script defer src="app-insurance.js?v=v91-bigger-cards"></script>
+<script defer src="app-insurance.js?v=v92-vendors"></script>
 
 
 <div id="page-estimate" class="page">
@@ -2081,6 +2082,68 @@
   </div>
 </div>
 
+<!-- 거래처 연락처 (전 직원 보기, 등록·삭제는 관리자) -->
+<div id="page-vendors" class="page">
+  <div class="main">
+    <div class="section-header">
+      <div class="section-title">거래처 연락처</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn btn-primary btn-sm vendor-admin-only" onclick="window._openVendorModal()" style="display:none;">+ 거래처 추가</button>
+      </div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <input id="vendor-search" type="search" placeholder="거래처명·전화·메모 검색" oninput="window._setVendorSearch(this.value)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;font-family:inherit;outline:none;">
+    </div>
+    <div id="vendor-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;"></div>
+    <div id="vendor-empty" class="empty" style="display:none;"><div class="empty-icon"></div><div>등록된 거래처가 없습니다</div></div>
+    <div id="vendor-noresult" class="empty" style="display:none;"><div class="empty-icon"></div><div>검색 결과가 없습니다</div></div>
+  </div>
+</div>
+
+<!-- 거래처 등록/수정 모달 -->
+<div class="modal-overlay" id="vendorModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-title" id="vendorModalTitle">거래처 등록</div>
+      <button class="modal-close" onclick="document.getElementById('vendorModal').classList.remove('open')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">거래처 이름 *</label>
+        <input class="form-input" id="vendor-name" placeholder="예: 한국부품, 도장재료상사" maxlength="40">
+      </div>
+      <div class="form-group">
+        <label class="form-label">전화번호 *</label>
+        <input class="form-input" id="vendor-phone" placeholder="예: 010-1234-5678 또는 02-1234-5678" maxlength="20">
+      </div>
+      <div class="form-group">
+        <label class="form-label">담당자 (선택)</label>
+        <input class="form-input" id="vendor-person" placeholder="예: 김부장" maxlength="20">
+      </div>
+      <div class="form-group">
+        <label class="form-label">분류 (선택)</label>
+        <select class="form-select" id="vendor-category">
+          <option value="">— 분류 안함 —</option>
+          <option value="부품">부품</option>
+          <option value="도장">도장</option>
+          <option value="판금">판금</option>
+          <option value="공구">공구</option>
+          <option value="견인">견인</option>
+          <option value="기타">기타</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">메모 (선택)</label>
+        <textarea class="form-input" id="vendor-memo" rows="2" placeholder="영업시간·주소·특이사항 등" style="resize:vertical;" maxlength="200"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
+        <button class="btn btn-ghost" onclick="document.getElementById('vendorModal').classList.remove('open')">취소</button>
+        <button class="btn btn-primary" onclick="window._saveVendor()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 블랙리스트 (관리자 전용) -->
 <div id="page-blacklist" class="page">
   <div class="main">
@@ -2431,7 +2494,7 @@
   </div>
 </div>
 
-<script src="work-codes-data.js?v=v91-bigger-cards"></script>
-<script defer src="app-features.js?v=v91-bigger-cards"></script>
+<script src="work-codes-data.js?v=v92-vendors"></script>
+<script defer src="app-features.js?v=v92-vendors"></script>
 </body>
 </html>
