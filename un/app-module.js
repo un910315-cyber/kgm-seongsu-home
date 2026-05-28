@@ -1771,7 +1771,7 @@
 
   // ---- HELPERS ----
   function statusBadge(s) {
-    const map = { '입고': 'badge-in', '수리대기': 'badge-wait', '수리중': 'badge-repair', '수리완료': 'badge-done', '출고': 'badge-out', '미수리 출고': 'badge-out-norepair' };
+    const map = { '입고': 'badge-in', '수리대기': 'badge-wait', '수리중': 'badge-repair', '금일 출고예정': 'badge-pickup-today', '수리완료': 'badge-done', '출고': 'badge-out', '미수리 출고': 'badge-out-norepair' };
     return `<span class="badge ${map[s]||''}"><span class="bdot"></span>${s}</span>`;
   }
   function locationBadge(loc, status) {
@@ -1817,7 +1817,7 @@
   // 상태별 색
   const STATUS_CHIP_COLORS = {
     '입고': '#fb923c', '수리대기': '#fbbf24', '수리중': '#3b82f6',
-    '수리완료': '#10b981', '출고': '#64748b', '미수리출고': '#ef4444'
+    '금일 출고예정': '#8b5cf6', '수리완료': '#10b981', '출고': '#64748b', '미수리출고': '#ef4444'
   };
   function _chipStyle(c) {
     return `--chip-color:${c};background:linear-gradient(135deg,${c}2e,${c}10);border-color:${c}66;color:${c};`;
@@ -1929,7 +1929,7 @@
     document.getElementById('stat-total').textContent = active.length;
     document.getElementById('stat-wait').textContent = list.filter(r=>r.status==='수리대기').length;
     document.getElementById('stat-repair').textContent = list.filter(r=>r.status==='수리중').length;
-    document.getElementById('stat-done').textContent = list.filter(r=>r.status==='수리완료').length;
+    document.getElementById('stat-done').textContent = list.filter(r => r.status === '수리완료' || r.status === '금일 출고예정').length;
     document.getElementById('stat-today').textContent = list.filter(r=>r.inDate===today).length;
 
     // 정비차량 (KGM) 일일 카운트 — kgmDailyMap 기반
@@ -2212,7 +2212,7 @@
     const arr = Array.isArray(list) ? list : [];
     const byInDate = (a, b) => String(a.inDate || '').localeCompare(String(b.inDate || ''));
     const waiting = arr.filter(r => r.status === '수리대기').sort(byInDate);
-    const done = arr.filter(r => r.status === '수리완료').sort(byInDate);
+    const done = arr.filter(r => r.status === '수리완료' || r.status === '금일 출고예정').sort(byInDate);
 
     const rowsHtml = (rows) => rows.map(r => {
       const inD = r.inDate ? String(r.inDate).slice(5).replace('-', '/') : '-';
@@ -2244,7 +2244,7 @@
     const today = new Date().toISOString().split('T')[0];
     const wait = all.filter(r => r.status === '수리대기').length;
     const repair = all.filter(r => r.status === '수리중').length;
-    const done = all.filter(r => r.status === '수리완료').length;
+    const done = all.filter(r => r.status === '수리완료' || r.status === '금일 출고예정').length;
     const intake = all.filter(r => r.inDate === today).length;
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
     set('ops-active-total', active.length);
@@ -2368,7 +2368,7 @@
   // ---- COMPLETE ----
   function renderComplete() {
     const allList = getList();
-    const data = allList.filter(r=>r.status==='수리완료').sort((a,b)=>new Date(b.inDate)-new Date(a.inDate));
+    const data = allList.filter(r => r.status === '수리완료' || r.status === '금일 출고예정').sort((a,b)=>new Date(b.inDate)-new Date(a.inDate));
     const tbody = document.getElementById('complete-tbody');
     const empty = document.getElementById('complete-empty');
     if (!data.length) { tbody.innerHTML=''; empty.style.display='block'; return; }

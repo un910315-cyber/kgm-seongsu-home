@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v93-vendor-visibility">
+<link rel="stylesheet" href="styles.css?v=v94-pickup-today">
 </head>
 <body>
 
@@ -89,7 +89,7 @@
     <div class="nav-subtabs" id="opsNavSubtabs">
       <div class="nav-tab nav-subtab" onclick="switchPage('list')">입출고 목록</div>
       <div class="nav-tab nav-subtab" onclick="switchPage('status')">현황 목록</div>
-      <div class="nav-tab nav-subtab" onclick="switchPage('complete')">수리완료 대기</div>
+      <div class="nav-tab nav-subtab" onclick="switchPage('complete')">금일 출고 예정</div>
       <div class="nav-tab nav-subtab" onclick="switchPage('out')">출고완료</div>
     </div>
   </div>
@@ -416,6 +416,7 @@
           <option value="입고">입고</option>
           <option value="수리대기">수리대기</option>
           <option value="수리중">수리중</option>
+          <option value="금일 출고예정">금일 출고예정</option>
           <option value="수리완료">수리완료</option>
         </select>
       </div>
@@ -440,6 +441,7 @@
         <option value="입고">입고</option>
         <option value="수리대기">수리대기</option>
         <option value="수리중">수리중</option>
+        <option value="금일 출고예정">금일 출고예정</option>
         <option value="수리완료">수리완료</option>
         <option value="출고">출고</option>
       </select>
@@ -458,14 +460,14 @@
 <!-- COMPLETE -->
 <div id="page-complete" class="page">
   <div class="main">
-    <div class="section-header"><div class="section-title"> 수리 완료 — 출고 대기 중</div></div>
+    <div class="section-header"><div class="section-title">금일 출고 예정 — 수리완료 + 출고예정 차량</div></div>
     <div class="table-wrap">
       <table>
         <thead><tr><th>차량번호</th><th>차종</th><th>연락처</th><th>위치</th><th>대물보험</th><th>자차보험</th><th>수리내용</th><th>수리비용</th><th>입고일</th><th>주행거리</th><th>관리</th></tr></thead>
         <tbody id="complete-tbody"></tbody>
       </table>
     </div>
-    <div id="complete-empty" class="empty" style="display:none;"><div class="empty-icon"></div><div>수리 완료 대기 차량이 없습니다</div></div>
+    <div id="complete-empty" class="empty" style="display:none;"><div class="empty-icon"></div><div>금일 출고 예정 차량이 없습니다</div></div>
   </div>
 </div>
 
@@ -815,6 +817,7 @@
             <option value="입고">입고</option>
             <option value="수리대기">수리대기</option>
             <option value="수리중">수리중</option>
+            <option value="금일 출고예정">금일 출고예정</option>
             <option value="수리완료">수리완료</option>
             <option value="출고">출고</option>
           </select>
@@ -959,6 +962,10 @@
           style="padding:14px;border-radius:10px;border:2px solid rgba(245,166,35,0.3);background:rgba(245,166,35,0.1);color:var(--accent);font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:left;">
            수리중 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">작업 진행 중</span>
         </button>
+        <button class="status-pick-btn" data-val="금일 출고예정" onclick="saveStatus('금일 출고예정')"
+          style="padding:14px;border-radius:10px;border:2px solid rgba(139,92,246,0.35);background:rgba(139,92,246,0.1);color:#a78bfa;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:left;">
+           금일 출고예정 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">오늘 출고할 차량</span>
+        </button>
         <button class="status-pick-btn" data-val="수리완료" onclick="saveStatus('수리완료')"
           style="padding:14px;border-radius:10px;border:2px solid rgba(45,206,137,0.3);background:rgba(45,206,137,0.1);color:var(--green);font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:left;">
            수리완료 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">출고 대기 중</span>
@@ -1061,13 +1068,13 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v93-vendor-visibility"></script>
+<script type="module" src="app-module.js?v=v94-pickup-today"></script>
 
-<script defer src="app-pages.js?v=v93-vendor-visibility"></script>
+<script defer src="app-pages.js?v=v94-pickup-today"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script defer src="app-insurance.js?v=v93-vendor-visibility"></script>
+<script defer src="app-insurance.js?v=v94-pickup-today"></script>
 
 
 <div id="page-estimate" class="page">
@@ -2502,7 +2509,7 @@
   </div>
 </div>
 
-<script src="work-codes-data.js?v=v93-vendor-visibility"></script>
-<script defer src="app-features.js?v=v93-vendor-visibility"></script>
+<script src="work-codes-data.js?v=v94-pickup-today"></script>
+<script defer src="app-features.js?v=v94-pickup-today"></script>
 </body>
 </html>
