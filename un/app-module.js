@@ -4028,10 +4028,22 @@
     var emptyEl = document.getElementById('vendor-empty');
     var noresEl = document.getElementById('vendor-noresult');
     if (!listEl) return;
-    var isAdmin = window._userRole === 'admin';
+    var role = window._userRole || 'viewer';
+    var isAdmin = role === 'admin';
     document.querySelectorAll('.vendor-admin-only').forEach(function(el){ el.style.display = isAdmin ? '' : 'none'; });
 
-    var entries = Object.entries(vendorContacts).filter(function(e){ return e[1] && (e[1].name || e[1].phone); });
+    // 공개 범위 필터 — visibility: all/staff/admin
+    // admin: 모두 봄 / staff: all+staff / viewer: all 만
+    function _canSee(vis) {
+      var v = vis || 'all';
+      if (v === 'all') return true;
+      if (v === 'staff') return role === 'admin' || role === 'staff';
+      if (v === 'admin') return role === 'admin';
+      return true;
+    }
+    var entries = Object.entries(vendorContacts).filter(function(e){
+      return e[1] && (e[1].name || e[1].phone) && _canSee(e[1].visibility);
+    });
     entries.sort(function(a, b){
       var ca = (a[1].category || ''), cb = (b[1].category || '');
       if (ca !== cb) return ca.localeCompare(cb, 'ko');
@@ -4058,6 +4070,13 @@
       var catBadge = category
         ? '<span style="display:inline-block;padding:2px 8px;border-radius:10px;background:rgba(139,92,246,.18);color:#c4b5fd;font-size:10px;font-weight:700;margin-left:6px;">' + esc(category) + '</span>'
         : '';
+      var visibility = v.visibility || 'all';
+      var visBadge = '';
+      if (visibility === 'staff') {
+        visBadge = '<span title="직원 이상만 보임" style="display:inline-block;padding:2px 8px;border-radius:10px;background:rgba(251,191,36,.18);color:#fbbf24;font-size:10px;font-weight:700;margin-left:6px;">🔒 직원+</span>';
+      } else if (visibility === 'admin') {
+        visBadge = '<span title="관리자 전용" style="display:inline-block;padding:2px 8px;border-radius:10px;background:rgba(239,68,68,.18);color:#fca5a5;font-size:10px;font-weight:700;margin-left:6px;">🔒 관리자만</span>';
+      }
       var phoneLink = phone
         ? '<a href="tel:' + esc(digits) + '" style="display:flex;align-items:center;gap:8px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.32);border-radius:8px;padding:10px 12px;color:#86efac;text-decoration:none;font-size:15px;font-weight:700;font-family:\'JetBrains Mono\',monospace;margin-top:8px;">'
           + '<span style="font-size:14px;">📞</span>'
@@ -4074,7 +4093,7 @@
         + 'style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;">'
         + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">'
           + '<div style="font-size:15px;font-weight:800;color:var(--text);display:flex;align-items:center;flex-wrap:wrap;">'
-            + esc(name) + catBadge
+            + esc(name) + catBadge + visBadge
           + '</div>'
           + adminBtns
         + '</div>'
@@ -4111,6 +4130,7 @@
     document.getElementById('vendor-phone').value = v.phone || '';
     document.getElementById('vendor-person').value = v.person || '';
     document.getElementById('vendor-category').value = v.category || '';
+    document.getElementById('vendor-visibility').value = v.visibility || 'all';
     document.getElementById('vendor-memo').value = v.memo || '';
     document.getElementById('vendorModal').classList.add('open');
     setTimeout(function(){ document.getElementById('vendor-name').focus(); }, 50);
@@ -4124,11 +4144,12 @@
     var phone = document.getElementById('vendor-phone').value.trim();
     var person = document.getElementById('vendor-person').value.trim();
     var category = document.getElementById('vendor-category').value;
+    var visibility = document.getElementById('vendor-visibility').value || 'all';
     var memo = document.getElementById('vendor-memo').value.trim();
     if (!name) { showNotif('거래처 이름을 입력해주세요', true); return; }
     if (!phone) { showNotif('전화번호를 입력해주세요', true); return; }
     var data = {
-      name: name, phone: phone, person: person, category: category, memo: memo
+      name: name, phone: phone, person: person, category: category, visibility: visibility, memo: memo
     };
     try {
       if (editingVendorId) {

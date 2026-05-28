@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v92-vendors">
+<link rel="stylesheet" href="styles.css?v=v93-vendor-visibility">
 </head>
 <body>
 
@@ -1061,13 +1061,13 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v92-vendors"></script>
+<script type="module" src="app-module.js?v=v93-vendor-visibility"></script>
 
-<script defer src="app-pages.js?v=v92-vendors"></script>
+<script defer src="app-pages.js?v=v93-vendor-visibility"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script defer src="app-insurance.js?v=v92-vendors"></script>
+<script defer src="app-insurance.js?v=v93-vendor-visibility"></script>
 
 
 <div id="page-estimate" class="page">
@@ -2133,6 +2133,14 @@
         </select>
       </div>
       <div class="form-group">
+        <label class="form-label">공개 범위 *</label>
+        <select class="form-select" id="vendor-visibility">
+          <option value="all">전체 공개 — 모든 직원이 봄 (기본)</option>
+          <option value="staff">직원 이상 — 관리자·Staff만 (Viewer 차단)</option>
+          <option value="admin">관리자만 — Staff·Viewer 모두 차단</option>
+        </select>
+      </div>
+      <div class="form-group">
         <label class="form-label">메모 (선택)</label>
         <textarea class="form-input" id="vendor-memo" rows="2" placeholder="영업시간·주소·특이사항 등" style="resize:vertical;" maxlength="200"></textarea>
       </div>
@@ -2494,7 +2502,7 @@
   </div>
 </div>
 
-<script src="work-codes-data.js?v=v92-vendors"></script>
-<script defer src="app-features.js?v=v92-vendors"></script>
+<script src="work-codes-data.js?v=v93-vendor-visibility"></script>
+<script defer src="app-features.js?v=v93-vendor-visibility"></script>
 </body>
 </html>
