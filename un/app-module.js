@@ -1605,7 +1605,17 @@
   }
   window._renderAosReport = renderAosReport;
 
-  // ── 대시보드 AOS 풀폭 띠 — 미수금 분류 + 최근 14일 일별 입금 ──
+  // ── 대시보드 AOS 풀폭 띠 — 미수금 분류 + 최근 7일 일별 입금 ──
+  // 컴팩트 원 표기 (만/억) — 카드 좁아도 짤리지 않게
+  function _wonCompact(v) {
+    const n = Number(v) || 0;
+    if (n >= 100000000) {
+      const eok = Math.round(n / 10000000) / 10;
+      return '₩' + (eok % 1 === 0 ? eok.toFixed(0) : eok.toFixed(1)) + '억';
+    }
+    if (n >= 10000) return '₩' + Math.round(n / 10000).toLocaleString('ko-KR') + '만';
+    return '₩' + n.toLocaleString('ko-KR');
+  }
   function renderAosDashboardStrip() {
     const stripEl = document.getElementById('dashAosStrip');
     if (!stripEl) return;
@@ -1631,10 +1641,10 @@
     });
 
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    set('das-total', _aosWon(total));
-    set('das-other-amt', _aosWon(otherAmt)); set('das-other-cnt', otherCnt + '건');
-    set('das-kgm-amt',   _aosWon(kgmAmt));   set('das-kgm-cnt',   kgmCnt + '건');
-    set('das-open-amt',  _aosWon(openAmt));  set('das-open-cnt',  openCnt + '건');
+    set('das-total', _wonCompact(total));
+    set('das-other-amt', _wonCompact(otherAmt)); set('das-other-cnt', otherCnt + '건');
+    set('das-kgm-amt',   _wonCompact(kgmAmt));   set('das-kgm-cnt',   kgmCnt + '건');
+    set('das-open-amt',  _wonCompact(openAmt));  set('das-open-cnt',  openCnt + '건');
 
     // 최근 14일 일별 입금 — latest 스냅샷의 모든 청구 중 payAmount>0 & payDate 그룹
     const dailyMap = {};
@@ -1647,13 +1657,13 @@
     });
     const today = new Date();
     const days = [];
-    for (let i = 13; i >= 0; i--) {
+    for (let i = 6; i >= 0; i--) {
       const d = new Date(today); d.setDate(d.getDate() - i);
       const ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
       days.push({ date: ds, value: dailyMap[ds] || 0, label: (d.getMonth() + 1) + '/' + d.getDate() });
     }
-    const total14 = days.reduce((s, x) => s + x.value, 0);
-    set('das-chart-total', _aosWon(total14));
+    const total7 = days.reduce((s, x) => s + x.value, 0);
+    set('das-chart-total', _wonCompact(total7));
 
     const mx = Math.max(1, ...days.map(d => d.value));
     const chartEl = document.getElementById('dasChart');
