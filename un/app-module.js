@@ -1605,6 +1605,72 @@
   }
   window._renderAosReport = renderAosReport;
 
+  // ── 대시보드 AOS 풀폭 띠 — 미수금 분류 + 최근 14일 일별 입금 ──
+  function renderAosDashboardStrip() {
+    const stripEl = document.getElementById('dashAosStrip');
+    if (!stripEl) return;
+    const dates = Object.keys(aosClaimsData || {}).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+    if (!dates.length) { stripEl.style.display = 'none'; return; }
+    stripEl.style.display = '';
+
+    const latest = (aosClaimsData[dates[dates.length - 1]] || {}).claims || {};
+    // 미수 = 지급금액 없음 + 청구일자 있음 + 자차/대물 dedup (같은 차 자차 있으면 대물 제외)
+    let owed = Object.values(latest).filter(c =>
+      (Number(c.payAmount) || 0) <= 0 && String(c.claimDate || '').trim() !== '');
+    const _hj = {};
+    owed.forEach(c => { if (c.cover === '자차') _hj[c.carNum] = true; });
+    owed = owed.filter(c => !(c.cover === '대물' && _hj[c.carNum]));
+
+    let total = 0, kgmAmt = 0, kgmCnt = 0, otherAmt = 0, otherCnt = 0, openAmt = 0, openCnt = 0;
+    owed.forEach(c => {
+      const amt = Number(c.claimAmount) || 0;
+      total += amt;
+      if (_isOpenlink(c)) { openAmt += amt; openCnt++; }
+      else if (_isKgmCar(c.carName)) { kgmAmt += amt; kgmCnt++; }
+      else { otherAmt += amt; otherCnt++; }
+    });
+
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('das-total', _aosWon(total));
+    set('das-other-amt', _aosWon(otherAmt)); set('das-other-cnt', otherCnt + '건');
+    set('das-kgm-amt',   _aosWon(kgmAmt));   set('das-kgm-cnt',   kgmCnt + '건');
+    set('das-open-amt',  _aosWon(openAmt));  set('das-open-cnt',  openCnt + '건');
+
+    // 최근 14일 일별 입금 — latest 스냅샷의 모든 청구 중 payAmount>0 & payDate 그룹
+    const dailyMap = {};
+    Object.values(latest).forEach(c => {
+      const amt = Number(c.payAmount) || 0;
+      const pd = String(c.payDate || '').trim();
+      if (amt > 0 && /^\d{4}-\d{2}-\d{2}$/.test(pd)) {
+        dailyMap[pd] = (dailyMap[pd] || 0) + amt;
+      }
+    });
+    const today = new Date();
+    const days = [];
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      const ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      days.push({ date: ds, value: dailyMap[ds] || 0, label: (d.getMonth() + 1) + '/' + d.getDate() });
+    }
+    const total14 = days.reduce((s, x) => s + x.value, 0);
+    set('das-chart-total', _aosWon(total14));
+
+    const mx = Math.max(1, ...days.map(d => d.value));
+    const chartEl = document.getElementById('dasChart');
+    if (chartEl) {
+      chartEl.innerHTML = days.map(d => {
+        const h = d.value > 0 ? Math.max(3, Math.round(d.value / mx * 100)) : 0;
+        const compact = d.value >= 10000 ? Math.round(d.value / 10000) + '만' : '';
+        return '<div class="das-bar">'
+          + '<div class="das-bar-amt">' + (compact || '·') + '</div>'
+          + '<div class="das-bar-track"><div class="das-bar-fill" style="height:' + h + '%;"></div></div>'
+          + '<div class="das-bar-label">' + d.label + '</div>'
+          + '</div>';
+      }).join('');
+    }
+  }
+  window._renderAosDashboardStrip = renderAosDashboardStrip;
+
   // ESC 키 = 열린 팝업/모달 닫기 (위에 뜬 것부터)
   document.addEventListener('keydown', function(e) {
     if (e.key !== 'Escape' && e.key !== 'Esc') return;
@@ -1654,6 +1720,7 @@
   authReadyOnValue(ref(db, 'aosClaims'), function(snap) {
     aosClaimsData = snap.val() || {};
     try { renderAosReport(); } catch (e) {}
+    try { renderAosDashboardStrip(); } catch (e) {}
   });
 
   // 일일 매출 저장 (부품 / 기능) — 매출 보고 페이지에서 호출

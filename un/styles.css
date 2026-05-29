@@ -5677,3 +5677,105 @@ body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sal
   border-radius: 5px;
   letter-spacing: .3px;
 }
+
+
+/* ─────  대시보드 AOS 미수금 풀폭 띠  ───── */
+.dash-aos-strip {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(252, 165, 165, .04), rgba(56, 189, 248, .03));
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-top: 18px;
+}
+.das-inner {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) 2fr;
+  gap: 28px;
+  padding: 20px 26px;
+  align-items: stretch;
+}
+.das-left { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.das-total-label {
+  font-size: 10px; color: var(--text-dim); font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.das-total-amt {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 32px; font-weight: 800;
+  color: #fca5a5;
+  line-height: 1.05;
+}
+.das-cats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+.das-cat {
+  display: flex; flex-direction: column; gap: 2px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 8px;
+  padding: 9px 10px;
+  min-width: 0;
+}
+.das-cat[data-c="other"] { border-left: 3px solid #a78bfa; }
+.das-cat[data-c="kgm"]   { border-left: 3px solid #34d399; }
+.das-cat[data-c="open"]  { border-left: 3px solid #fdba74; }
+.das-cat-name { font-size: 10px; color: var(--text-dim); font-weight: 700; letter-spacing: .4px; }
+.das-cat-amt  { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text); font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.das-cat-cnt  { font-style: normal; font-size: 10px; color: var(--text-dim); }
+
+.das-right {
+  display: flex; flex-direction: column;
+  border-left: 1px solid rgba(255,255,255,.07);
+  padding-left: 26px;
+  min-width: 0;
+}
+.das-chart-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 12px;
+}
+.das-chart-head span {
+  font-size: 10px; color: var(--text-dim); font-weight: 700;
+  letter-spacing: .5px; text-transform: uppercase;
+}
+.das-chart-head strong {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px; color: #86efac; font-weight: 800;
+}
+.das-chart {
+  display: flex; align-items: flex-end;
+  gap: 5px;
+  flex: 1; min-height: 86px;
+}
+.das-bar {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 3px;
+}
+.das-bar-amt { font-size: 9px; color: #86efac; font-weight: 700; font-family: 'JetBrains Mono', monospace; min-height: 11px; }
+.das-bar-track {
+  width: 100%; height: 84px;
+  display: flex; align-items: flex-end;
+  background: rgba(255,255,255,.025);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.das-bar-fill {
+  width: 100%;
+  background: linear-gradient(180deg, #34d399, #10b981);
+  box-shadow: 0 0 10px rgba(52,211,153,.28);
+  border-radius: 4px 4px 0 0;
+  min-height: 2px;
+  transition: height .3s ease;
+}
+.das-bar-label { font-size: 9px; color: var(--text-dim); font-weight: 600; }
+
+@media (max-width: 900px) {
+  .das-inner { grid-template-columns: 1fr; gap: 16px; padding: 14px 16px; }
+  .das-right { border-left: 0; padding-left: 0; border-top: 1px solid rgba(255,255,255,.07); padding-top: 14px; }
+  .das-total-amt { font-size: 26px; }
+  .das-chart { min-height: 70px; }
+  .das-bar-track { height: 70px; }
+}

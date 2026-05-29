@@ -21,6 +21,7 @@
     try {
       if (name==='list' && window._renderList) window._renderList();
       if (name==='status' && window.renderDashboard) window.renderDashboard();
+      if (name==='dashboard' && window._renderAosDashboardStrip) window._renderAosDashboardStrip();
       if (name==='complete' && window._renderComplete) window._renderComplete();
       if (name==='out' && window._renderOut) window._renderOut();
       if (name==='usermgmt') { if(window.loadUserMgmt) window.loadUserMgmt(); if(window._renderOrgChart) window._renderOrgChart(); }
