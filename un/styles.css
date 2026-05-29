@@ -5707,24 +5707,26 @@ body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sal
 }
 .das-cats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-top: 12px;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  margin-top: 10px;
 }
 .das-cat {
-  display: flex; flex-direction: column; gap: 2px;
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
   background: rgba(255,255,255,.03);
   border: 1px solid rgba(255,255,255,.06);
   border-radius: 8px;
-  padding: 9px 10px;
-  min-width: 0;
+  padding: 8px 12px;
 }
 .das-cat[data-c="other"] { border-left: 3px solid #a78bfa; }
 .das-cat[data-c="kgm"]   { border-left: 3px solid #34d399; }
 .das-cat[data-c="open"]  { border-left: 3px solid #fdba74; }
-.das-cat-name { font-size: 10px; color: var(--text-dim); font-weight: 700; letter-spacing: .4px; }
-.das-cat-amt  { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text); font-weight: 800; white-space: nowrap; }
-.das-cat-cnt  { font-style: normal; font-size: 10px; color: var(--text-dim); }
+.das-cat-name { font-size: 11px; color: var(--text-dim); font-weight: 700; letter-spacing: .4px; }
+.das-cat-amt  { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--text); font-weight: 800; white-space: nowrap; text-align: right; }
+.das-cat-cnt  { font-style: normal; font-size: 11px; color: var(--text-dim); white-space: nowrap; }
 
 .das-right {
   display: flex; flex-direction: column;
