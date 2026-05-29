@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v100-label-bright">
+<link rel="stylesheet" href="styles.css?v=v101-strip-inside-main">
 </head>
 <body>
 
@@ -387,38 +387,38 @@
       <div id="opsLocationList" class="ops-location-list"></div>
     </div>
     </div>
-  </div>
 
-  <!-- AOS 미수금 요약 — 풀폭 띠 (대시보드 맨 하단) -->
-  <div class="dash-aos-strip" id="dashAosStrip" style="display:none;">
-    <div class="das-inner">
-      <div class="das-left">
-        <div class="das-total-label">AOS 미수금 총계</div>
-        <div class="das-total-amt" id="das-total">₩0</div>
-        <div class="das-cats">
-          <div class="das-cat" data-c="other">
-            <span class="das-cat-name">타사차</span>
-            <strong class="das-cat-amt" id="das-other-amt">₩0</strong>
-            <em class="das-cat-cnt" id="das-other-cnt">0건</em>
-          </div>
-          <div class="das-cat" data-c="kgm">
-            <span class="das-cat-name">KGM</span>
-            <strong class="das-cat-amt" id="das-kgm-amt">₩0</strong>
-            <em class="das-cat-cnt" id="das-kgm-cnt">0건</em>
-          </div>
-          <div class="das-cat" data-c="open">
-            <span class="das-cat-name">오픈링크</span>
-            <strong class="das-cat-amt" id="das-open-amt">₩0</strong>
-            <em class="das-cat-cnt" id="das-open-cnt">0건</em>
+    <!-- AOS 미수금 요약 — main 안에 박아서 사이드바가 가리지 않게 -->
+    <div class="dash-aos-strip" id="dashAosStrip" style="display:none;">
+      <div class="das-inner">
+        <div class="das-left">
+          <div class="das-total-label">AOS 미수금 총계</div>
+          <div class="das-total-amt" id="das-total">₩0</div>
+          <div class="das-cats">
+            <div class="das-cat" data-c="other">
+              <span class="das-cat-name">타사차</span>
+              <strong class="das-cat-amt" id="das-other-amt">₩0</strong>
+              <em class="das-cat-cnt" id="das-other-cnt">0건</em>
+            </div>
+            <div class="das-cat" data-c="kgm">
+              <span class="das-cat-name">KGM</span>
+              <strong class="das-cat-amt" id="das-kgm-amt">₩0</strong>
+              <em class="das-cat-cnt" id="das-kgm-cnt">0건</em>
+            </div>
+            <div class="das-cat" data-c="open">
+              <span class="das-cat-name">오픈링크</span>
+              <strong class="das-cat-amt" id="das-open-amt">₩0</strong>
+              <em class="das-cat-cnt" id="das-open-cnt">0건</em>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="das-right">
-        <div class="das-chart-head">
-          <span>최근 7일 일별 입금</span>
-          <strong id="das-chart-total">₩0</strong>
+        <div class="das-right">
+          <div class="das-chart-head">
+            <span>최근 7일 일별 입금</span>
+            <strong id="das-chart-total">₩0</strong>
+          </div>
+          <div class="das-chart" id="dasChart"></div>
         </div>
-        <div class="das-chart" id="dasChart"></div>
       </div>
     </div>
   </div>
@@ -1102,13 +1102,13 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v100-label-bright"></script>
+<script type="module" src="app-module.js?v=v101-strip-inside-main"></script>
 
-<script defer src="app-pages.js?v=v100-label-bright"></script>
+<script defer src="app-pages.js?v=v101-strip-inside-main"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script defer src="app-insurance.js?v=v100-label-bright"></script>
+<script defer src="app-insurance.js?v=v101-strip-inside-main"></script>
 
 
 <div id="page-estimate" class="page">
@@ -2543,7 +2543,7 @@
   </div>
 </div>
 
-<script src="work-codes-data.js?v=v100-label-bright"></script>
-<script defer src="app-features.js?v=v100-label-bright"></script>
+<script src="work-codes-data.js?v=v101-strip-inside-main"></script>
+<script defer src="app-features.js?v=v101-strip-inside-main"></script>
 </body>
 </html>
