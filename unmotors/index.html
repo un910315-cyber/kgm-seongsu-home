@@ -249,8 +249,20 @@
   }
   .pop-overlay.show .pop{transform:translateY(0) scale(1)}
   .pop-top{
+    position:relative;
     background:linear-gradient(135deg,#dc2626 0%,#7f1010 100%);
     padding:38px 34px 32px;
+  }
+  .pop-logo{
+    position:absolute;right:30px;bottom:30px;
+    background:#fff;border-radius:8px;
+    padding:8px 12px;
+    box-shadow:0 4px 12px rgba(0,0,0,.2);
+  }
+  .pop-logo img{height:26px;width:auto;display:block}
+  @media(max-width:480px){
+    .pop-logo{right:24px;bottom:auto;top:24px;padding:6px 9px}
+    .pop-logo img{height:20px}
   }
   .pop-badge{
     display:inline-block;
@@ -482,6 +494,9 @@
     <div class="pop-top">
       <span class="pop-badge">현대해상 상생업체 선정</span>
       <div class="pop-title" id="popTitle">현대해상 상생업체<br>입고지원 이벤트</div>
+      <div class="pop-logo">
+        <img src="images/hmfire-logo.png" alt="현대해상" onerror="this.parentNode.style.display='none'">
+      </div>
     </div>
     <div class="pop-body">
       <p class="pop-desc">
