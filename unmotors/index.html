@@ -246,6 +246,8 @@
     box-shadow:0 24px 70px rgba(0,0,0,.65);
     transform:translateY(12px) scale(.98);
     transition:transform .25s ease;
+    max-height:calc(100vh - 48px);
+    overflow-y:auto;
   }
   .pop-overlay.show .pop{transform:translateY(0) scale(1)}
   .pop-top{
@@ -278,6 +280,29 @@
   .pop-desc{font-size:15.5px;color:#cfcfcf;line-height:1.65;margin-bottom:18px}
   .pop-desc strong{color:#fff;font-weight:700}
   .pop-highlight{color:#ff9b9b !important}
+  .pop-bf-label{
+    font-size:12px;font-weight:700;letter-spacing:.12em;
+    color:#dc2626;margin-bottom:12px;
+  }
+  .pop-benefits{
+    list-style:none;display:flex;flex-direction:column;gap:13px;
+    margin-bottom:22px;text-align:left;
+  }
+  .pop-benefits li{
+    display:flex;gap:10px;align-items:flex-start;
+    font-size:14.5px;color:#e8e8e8;line-height:1.45;
+  }
+  .pop-benefits b{color:#fff;font-weight:700}
+  .pop-bf-ic{
+    flex:none;width:21px;height:21px;border-radius:50%;
+    background:rgba(220,38,38,.2);color:#ff6b6b;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:800;margin-top:1px;
+  }
+  .pop-bf-sub{
+    display:block;font-size:12.5px;color:#9a9a9a;
+    margin-top:3px;line-height:1.4;
+  }
   .pop-event-box{
     text-align:center;
     background:rgba(220,38,38,.1);
@@ -530,6 +555,24 @@
       <p class="pop-desc">
         UN모터스에서 <strong>현대해상 수입차 입고지원 이벤트</strong>를 진행합니다.
       </p>
+      <div class="pop-bf-label">이벤트 혜택</div>
+      <ul class="pop-benefits">
+        <li>
+          <span class="pop-bf-ic">✓</span>
+          <div><b>전체 발수코팅</b>
+            <span class="pop-bf-sub">당첨 차량 전부 · 자차·대물 수리 모두</span></div>
+        </li>
+        <li>
+          <span class="pop-bf-ic">✓</span>
+          <div><b>자차 수리 시</b> 면책금 면제
+            <span class="pop-bf-sub">판수 무관 · 면책금 최대 50만원 한도</span></div>
+        </li>
+        <li>
+          <span class="pop-bf-ic">✓</span>
+          <div><b>대물 수리 시</b> 부분도장 1판
+            <span class="pop-bf-sub">미세 스크래치·문콕</span></div>
+        </li>
+      </ul>
       <div class="pop-event-box">
         <div class="pop-event-period">2026. 6. 11 ~ 9월 한정</div>
         <div class="pop-event-limit">매월 <span class="pop-event-num">선착순 5대</span></div>
