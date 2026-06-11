@@ -1041,7 +1041,7 @@ body > div[style*="position:fixed;top:0;"] {
 #page-dashboard .dashboard-sales-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 12px;
+  gap: 14px;
   align-items: stretch;
   margin-bottom: 14px;
 }
@@ -3217,7 +3217,7 @@ body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card {
   border: 0;
   box-shadow: none;
   padding: 0;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .chart-header {
@@ -3227,7 +3227,7 @@ body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .chart-head
 body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stats-grid {
   display: grid !important;
   grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-  gap: 18px !important;
+  gap: 14px !important;
   width: 100%;
 }
 
@@ -3430,7 +3430,7 @@ body:has(#page-dashboard.active) #page-dashboard .dsr-spark {
 
 body:has(#page-dashboard.active) #page-dashboard .dashboard-bottom-row {
   grid-template-columns: minmax(0, 1.02fr) minmax(460px, .98fr);
-  gap: 18px;
+  gap: 14px;
 }
 
 body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card {
@@ -3945,7 +3945,7 @@ body:has(#page-dashboard.active) #page-dashboard .status-pill.wait {
 /* Dashboard bottom cards: make monthly and cumulative sales readable at a glance. */
 body:has(#page-dashboard.active) #page-dashboard .dashboard-bottom-row {
   grid-template-columns: minmax(0, 1.04fr) minmax(470px, .96fr);
-  gap: 20px;
+  gap: 14px;
 }
 
 body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card,
@@ -5780,4 +5780,40 @@ body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sal
   .das-total-amt { font-size: 26px; }
   .das-chart { min-height: 70px; }
   .das-bar-track { height: 70px; }
+}
+
+/* ───── 대시보드 한눈에 정리 — 매출 보고 3열 + 막대 슬림화 ───── */
+/* 매출 보고: 보증·기능·파손+보험 그룹을 가로 3열로 — 세로 스크롤 없이 비교 */
+body:has(#page-dashboard.active) #page-dashboard .daily-sales-card {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 10px;
+  align-content: start;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .daily-sales-card .chart-header,
+body:has(#page-dashboard.active) #page-dashboard .daily-sales-card .dash-received {
+  grid-column: 1 / -1;
+}
+
+body:has(#page-dashboard.active) #page-dashboard .daily-sales-card .dash-sales-grp {
+  margin-top: 4px;
+  min-width: 0;
+}
+
+@media (max-width: 992px) {
+  body:has(#page-dashboard.active) #page-dashboard .daily-sales-card {
+    grid-template-columns: 1fr;
+  }
+
+  body:has(#page-dashboard.active) #page-dashboard .daily-sales-card .dash-sales-grp {
+    margin-top: 12px;
+  }
+}
+
+/* 주차별·월별 매출 막대: 항목이 적을 때 통짜 슬래브가 되지 않게 폭 제한 */
+.cum-week-track {
+  max-width: 64px;
+  margin-left: auto;
+  margin-right: auto;
 }
