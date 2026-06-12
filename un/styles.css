@@ -1238,6 +1238,50 @@ body > div[style*="position:fixed;top:0;"] {
   align-items: stretch;
 }
 
+/* ───── 대시보드 섹션 구분 라벨 (사고차 / 매출 / 정비) — 절제된 톤 ───── */
+#page-dashboard .dash-band-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 26px 2px 13px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  color: #aeb6c6;
+}
+#page-dashboard .dash-band-label::before {
+  content: "";
+  width: 3px;
+  height: 13px;
+  border-radius: 2px;
+  background: var(--band-color, #8b5cf6);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--band-color, #8b5cf6) 45%, transparent);
+}
+#page-dashboard .dash-band-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(148,163,184,.18), transparent);
+}
+#page-dashboard .dash-band-label.band-accident { --band-color: #fb7185; }
+#page-dashboard .dash-band-label.band-sales    { --band-color: #38bdf8; }
+#page-dashboard .dash-band-label.band-service  { --band-color: #a78bfa; }
+/* 첫 라벨(사고차)은 알림 바 바로 아래라 위 여백을 줄임 */
+#page-dashboard .dash-band-label.band-accident { margin-top: 6px; }
+
+/* 누적매출·정비(KGM)는 이제 단독 풀폭 — 카드가 과하게 늘어나지 않게 폭 제한 */
+#page-dashboard .sales-cum-standalone,
+#page-dashboard .kgm-standalone {
+  min-width: 0;
+}
+body:has(#page-dashboard.active) #page-dashboard .sales-cum-standalone .cumulative-sales-card,
+body:has(#page-dashboard.active) #page-dashboard .kgm-standalone > .widget-card {
+  max-width: 720px;
+}
+body:has(#page-dashboard.active) #page-dashboard .kgm-standalone #kgmIntakeChart svg {
+  height: 180px !important;
+}
+
 #page-dashboard .monthly-stats-card,
 #page-dashboard .recent-intake-card {
   min-width: 0;
