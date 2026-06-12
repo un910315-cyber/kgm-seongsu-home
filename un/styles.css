@@ -1238,6 +1238,65 @@ body > div[style*="position:fixed;top:0;"] {
   align-items: stretch;
 }
 
+/* ───── 목록 페이지네이션 (현황 / 입출고 / 출고완료) ───── */
+.list-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+.list-pager:empty { display: none; }
+.list-pager .pager-info {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.list-pager .pager-btns {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+.list-pager .pager-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 9px;
+  border-radius: 7px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.list-pager .pager-btn:hover:not(:disabled):not(.active) {
+  border-color: var(--accent);
+  color: #fff;
+}
+.list-pager .pager-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  cursor: default;
+}
+.list-pager .pager-btn:disabled {
+  opacity: .38;
+  cursor: default;
+}
+.list-pager .pager-gap {
+  padding: 0 4px;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+@media (max-width: 560px) {
+  .list-pager .pager-btns { margin-left: 0; width: 100%; justify-content: center; }
+  .list-pager .pager-info { width: 100%; text-align: center; }
+}
+
 /* ───── 대시보드 섹션 구분 라벨 (사고차 / 매출 / 정비) — 절제된 톤 ───── */
 #page-dashboard .dash-band-label {
   display: flex;

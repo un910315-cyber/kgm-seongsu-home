@@ -2018,6 +2018,53 @@
     if (nc) nc.textContent = nextWk.length;
   }
 
+  // ══════════════════════════════════════════════════════════════════
+  //  목록 페이지네이션 — 현황/입출고/출고완료 (검색·필터는 전체에 적용 후 페이지 분할)
+  // ══════════════════════════════════════════════════════════════════
+  const PAGE_SIZE = 20;        // 한 페이지에 보일 차량 수
+  const _pageState = {};       // { key: 현재 페이지 }
+  const _pageSig = {};         // { key: 직전 검색·필터 시그니처 }
+  // 검색/필터가 바뀌면 1페이지로 리셋. 전체(data)는 이미 필터링된 배열.
+  function _paginate(key, data, sig) {
+    if (_pageSig[key] !== sig) { _pageSig[key] = sig; _pageState[key] = 1; }
+    const total = data.length;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    let page = _pageState[key] || 1;
+    if (page > totalPages) { page = totalPages; _pageState[key] = page; }
+    const start = (page - 1) * PAGE_SIZE;
+    return { pageData: data.slice(start, start + PAGE_SIZE), page, totalPages, total };
+  }
+  window._gotoPage = function(key, n, fnName) {
+    _pageState[key] = n;
+    try { if (typeof window[fnName] === 'function') window[fnName](); } catch(e) { console.error(e); }
+    const map = { dashboard: 'page-status', list: 'page-list', out: 'page-out' };
+    const pg = document.getElementById(map[key]);
+    const tw = pg && pg.querySelector('.table-wrap');
+    if (tw && tw.scrollIntoView) tw.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  function _renderPager(containerId, key, page, totalPages, total, fnName) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    if (totalPages <= 1) { el.innerHTML = ''; return; }
+    const win = 2;
+    let lo = Math.max(1, page - win), hi = Math.min(totalPages, page + win);
+    if (page <= win) hi = Math.min(totalPages, 1 + win * 2);
+    if (page > totalPages - win) lo = Math.max(1, totalPages - win * 2);
+    const btn = (n, label, opts) => {
+      const o = opts || {};
+      return '<button class="pager-btn' + (o.active ? ' active' : '') + '"' +
+        (o.disabled ? ' disabled' : '') +
+        ' onclick="window._gotoPage(\'' + key + '\',' + n + ',\'' + fnName + '\')">' + label + '</button>';
+    };
+    let b = btn(page - 1, '‹', { disabled: page === 1 });
+    if (lo > 1) { b += btn(1, '1'); if (lo > 2) b += '<span class="pager-gap">…</span>'; }
+    for (let n = lo; n <= hi; n++) b += btn(n, String(n), { active: n === page });
+    if (hi < totalPages) { if (hi < totalPages - 1) b += '<span class="pager-gap">…</span>'; b += btn(totalPages, String(totalPages)); }
+    b += btn(page + 1, '›', { disabled: page === totalPages });
+    const from = (page - 1) * PAGE_SIZE + 1, to = Math.min(total, page * PAGE_SIZE);
+    el.innerHTML = '<div class="pager-info">' + total + '대 중 ' + from + '–' + to + '</div><div class="pager-btns">' + b + '</div>';
+  }
+
   function renderDashboard() {
     if (LOCAL_DASHBOARD_PREVIEW) {
       renderLocalDashboardPreview();
@@ -2143,8 +2190,9 @@
     }
 
     const tbody = document.getElementById('dashboard-tbody');
-    if (!show.length) { tbody.innerHTML = `<tr><td colspan="12" class="empty" style="padding:30px">${(dq||dLoc||dSt) ? '검색 결과가 없습니다' : '입고 차량이 없습니다'}</td></tr>`; return; }
-    tbody.innerHTML = show.map(r => `
+    if (!show.length) { tbody.innerHTML = `<tr><td colspan="12" class="empty" style="padding:30px">${(dq||dLoc||dSt) ? '검색 결과가 없습니다' : '입고 차량이 없습니다'}</td></tr>`; _renderPager('dashboard-pager','dashboard',1,1,0,'renderDashboard'); return; }
+    const pg = _paginate('dashboard', show, dq + '|' + dLoc + '|' + dSt);
+    tbody.innerHTML = pg.pageData.map(r => `
       <tr>
         <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span></td>
         <td>${esc(r.carModel)||'-'}</td>
@@ -2159,6 +2207,7 @@
         <td>${fmt(r.outDate)}</td>
         <td><button class="btn btn-ghost btn-sm" onclick="window._openModal('${esc(r.id)}')">수정</button></td>
       </tr>`).join('');
+    _renderPager('dashboard-pager', 'dashboard', pg.page, pg.totalPages, pg.total, 'renderDashboard');
   }
 
   // ── 정비차량 (KGM) 입고 추이 SVG 차트 — 평일(월~금) 14일, kgmDailyMap 기반 ──
@@ -2405,9 +2454,10 @@
 
     const tbody = document.getElementById('list-tbody');
     const empty = document.getElementById('list-empty');
-    if (!data.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+    if (!data.length) { tbody.innerHTML=''; empty.style.display='block'; _renderPager('list-pager','list',1,1,0,'renderList'); return; }
     empty.style.display='none';
-    tbody.innerHTML = data.map(r => `
+    const pg = _paginate('list', data, q + '|' + fs);
+    tbody.innerHTML = pg.pageData.map(r => `
       <tr>
         <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">${esc(r.carNum)}</span></td>
         <td>${esc(r.carModel)||'-'}</td>
@@ -2427,6 +2477,7 @@
           </div>
         </td>
       </tr>`).join('');
+    _renderPager('list-pager', 'list', pg.page, pg.totalPages, pg.total, 'renderList');
   }
 
   // ---- OUT ----
@@ -2435,7 +2486,7 @@
     const month = document.getElementById('filterOutMonth')?.value||'';
     let data = getList().filter(r => {
       if (r.status !== '출고') return false;
-      const mq = !q || r.carNum.toLowerCase().includes(q) || (r.name||'').toLowerCase().includes(q);
+      const mq = !q || (r.carNum||'').toLowerCase().includes(q) || (r.name||'').toLowerCase().includes(q);
       const mm = !month || (r.outDate||'').startsWith(month);
       return mq && mm;
     }).sort((a,b) => new Date(b.outDate) - new Date(a.outDate));
@@ -2443,9 +2494,10 @@
     const tbody = document.getElementById('out-tbody');
     const empty = document.getElementById('out-empty');
     if (!tbody) return;
-    if (!data.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+    if (!data.length) { tbody.innerHTML=''; empty.style.display='block'; _renderPager('out-pager','out',1,1,0,'renderOut'); return; }
     empty.style.display='none';
-    tbody.innerHTML = data.map(r => `
+    const pg = _paginate('out', data, q + '|' + month);
+    tbody.innerHTML = pg.pageData.map(r => `
       <tr>
         <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span></td>
         <td>${esc(r.carModel)||'-'}</td>
@@ -2461,6 +2513,7 @@
           <button class="btn btn-ghost btn-sm" onclick="window._openModal('${esc(r.id)}')">수정</button>
         </td>
       </tr>`).join('');
+    _renderPager('out-pager', 'out', pg.page, pg.totalPages, pg.total, 'renderOut');
   }
   function fmtFull(d) { if(!d) return '-'; return d; }
   window.renderOut = renderOut;
