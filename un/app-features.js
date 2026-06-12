@@ -162,6 +162,7 @@ function ePrintEstimate(){
 function doPrint(){
   var content=document.getElementById('printContent').innerHTML;
   var win=window.open('','_blank','width=800,height=600');
+  if(!win){alert('팝업이 차단되어 인쇄 창을 열 수 없습니다. 팝업 허용 후 다시 시도해주세요.');return;}
   win.document.write('<html><head><title>KGM Seongsu 견적서</title>'
     +'<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">'
     +'<style>body{font-family:"Noto Sans KR",sans-serif;padding:30px;color:#000;}table{width:100%;border-collapse:collapse;}th,td{padding:6px 8px;border-bottom:1px solid #ddd;}@media print{body{padding:15px;}}</style>'

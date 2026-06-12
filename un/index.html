@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v101-strip-inside-main">
+<link rel="stylesheet" href="styles.css?v=v103-2026-06-12-audit-fixes">
 </head>
 <body>
 
@@ -925,7 +925,7 @@
         </div>
         <div class="form-group full">
           <label class="form-label">대물 담당자</label>
-          <input class="form-input" id="f-daemul-manager" placeholder="예: 송승인 010-4136-6226">
+          <input class="form-input" id="f-daemul-manager" placeholder="예: 홍길동 010-0000-0000">
         </div>
         <div class="form-group">
           <label class="form-label"> 자차 보험사</label>
@@ -937,7 +937,7 @@
         </div>
         <div class="form-group full">
           <label class="form-label">자차 담당자</label>
-          <input class="form-input" id="f-jacha-manager" placeholder="예: 송승인 010-4136-6226">
+          <input class="form-input" id="f-jacha-manager" placeholder="예: 홍길동 010-0000-0000">
         </div>
         <div class="form-group full">
           <label class="form-label"> 렌트카 정보</label>
@@ -1102,13 +1102,13 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v101-strip-inside-main"></script>
+<script type="module" src="app-module.js?v=v103-2026-06-12-audit-fixes"></script>
 
-<script defer src="app-pages.js?v=v101-strip-inside-main"></script>
+<script defer src="app-pages.js?v=v103-2026-06-12-audit-fixes"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script defer src="app-insurance.js?v=v101-strip-inside-main"></script>
+<script defer src="app-insurance.js?v=v103-2026-06-12-audit-fixes"></script>
 
 
 <div id="page-estimate" class="page">
@@ -1444,7 +1444,7 @@
           <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">입사일 기준 자동 계산 (1년 미만: 월 1개 / 1년 이상: 15일)</div>
         </div>
       </div>
-      <script>document.getElementById('le-hiredate').addEventListener('change',function(){var v=this.value;if(v){document.getElementById('le-total').value=calcTotalLeave?calcTotalLeave(v):15;}});</script>
+      <script>document.getElementById('le-hiredate').addEventListener('change',function(){var v=this.value;if(v){document.getElementById('le-total').value=window.calcTotalLeave?window.calcTotalLeave(v):15;}});</script>
       <div class="form-actions" style="margin-top:16px;">
         <button class="btn btn-ghost" onclick="document.getElementById('leaveEmpModal').classList.remove('open')">취소</button>
         <button class="btn btn-primary" id="leaveEmpSaveBtn" onclick="window._saveLeaveEmp()">저장</button>
@@ -1979,7 +1979,7 @@
           <div class="wo-field-row"><label>차량번호</label><input type="text" id="wo-carnum" placeholder="143바1300"></div>
           <div class="wo-field-row"><label>차명(차종)</label><input type="text" id="wo-carmodel" placeholder="토레스"></div>
           <div class="wo-field-row"><label>주행거리</label><input type="text" id="wo-km" placeholder="106,794"></div>
-          <div class="wo-field-row"><label>전화번호</label><input type="text" id="wo-phone" placeholder="010-9278-1699"></div>
+          <div class="wo-field-row"><label>전화번호</label><input type="text" id="wo-phone" placeholder="010-0000-0000"></div>
         </div>
 
         <div class="wo-section">
@@ -2543,7 +2543,7 @@
   </div>
 </div>
 
-<script src="work-codes-data.js?v=v101-strip-inside-main"></script>
-<script defer src="app-features.js?v=v101-strip-inside-main"></script>
+<script src="work-codes-data.js?v=v103-2026-06-12-audit-fixes"></script>
+<script defer src="app-features.js?v=v103-2026-06-12-audit-fixes"></script>
 </body>
 </html>

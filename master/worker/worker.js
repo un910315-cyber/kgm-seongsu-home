@@ -24,6 +24,29 @@ const ALLOWED_ORIGINS = [
 const LAT = 37.5446;
 const LON = 127.0560;
 
+// ── 남용 방지: 레이트리밋 ──
+// 엔드포인트가 무인증 공개라 외부인이 무한 호출해 API 과금을 유발할 수 있음.
+// 인스턴스 메모리 기준이라 완벽하진 않지만(재시작·다중 인스턴스 시 리셋) 폭주는 차단.
+const RATE_WINDOW_MS = 5 * 60 * 1000; // 5분
+const RATE_MAX_PER_IP = 30;           // IP당 5분에 30회 (음성 비서 정상 사용엔 충분)
+const DAILY_MAX_TOTAL = 800;          // 인스턴스당 하루 총량
+const _rateMap = new Map();
+let _dayKey = '', _dayCount = 0;
+function rateLimited(ip) {
+  const now = Date.now();
+  const day = new Date(now).toISOString().slice(0, 10);
+  if (day !== _dayKey) { _dayKey = day; _dayCount = 0; }
+  _dayCount++;
+  if (_dayCount > DAILY_MAX_TOTAL) return true;
+  const arr = (_rateMap.get(ip) || []).filter((t) => now - t < RATE_WINDOW_MS);
+  arr.push(now);
+  _rateMap.set(ip, arr);
+  if (_rateMap.size > 1000) {
+    for (const k of _rateMap.keys()) { if (_rateMap.size <= 500) break; _rateMap.delete(k); }
+  }
+  return arr.length > RATE_MAX_PER_IP;
+}
+
 // 자비스 페르소나 — 정적(매 요청 동일) → 프롬프트 캐싱 대상
 const SYSTEM_PROMPT = [
   "당신은 'KGM 성수서비스센터'의 음성 비서 '자비스'입니다. 정비소 대표님을 보좌합니다.",
@@ -177,6 +200,15 @@ export default {
     }
     if (request.method !== 'POST') {
       return json({ error: 'POST only' }, 405, origin);
+    }
+    // Origin 허용 목록 검사 — 브라우저 외 호출 1차 차단 (위조 가능하므로 레이트리밋과 병행)
+    if (!ALLOWED_ORIGINS.includes(origin)) {
+      return json({ error: 'forbidden' }, 403, origin);
+    }
+    // IP당 + 일일 총량 레이트리밋
+    const clientIp = request.headers.get('x-forwarded-for') || request.headers.get('cf-connecting-ip') || 'unknown';
+    if (rateLimited(clientIp)) {
+      return json({ error: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.' }, 429, origin);
     }
     const apiKey = getApiKey(env);
     if (!apiKey) {

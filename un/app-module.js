@@ -293,6 +293,8 @@
       window._userRole = role;
       window._userEmail = user.email;
       window._userName = user.displayName || user.email;
+      // 기존 승인 사용자 자기치유 마이그레이션 — 로그인 시 allowedEmails에 본인 등록 (비차단)
+      _syncAllowedEmail(user.email, role);
 
       // 메뉴 권한 적용
       const allowedMenus = ROLE_MENUS[role] || ROLE_MENUS.viewer;
@@ -386,6 +388,16 @@
   // (addEventListener 제거 — index.html의 onclick과 중복 호출 일으킴.
   //  onclick 한 곳에서만 authGoogleLogin 호출.)
 
+  // 승인 사용자 RTDB 미러 — RTDB 보안 규칙(allowedEmails 화이트리스트) 적용 준비용 동기화.
+  // 이메일의 '.'은 RTDB 키로 쓸 수 없어 ','로 치환 (규칙의 auth.token.email.replace('.', ',')와 매칭).
+  function _aeKey(email){ return String(email||'').toLowerCase().replace(/\./g,','); }
+  function _syncAllowedEmail(email, role){
+    try { set(ref(db,'allowedEmails/'+_aeKey(email)), role||'staff').catch(function(){}); } catch(_){}
+  }
+  function _removeAllowedEmail(email){
+    try { remove(ref(db,'allowedEmails/'+_aeKey(email))).catch(function(){}); } catch(_){}
+  }
+
   // 관리자: 접근 요청 목록 로드
   window.loadAccessRequests = async function(){
     if(window._userRole!=='admin') return;
@@ -399,10 +411,10 @@
       document.getElementById('arCount').textContent=reqs.length+'명 대기중';
       list.innerHTML = reqs.map(r=>
         '<div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;">'
-        +(r.photo?'<img src="'+r.photo+'" style="width:28px;height:28px;border-radius:50%;">':'')
+        +(r.photo?'<img src="'+esc(r.photo)+'" style="width:28px;height:28px;border-radius:50%;">':'')
         +'<div style="flex:1;min-width:0;">'
-        +'<div style="font-size:12px;font-weight:600;color:var(--text);">'+((r.name||r.email))+'</div>'
-        +'<div style="font-size:10px;color:var(--text-dim);">'+r.email+'</div>'
+        +'<div style="font-size:12px;font-weight:600;color:var(--text);">'+esc(r.name||r.email)+'</div>'
+        +'<div style="font-size:10px;color:var(--text-dim);">'+esc(r.email)+'</div>'
         +'<div style="font-size:9px;color:var(--text-dim);">'+r.requestedAt+'</div>'
         +'</div>'
         +'<select id="role-'+r.id.replace(/[@.]/g,'_')+'" style="padding:4px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;">'
@@ -416,18 +428,21 @@
 
   // 승인
   window.approveUser = async function(email, safeId){
+    if(window._userRole!=='admin'){alert('관리자 전용 기능입니다');return;}
     const role = document.getElementById('role-'+safeId).value;
     await setDoc(doc(fsd, 'users', email), {
       email: email, role: role, name: email.split('@')[0],
       approvedAt: new Date().toISOString(), approvedBy: window._userEmail
     });
     await setDoc(doc(fsd, 'access_requests', email), { status: 'approved' }, { merge: true });
+    _syncAllowedEmail(email, role);
     alert(email+' → '+role+' 승인 완료!');
     window.loadAccessRequests();
   };
 
   // 거절
   window.denyUser = async function(email){
+    if(window._userRole!=='admin'){alert('관리자 전용 기능입니다');return;}
     await setDoc(doc(fsd, 'access_requests', email), { status: 'denied' }, { merge: true });
     window.loadAccessRequests();
   };
@@ -486,9 +501,9 @@
         var si=email.replace(/[@.]/g,'_');
         var isSelf=(email===window._userEmail);
         rows+='<tr>'
-          +'<td>'+(photo?'<img src="'+photo+'" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);" onerror="this.style.display=\'none\'">':'—')+'</td>'
-          +'<td style="font-size:12px;font-family:monospace;">'+email+'</td>'
-          +'<td style="font-size:12px;">'+name+'</td>'
+          +'<td>'+(photo?'<img src="'+esc(photo)+'" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);" onerror="this.style.display=\'none\'">':'—')+'</td>'
+          +'<td style="font-size:12px;font-family:monospace;">'+esc(email)+'</td>'
+          +'<td style="font-size:12px;">'+esc(name)+'</td>'
           +'<td><span style="color:'+(_RC[role]||'#aaa')+';font-weight:700;font-size:12px;">'+(_RL[role]||role)+'</span></td>'
           +'<td style="font-size:11px;color:var(--text-dim);">'+(_RD[role]||'-')+'</td>'
           +'<td style="font-size:11px;color:var(--text-dim);">'+(u.approvedAt||u.createdAt||'-').toString().slice(0,10)+'</td>'
@@ -517,13 +532,13 @@
         pend.forEach(function(r){
           var si=r.email.replace(/[@.]/g,'_');
           pr+='<tr>'
-            +'<td>'+(r.photo?'<img src="'+r.photo+'" style="width:28px;height:28px;border-radius:50%;" onerror="this.style.display=\'none\'">':'—')+'</td>'
-            +'<td style="font-size:12px;font-family:monospace;">'+r.email+'</td>'
-            +'<td style="font-size:12px;">'+(r.name||'-')+'</td>'
+            +'<td>'+(r.photo?'<img src="'+esc(r.photo)+'" style="width:28px;height:28px;border-radius:50%;" onerror="this.style.display=\'none\'">':'—')+'</td>'
+            +'<td style="font-size:12px;font-family:monospace;">'+esc(r.email)+'</td>'
+            +'<td style="font-size:12px;">'+esc(r.name||'-')+'</td>'
             +'<td style="font-size:11px;color:var(--text-dim);">'+(r.requestedAt||'').slice(0,10)+'</td>'
             +'<td><select id="umpr-'+si+'" style="padding:4px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;">'
             +'<option value="staff">Staff 1단계</option><option value="viewer">Staff 2단계</option><option value="admin">관리자</option></select></td>'
-            +'<td><button onclick="umApprove(\''+r.email+'\',\''+si+'\',\''+((r.name||'').replace(/'/g,''))+'\')" style="padding:4px 12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;">승인</button> '
+            +'<td><button onclick="umApprove(\''+r.email+'\',\''+si+'\',\''+((r.name||'').replace(/['"<>\\]/g,''))+'\')" style="padding:4px 12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;">승인</button> '
             +'<button onclick="umDeny(\''+r.email+'\')" style="padding:4px 8px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-dim);font-size:11px;cursor:pointer;">거절</button></td></tr>';
         });
         ptbody.innerHTML=pr;
@@ -532,21 +547,26 @@
   };
 
   window.umChange = async function(email,si){
+    if(window._userRole!=='admin'){alert('관리자 전용 기능입니다');return;}
     var sel=document.getElementById('umr-'+si);
     if(!sel)return;
     await setDoc(doc(fsd,'users',email),{role:sel.value},{merge:true});
+    _syncAllowedEmail(email, sel.value);
     alert(email+' → '+(_RL[sel.value]||sel.value)+' 변경 완료!');
     loadUserMgmt();
   };
 
   window.umRemove = async function(email){
+    if(window._userRole!=='admin'){alert('관리자 전용 기능입니다');return;}
     if(!confirm(email+' 삭제하시겠습니까?')) return;
     await setDoc(doc(fsd,'users',email),{_deleted:true,role:'removed'},{merge:true});
+    _removeAllowedEmail(email);
     alert(email+' 삭제 완료');
     loadUserMgmt();
   };
 
   window.umApprove = async function(email,si,name){
+    if(window._userRole!=='admin'){alert('관리자 전용 기능입니다');return;}
     var sel=document.getElementById('umpr-'+si);
     var role=sel?sel.value:'staff';
     await setDoc(doc(fsd,'users',email),{
@@ -554,12 +574,14 @@
       approvedAt:new Date().toISOString(),approvedBy:window._userEmail
     });
     await setDoc(doc(fsd,'access_requests',email),{status:'approved'},{merge:true});
+    _syncAllowedEmail(email, role);
     alert(email+' → '+(_RL[role]||role)+' 승인!');
     loadUserMgmt();
     if(window.loadAccessRequests)loadAccessRequests();
   };
 
   window.umDeny = async function(email){
+    if(window._userRole!=='admin'){alert('관리자 전용 기능입니다');return;}
     await setDoc(doc(fsd,'access_requests',email),{status:'denied'},{merge:true});
     loadUserMgmt();
   };
@@ -590,25 +612,26 @@
   const depositRef = ref(db, 'monthlyDeposit');    // { 'YYYY-MM': number }
   let realtimeReady = false;
   let realtimeStarted = false;
-  const realtimeQueue = [];
+  // 구독 시작 함수를 영구 보관 — 로그아웃 후 재로그인 시에도 전체 재구독 가능해야 함
+  const realtimeStarters = [];
   const realtimeUnsubs = [];
   function authReadyOnValue(targetRef, next, error) {
     const start = () => onValue(targetRef, next, error);
+    realtimeStarters.push(start);
     if (realtimeReady) {
       const unsub = start();
       realtimeUnsubs.push(unsub);
       return unsub;
     }
-    realtimeQueue.push(start);
     return function(){};
   }
   function startRealtimeListeners() {
     if (realtimeStarted) return;
     realtimeReady = true;
     realtimeStarted = true;
-    while (realtimeQueue.length) {
-      try { realtimeUnsubs.push(realtimeQueue.shift()()); } catch(e) { console.warn('realtime listener start failed', e); }
-    }
+    realtimeStarters.forEach((start) => {
+      try { realtimeUnsubs.push(start()); } catch(e) { console.warn('realtime listener start failed', e); }
+    });
   }
   function stopRealtimeListeners() {
     while (realtimeUnsubs.length) {
@@ -2094,7 +2117,7 @@
 
     const show = list.filter(r => {
       if (r.status === '출고' || r.status === '미수리 출고') return false;
-      const mq = !dq || r.carNum.toLowerCase().includes(dq) || (r.name||'').toLowerCase().includes(dq) || (r.phone||'').includes(dq) || (r.repair||'').toLowerCase().includes(dq);
+      const mq = !dq || (r.carNum||'').toLowerCase().includes(dq) || (r.name||'').toLowerCase().includes(dq) || (r.phone||'').includes(dq) || (r.repair||'').toLowerCase().includes(dq);
       const ml = !dLoc || (r.location||'') === dLoc;
       const ms = !dSt || r.status === dSt;
       return mq && ml && ms;
@@ -2376,7 +2399,7 @@
     const q = (document.getElementById('searchInput')?.value||'').toLowerCase();
     const fs = document.getElementById('filterStatus')?.value||'';
     let data = getList().filter(r => {
-      const m = !q || r.carNum.toLowerCase().includes(q) || (r.name||'').toLowerCase().includes(q) || (r.phone||'').includes(q);
+      const m = !q || (r.carNum||'').toLowerCase().includes(q) || (r.name||'').toLowerCase().includes(q) || (r.phone||'').includes(q);
       return m && (!fs || r.status===fs);
     }).sort((a,b) => new Date(b.inDate)-new Date(a.inDate));
 
@@ -3364,7 +3387,7 @@
     if (h > 0) return h + '\uc2dc\uac04';
     return '0\uc77c';
   }
-  // 입사일 기반 연차 자동 계산
+  // 입사일 기반 연차 자동 계산 (index.html 인라인 change 핸들러에서도 사용 → window 노출)
   function calcTotalLeave(hireDate) {
     if (!hireDate) return 15;
     var hire = new Date(hireDate);
@@ -3379,6 +3402,7 @@
     var extra = years >= 3 ? Math.floor((years - 1) / 2) : 0;
     return Math.min(15 + extra, 25);
   }
+  window.calcTotalLeave = calcTotalLeave;
   function formatHireInfo(hireDate) {
     if (!hireDate) return '-';
     var hire = new Date(hireDate);
@@ -4364,6 +4388,7 @@
     var displayTeam = document.getElementById('le-display-team').value.trim();
     var hireDate = document.getElementById('le-hiredate').value;
     var total = hireDate ? calcTotalLeave(hireDate) : parseFloat(document.getElementById('le-total').value);
+    if (!isFinite(total)) total = 15; // 빈 입력 → NaN이 Firebase 쓰기 거부를 유발하므로 기본값
     if (!name) { showNotif('\uc9c1\uc6d0\uba85\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694', true); return; }
     var btn = document.getElementById('leaveEmpSaveBtn');
     btn.disabled = true; btn.textContent = '\uc800\uc7a5 \uc911...';

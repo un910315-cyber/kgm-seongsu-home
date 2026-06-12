@@ -1,7 +1,7 @@
 // KGM 성수 내부 페이지 — Service Worker
 // /un/ 경로만 가로챔. un-v2/ 테스트 환경과 캐시 분리.
 
-const CACHE_VERSION = 'v102-2026-06-12-dashboard-tidy';
+const CACHE_VERSION = 'v103-2026-06-12-audit-fixes';
 const CACHE_NAME = `kgm-seongsu-un-${CACHE_VERSION}`;
 
 const APP_SHELL = [
@@ -57,7 +57,9 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    caches.match(req).then((cached) => {
+    // ignoreSearch: HTML이 ?v= 캐시버스터를 붙여 요청하므로 프리캐시(쿼리 없음)와 키를 맞춤.
+    // CACHE_VERSION을 ?v와 함께 범프하는 것이 전제 (배포 관습).
+    caches.match(req, { ignoreSearch: true }).then((cached) => {
       if (cached) return cached;
       return fetch(req).then((res) => {
         if (res && res.status === 200 && res.type === 'basic') {
@@ -65,7 +67,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((c) => c.put(req, copy));
         }
         return res;
-      }).catch(() => cached);
+      });
     })
   );
 });

@@ -129,6 +129,7 @@ function closeInsDetail() {
 
 function printInsDetail() {
   const w = window.open('','_blank','width=1100,height=800');
+  if (!w) { alert('팝업이 차단되어 인쇄 창을 열 수 없습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
   w.document.write(`<html><head><meta charset="UTF-8"><title>${window._printInsTitle}</title>
   <style>body{font-family:'맑은 고딕',sans-serif;margin:20px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #c8d8f0;padding:6px 8px;font-size:11px;}th{background:#eef3fb;}tfoot td{background:#fff8e6;font-weight:bold;}@page{margin:15mm;}</style>
   </head><body>${window._printInsHtml}<script>window.onload=()=>{window.print();}<\/script></body></html>`);
@@ -139,6 +140,7 @@ function printAllSections(type) {
   const sections = currentSections[type];
   const today = new Date().toLocaleDateString('ko-KR');
   const w = window.open('','_blank','width=1100,height=800');
+  if (!w) { alert('팝업이 차단되어 인쇄 창을 열 수 없습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
   const body = sections.map(([ins, list]) => {
     const amt = list.reduce((s,r)=>s+(Number(r.청구금액)||0),0);
     const isAos = type==='aos';
@@ -224,7 +226,7 @@ function handleBoltFile(file) {
         const r2 = raw[i+1]||[];
         const r3 = raw[i+2]||[];
 
-        const 청구금액 = parseFloat(String(r2[2]||'').replace(',',''))||0;
+        const 청구금액 = parseFloat(String(r2[2]||'').replace(/,/g,''))||0;
 
         // KGM 볼트 미결리스트는 파일 자체가 "미결만 정리된 것"이라 모든 데이터 행이 미결.
         // 자기부담금/부가세는 출고 시 별도로 미리 받지만 보험사 청구금액은 여전히 미수.
