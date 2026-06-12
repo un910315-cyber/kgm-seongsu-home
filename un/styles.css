@@ -1269,17 +1269,25 @@ body > div[style*="position:fixed;top:0;"] {
 /* 첫 라벨(사고차)은 알림 바 바로 아래라 위 여백을 줄임 */
 #page-dashboard .dash-band-label.band-accident { margin-top: 6px; }
 
-/* 누적매출·정비(KGM)는 이제 단독 풀폭 — 카드가 과하게 늘어나지 않게 폭 제한 */
-#page-dashboard .sales-cum-standalone,
-#page-dashboard .kgm-standalone {
+/* 누적매출(좌) + 정비 KGM(우) — 2열로 묶어 누적매출 오른쪽 빈 공간 채움 */
+#page-dashboard .dash-cum-kgm-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
+}
+#page-dashboard .dash-cum-kgm-row .sales-chart-section,
+#page-dashboard .dash-cum-kgm-row .kgm-section {
   min-width: 0;
 }
-body:has(#page-dashboard.active) #page-dashboard .sales-cum-standalone .cumulative-sales-card,
-body:has(#page-dashboard.active) #page-dashboard .kgm-standalone > .widget-card {
-  max-width: 720px;
+#page-dashboard .dash-cum-kgm-row .sales-chart-section > .widget-card,
+#page-dashboard .dash-cum-kgm-row .kgm-section > .widget-card {
+  height: 100%;
 }
-body:has(#page-dashboard.active) #page-dashboard .kgm-standalone #kgmIntakeChart svg {
-  height: 180px !important;
+@media (max-width: 1000px) {
+  #page-dashboard .dash-cum-kgm-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 #page-dashboard .monthly-stats-card,
