@@ -421,7 +421,7 @@
 
   // 승인
   window.approveUser = async function(email, safeId){
-    if(window._userRole!=='admin'){alert('관리자 전용 기능입니다');return;}
+    if(window._userRole!=='admin'){showNotif('관리자 전용 기능입니다', true);return;}
     const role = document.getElementById('role-'+safeId).value;
     await setDoc(doc(fsd, 'users', email), {
       email: email, role: role, name: email.split('@')[0],
@@ -429,13 +429,13 @@
     });
     await setDoc(doc(fsd, 'access_requests', email), { status: 'approved' }, { merge: true });
     _syncAllowedEmail(email, role);
-    alert(email+' → '+role+' 승인 완료!');
+    showNotif(email+' → '+role+' 승인 완료!');
     window.loadAccessRequests();
   };
 
   // 거절
   window.denyUser = async function(email){
-    if(window._userRole!=='admin'){alert('관리자 전용 기능입니다');return;}
+    if(window._userRole!=='admin'){showNotif('관리자 전용 기능입니다', true);return;}
     await setDoc(doc(fsd, 'access_requests', email), { status: 'denied' }, { merge: true });
     window.loadAccessRequests();
   };
@@ -539,26 +539,26 @@
   };
 
   window.umChange = async function(email,si){
-    if(window._userRole!=='admin'){alert('관리자 전용 기능입니다');return;}
+    if(window._userRole!=='admin'){showNotif('관리자 전용 기능입니다', true);return;}
     var sel=document.getElementById('umr-'+si);
     if(!sel)return;
     await setDoc(doc(fsd,'users',email),{role:sel.value},{merge:true});
     _syncAllowedEmail(email, sel.value);
-    alert(email+' → '+(_RL[sel.value]||sel.value)+' 변경 완료!');
+    showNotif(email+' → '+(_RL[sel.value]||sel.value)+' 변경 완료!');
     loadUserMgmt();
   };
 
   window.umRemove = async function(email){
-    if(window._userRole!=='admin'){alert('관리자 전용 기능입니다');return;}
+    if(window._userRole!=='admin'){showNotif('관리자 전용 기능입니다', true);return;}
     if(!(await window._confirm(email+' 삭제하시겠습니까?','삭제','취소'))) return;
     await setDoc(doc(fsd,'users',email),{_deleted:true,role:'removed'},{merge:true});
     _removeAllowedEmail(email);
-    alert(email+' 삭제 완료');
+    showNotif(email+' 삭제 완료');
     loadUserMgmt();
   };
 
   window.umApprove = async function(email,si,name){
-    if(window._userRole!=='admin'){alert('관리자 전용 기능입니다');return;}
+    if(window._userRole!=='admin'){showNotif('관리자 전용 기능입니다', true);return;}
     var sel=document.getElementById('umpr-'+si);
     var role=sel?sel.value:'staff';
     await setDoc(doc(fsd,'users',email),{
@@ -567,13 +567,13 @@
     });
     await setDoc(doc(fsd,'access_requests',email),{status:'approved'},{merge:true});
     _syncAllowedEmail(email, role);
-    alert(email+' → '+(_RL[role]||role)+' 승인!');
+    showNotif(email+' → '+(_RL[role]||role)+' 승인!');
     loadUserMgmt();
     if(window.loadAccessRequests)loadAccessRequests();
   };
 
   window.umDeny = async function(email){
-    if(window._userRole!=='admin'){alert('관리자 전용 기능입니다');return;}
+    if(window._userRole!=='admin'){showNotif('관리자 전용 기능입니다', true);return;}
     await setDoc(doc(fsd,'access_requests',email),{status:'denied'},{merge:true});
     loadUserMgmt();
   };
