@@ -79,16 +79,9 @@
     setText('stat-kgm-today', '7');
     setText('stat-kgm-week', '24');
     setText('stat-kgm-month', '86');
-    setText('stat-kgm-quarter', '214');
     setText('kgm-daily-avg', '4.3');
     setText('kgm-week-diff', '+6대 ↑');
-    setText('daily-sales-date', '05/18 기준');
-    setText('daily-parts-value', '1,240,000원');
-    setText('daily-function-value', '820,000원');
-    setText('monthly-deposit-value', '4,800,000원');
-    setText('daily-parts-trend', '데이터 있음');
-    setText('daily-function-trend', '데이터 있음');
-    setText('deposit-status', '입력됨');
+    setText('daily-report-date', '05/18 기준');
 
     const spark = (id, values, color) => {
       const el = document.getElementById(id);
@@ -419,8 +412,8 @@
         +'</div>'
         +'<select id="role-'+r.id.replace(/[@.]/g,'_')+'" style="padding:4px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;">'
         +'<option value="staff">Staff 1단계</option><option value="viewer">Staff 2단계</option><option value="admin">관리자</option></select>'
-        +'<button onclick="approveUser(\''+r.email+'\',\''+r.id.replace(/[@.]/g,'_')+'\')" style="padding:5px 12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;">승인</button>'
-        +'<button onclick="denyUser(\''+r.email+'\')" style="padding:5px 8px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-dim);font-size:11px;cursor:pointer;">거절</button>'
+        +'<button data-email="'+esc(r.email)+'" data-safe-id="'+esc(r.id.replace(/[@.]/g,'_'))+'" onclick="approveUser(this.dataset.email,this.dataset.safeId)" style="padding:5px 12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;">승인</button>'
+        +'<button data-email="'+esc(r.email)+'" onclick="denyUser(this.dataset.email)" style="padding:5px 8px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-dim);font-size:11px;cursor:pointer;">거절</button>'
         +'</div>'
       ).join('');
     }catch(e){console.error('AR load error:',e);}
@@ -474,11 +467,10 @@
   var _RC={'admin':'var(--accent)','staff':'var(--blue)','viewer':'var(--text-dim)'};
 
   window.loadUserMgmt = async function(){
-    console.log('loadUserMgmt called, role:', window._userRole);
     if(window._userRole!=='admin') return;
     var tbody=document.getElementById('umApproved');
     var ptbody=document.getElementById('umPending');
-    if(!tbody||!ptbody){console.log('DOM not found');return;}
+    if(!tbody||!ptbody) return;
 
     // 사진 맵
     var pm={};
@@ -513,8 +505,8 @@
             +'<option value="staff"'+(role==='staff'?' selected':'')+'>Staff 1단계</option>'
             +'<option value="viewer"'+(role==='viewer'?' selected':'')+'>Staff 2단계</option>'
             +'</select> '
-            +'<button onclick="umChange(\''+email+'\',\''+si+'\')" style="padding:3px 8px;background:var(--accent);border:none;border-radius:4px;color:#fff;font-size:10px;font-weight:700;cursor:pointer;">변경</button> '
-            +'<button onclick="umRemove(\''+email+'\')" style="padding:3px 8px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--red);font-size:10px;cursor:pointer;">삭제</button>')
+            +'<button data-email="'+esc(email)+'" data-si="'+esc(si)+'" onclick="umChange(this.dataset.email,this.dataset.si)" style="padding:3px 8px;background:var(--accent);border:none;border-radius:4px;color:#fff;font-size:10px;font-weight:700;cursor:pointer;">변경</button> '
+            +'<button data-email="'+esc(email)+'" onclick="umRemove(this.dataset.email)" style="padding:3px 8px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--red);font-size:10px;cursor:pointer;">삭제</button>')
           +'</td></tr>';
       });
       tbody.innerHTML=rows||'<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:20px;">사용자 없음</td></tr>';
@@ -538,8 +530,8 @@
             +'<td style="font-size:11px;color:var(--text-dim);">'+(r.requestedAt||'').slice(0,10)+'</td>'
             +'<td><select id="umpr-'+si+'" style="padding:4px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;">'
             +'<option value="staff">Staff 1단계</option><option value="viewer">Staff 2단계</option><option value="admin">관리자</option></select></td>'
-            +'<td><button onclick="umApprove(\''+r.email+'\',\''+si+'\',\''+((r.name||'').replace(/['"<>\\]/g,''))+'\')" style="padding:4px 12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;">승인</button> '
-            +'<button onclick="umDeny(\''+r.email+'\')" style="padding:4px 8px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-dim);font-size:11px;cursor:pointer;">거절</button></td></tr>';
+            +'<td><button data-email="'+esc(r.email)+'" data-si="'+esc(si)+'" data-name="'+esc(r.name||'')+'" onclick="umApprove(this.dataset.email,this.dataset.si,this.dataset.name)" style="padding:4px 12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;">승인</button> '
+            +'<button data-email="'+esc(r.email)+'" onclick="umDeny(this.dataset.email)" style="padding:4px 8px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-dim);font-size:11px;cursor:pointer;">거절</button></td></tr>';
         });
         ptbody.innerHTML=pr;
       }
@@ -949,11 +941,7 @@
     const statusEl = document.getElementById('workCodeStatus');
     const setStatus = (t) => { if (statusEl) statusEl.textContent = t; };
     setStatus('📂 파일 처리 중…');
-    if (typeof XLSX === 'undefined') {
-      setStatus('엑셀 라이브러리 로드 실패 — 새로고침 후 다시 시도');
-      if (typeof showNotif === 'function') showNotif('엑셀 라이브러리 로드 실패', true);
-      return;
-    }
+    window._loadXlsx(function() {
     const reader = new FileReader();
     reader.onerror = () => {
       setStatus('파일을 읽지 못했어요');
@@ -995,6 +983,7 @@
       }
     };
     reader.readAsArrayBuffer(file);
+    }); // _loadXlsx
   };
 
   // 검색창 실시간 필터
@@ -1348,10 +1337,7 @@
   function handleSalesExcel(file) {
     if (!file) return;
     const statusEl = document.getElementById('salesExcelStatus');
-    if (typeof XLSX === 'undefined') {
-      if (statusEl) statusEl.textContent = '엑셀 라이브러리 로드 실패 — 새로고침 후 다시 시도';
-      return;
-    }
+    window._loadXlsx(function() {
     const reader = new FileReader();
     reader.onload = function(ev) {
       try {
@@ -1418,6 +1404,7 @@
       }
     };
     reader.readAsArrayBuffer(file);
+    }); // _loadXlsx
   }
   window._handleSalesExcel = handleSalesExcel;
 
@@ -1468,10 +1455,7 @@
   function handleAosExcel(file) {
     if (!file) return;
     const statusEl = document.getElementById('aosExcelStatus');
-    if (typeof XLSX === 'undefined') {
-      if (statusEl) statusEl.textContent = '엑셀 라이브러리 로드 실패 — 새로고침 후 다시 시도';
-      return;
-    }
+    window._loadXlsx(function() {
     const reader = new FileReader();
     reader.onload = async function(ev) {
       try {
@@ -1524,6 +1508,7 @@
       }
     };
     reader.readAsArrayBuffer(file);
+    }); // _loadXlsx
   }
   window._handleAosExcel = handleAosExcel;
 

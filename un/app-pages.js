@@ -32,7 +32,7 @@
       if (name==='blacklist' && window._renderBlacklist) window._renderBlacklist();
       if (name==='sales') { if(window._renderSalesReport) window._renderSalesReport(); if(window._renderAosReport) window._renderAosReport(); }
     } catch(e) {
-      alert('switchPage 에러: ' + e.message);
+      console.error('switchPage 에러 [' + name + ']:', e);
     }
   }
 

@@ -169,8 +169,10 @@ function handleAosFile(file) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
+    const buf = e.target.result;
+    window._loadXlsx(function() {
     try {
-      const wb = XLSX.read(e.target.result, { type:'array', cellDates:true });
+      const wb = XLSX.read(buf, { type:'array', cellDates:true });
       const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval:'' });
       const 미결 = rows.filter(r => {
         const 지급일자없음 = !r['지급일자'] || r['지급일자'].toString().trim() === '';
@@ -200,6 +202,7 @@ function handleAosFile(file) {
       });
       renderSections('aos', groups);
     } catch(err) { alert('파일을 읽을 수 없어요. xlsx 파일인지 확인해주세요.\n'+err); }
+    }); // _loadXlsx
   };
   reader.readAsArrayBuffer(file);
 }
@@ -210,8 +213,10 @@ function handleBoltFile(file) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
+    const buf = e.target.result;
+    window._loadXlsx(function() {
     try {
-      const wb = XLSX.read(e.target.result, { type:'array' });
+      const wb = XLSX.read(buf, { type:'array' });
       const ws = wb.Sheets[wb.SheetNames[0]];
       const raw = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
       const records = [];
@@ -266,6 +271,7 @@ function handleBoltFile(file) {
       });
       renderSections('bolt', groups);
     } catch(err) { alert('파일을 읽을 수 없어요.\n'+err); }
+    }); // _loadXlsx
   };
   reader.readAsArrayBuffer(file);
 }
