@@ -329,7 +329,7 @@
         badge.innerHTML='<img src="'+(user.photoURL||'')+'" style="width:20px;height:20px;border-radius:50%;border:1px solid rgba(139,92,246,.3)">'
           +'<span style="font-family:Inter,sans-serif;font-size:11px;">'+(window._userName||'').split(' ')[0]+'</span>'
           +'<span style="font-size:9px;color:var(--accent);font-weight:700;text-transform:uppercase;">'+role+'</span>';
-        badge.onclick=function(){if(confirm('로그아웃 하시겠습니까?'))authSignOut();};
+        badge.onclick=async function(){if(await window._confirm('로그아웃 하시겠습니까?','로그아웃','취소'))authSignOut();};
         headerRight.appendChild(badge);
       }
 
@@ -550,7 +550,7 @@
 
   window.umRemove = async function(email){
     if(window._userRole!=='admin'){alert('관리자 전용 기능입니다');return;}
-    if(!confirm(email+' 삭제하시겠습니까?')) return;
+    if(!(await window._confirm(email+' 삭제하시겠습니까?','삭제','취소'))) return;
     await setDoc(doc(fsd,'users',email),{_deleted:true,role:'removed'},{merge:true});
     _removeAllowedEmail(email);
     alert(email+' 삭제 완료');
@@ -2666,7 +2666,7 @@
   window._delete = async function(id, carNum, name) {
     var rec = records[id];
     var subtitle = name || (rec && rec.carModel) || '';
-    if (!confirm(`${carNum}${subtitle ? ' (' + subtitle + ')' : ''} 차량을 삭제하시겠습니까?`)) return;
+    if (!(await window._confirm(`${carNum}${subtitle ? ' (' + subtitle + ')' : ''} 차량을 삭제하시겠습니까?`,'삭제',''))) return;
     // Storage 사진도 best-effort로 정리 (실패해도 DB 삭제는 진행)
     try {
       var rec = records[id];
@@ -2690,7 +2690,7 @@
   window._markOut = async function(id, carNum, name) {
     var rec = records[id];
     var subtitle = name || (rec && rec.carModel) || '';
-    if (!confirm(`${carNum}${subtitle ? ' (' + subtitle + ')' : ''} 차량을 출고 처리하시겠습니까?`)) return;
+    if (!(await window._confirm(`${carNum}${subtitle ? ' (' + subtitle + ')' : ''} 차량을 출고 처리하시겠습니까?`,'출고 처리',''))) return;
     try {
       await update(ref(db, `records/${id}`), {
         status: '출고',
@@ -2801,7 +2801,7 @@
 
   window._removeBlacklistEntry = async function(key, carNum) {
     if (!window._isAdmin()) { showNotif('관리자 권한이 필요합니다', true); return; }
-    if (!confirm((carNum||key) + ' 블랙 등록을 해제할까요?')) return;
+    if (!(await window._confirm((carNum||key) + ' 블랙 등록을 해제할까요?','해제',''))) return;
     try {
       await update(ref(db, 'blacklist'), { [key]: null });
       showNotif('블랙 해제 완료');
@@ -3224,7 +3224,7 @@
     const list = getList();
     const missing = list.filter(r => r.status === '출고' && !r.outDate);
     if (!missing.length) { showNotif('보정할 차량이 없어요 '); return; }
-    if (!confirm(`출고일이 없는 차량 ${missing.length}대를 오늘 날짜로 보정할까요?`)) return;
+    if (!(await window._confirm(`출고일이 없는 차량 ${missing.length}대를 오늘 날짜로 보정할까요?`,'보정',''))) return;
     const today = new Date().toISOString().split('T')[0];
     try {
       for (const r of missing) {
@@ -3589,7 +3589,7 @@
   };
 
   window._deleteBoard = async function(id) {
-    if (!confirm('\uc774 \uba54\ubaa8\ub97c \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?')) return;
+    if (!(await window._confirm('\uc774 \uba54\ubaa8\ub97c \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?','\uc0ad\uc81c',''))) return;
     try { await remove(ref(db, 'board/' + id)); showNotif('\uc0ad\uc81c\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
     catch(e) { showNotif('\uc0ad\uc81c \uc2e4\ud328: ' + e.message, true); }
   };
@@ -3714,7 +3714,7 @@
 
   window._deleteBoardNotice = async function(id) {
     if (window._userRole !== 'admin') return;
-    if (!confirm('\uc774 \uacf5\uc9c0\ub97c \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?')) return;
+    if (!(await window._confirm('\uc774 \uacf5\uc9c0\ub97c \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?','\uc0ad\uc81c',''))) return;
     try {
       await remove(ref(db, 'notices/' + id));
       showNotif('\uacf5\uc9c0\ub97c \uc0ad\uc81c\ud588\uc2b5\ub2c8\ub2e4');
@@ -3898,7 +3898,7 @@
   };
   window._deleteEvent = async function(id) {
     if (window._userRole !== 'admin') return;
-    if (!confirm('\uc774 \uc77c\uc815\uc744 \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?')) return;
+    if (!(await window._confirm('\uc774 \uc77c\uc815\uc744 \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?','\uc0ad\uc81c',''))) return;
     try {
       await remove(ref(db, 'companyEvents/' + id));
       showNotif('\uc0ad\uc81c\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
@@ -4144,7 +4144,7 @@
     if (window._userRole !== 'admin') return;
     var c = insuranceContacts[id];
     var name = (c && c.company) ? c.company : '';
-    if (!confirm((name ? '[' + name + '] ' : '') + '이 보험사를 삭제하시겠습니까?')) return;
+    if (!(await window._confirm((name ? '[' + name + '] ' : '') + '이 보험사를 삭제하시겠습니까?','삭제',''))) return;
     try {
       await remove(ref(db, 'insuranceContacts/' + id));
       showNotif('삭제되었습니다');
@@ -4317,7 +4317,7 @@
     if (window._userRole !== 'admin') return;
     var v = vendorContacts[id];
     var name = (v && v.name) ? v.name : '';
-    if (!confirm((name ? '[' + name + '] ' : '') + '이 거래처를 삭제하시겠습니까?')) return;
+    if (!(await window._confirm((name ? '[' + name + '] ' : '') + '이 거래처를 삭제하시겠습니까?','삭제',''))) return;
     try {
       await remove(ref(db, 'vendorContacts/' + id));
       showNotif('삭제되었습니다');
@@ -4601,7 +4601,7 @@
     var totalHours = autoTotal * 8;
     if (addHours > 0 && (usedHours + addHours) > totalHours) {
       var remain = Math.max(0, totalHours - usedHours);
-      if (!confirm(emp.name + ' \ub2d8\uc758 \uc794\uc5ec \uc5f0\ucc28\uac00 \ubd80\uc871\ud569\ub2c8\ub2e4 (\uc794\uc5ec: ' + formatDayHour(remain) + '). \uadf8\ub798\ub3c4 \ub300\uc2e0 \ub4f1\ub85d\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?')) return;
+      if (!(await window._confirm(emp.name + ' \ub2d8\uc758 \uc794\uc5ec \uc5f0\ucc28\uac00 \ubd80\uc871\ud569\ub2c8\ub2e4 (\uc794\uc5ec: ' + formatDayHour(remain) + ').\n\uadf8\ub798\ub3c4 \ub300\uc2e0 \ub4f1\ub85d\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?','\ub4f1\ub85d',''))) return;
     }
     var btn = document.getElementById('proxyReqSaveBtn');
     btn.disabled = true; btn.textContent = '\ub4f1\ub85d \uc911...';
@@ -4638,7 +4638,7 @@
       showNotif('\uacb0\uc7ac\uac00 \uc644\ub8cc\ub41c \uc2e0\uccad\uc740 \ucde8\uc18c\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4', true);
       return;
     }
-    if (!confirm('\uc774 \uc2e0\uccad\uc744 \ucde8\uc18c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?')) return;
+    if (!(await window._confirm('\uc774 \uc2e0\uccad\uc744 \ucde8\uc18c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?','\uc2e0\uccad \ucde8\uc18c',''))) return;
     try {
       await update(ref(db, 'leaveRequests/' + id), { status: 'canceled', canceledAt: new Date().toISOString(), canceledBy: window._userEmail || '' });
       showNotif('\uc2e0\uccad\uc774 \ucde8\uc18c\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
@@ -4672,7 +4672,7 @@
     if (window._userRole !== 'admin') return;
     var req = leaveRequests[id]; if (!req) return;
     if (req.status !== 'approved') return;
-    if (!confirm('이 신청서의 양식을 인쇄·확인하셨나요?\n확인하면 결재 대기 목록에서 제거됩니다.')) return;
+    if (!(await window._confirm('이 신청서의 양식을 인쇄·확인하셨나요?\n확인하면 결재 대기 목록에서 제거됩니다.','확인 완료',''))) return;
     try {
       await update(ref(db, 'leaveRequests/' + id), {
         adminAcknowledged: true,
@@ -5055,7 +5055,7 @@
     if (!editingNoticeId) return;
     var plan = collectPlan();
     if (!plan.length) { showNotif('사용계획을 1행 이상 입력해주세요', true); return; }
-    if (!confirm('제출 후에는 수정할 수 없습니다. 제출하시겠습니까?')) return;
+    if (!(await window._confirm('제출 후에는 수정할 수 없습니다.\n제출하시겠습니까?','제출',''))) return;
     try {
       await update(ref(db, 'annualLeaveNotices/' + editingNoticeId), { plan: plan, status: 'submitted', submittedAt: new Date().toISOString(), submittedBy: window._userEmail||'', updatedAt: new Date().toISOString() });
       showNotif('통지서가 제출되었습니다');
@@ -5067,7 +5067,7 @@
     if (!viewingNoticeId) return;
     var n = leaveNotices[viewingNoticeId]; if (!n) return;
     if (n.status !== 'submitted') { showNotif('제출된 통지서만 승인 가능합니다', true); return; }
-    if (!confirm('이 통지서를 승인하시겠습니까?')) return;
+    if (!(await window._confirm('이 통지서를 승인하시겠습니까?','승인',''))) return;
     var nowStr = new Date().toISOString();
     try {
       await update(ref(db, 'annualLeaveNotices/' + viewingNoticeId), { status: 'approved', approval: { approved: true, timestamp: nowStr, approverEmail: window._userEmail||'', approverName: window._userName||'' }, updatedAt: nowStr });
@@ -5166,7 +5166,7 @@
   };
   window._deleteNotice = async function(id) {
     if (window._userRole !== 'admin') return;
-    if (!confirm('이 통지서를 삭제하시겠습니까?')) return;
+    if (!(await window._confirm('이 통지서를 삭제하시겠습니까?','삭제',''))) return;
     try { await remove(ref(db, 'annualLeaveNotices/' + id)); showNotif('삭제되었습니다'); }
     catch(e) { showNotif('삭제 실패: ' + e.message, true); }
   };
@@ -5291,7 +5291,7 @@
   window._renderApprovalQueue = renderApprovalQueue;
 
   window._deleteLeaveEmp = async function(id, name) {
-    if (!confirm(name + ' \uc9c1\uc6d0\uc744 \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?\n\ud574\ub2f9 \uc9c1\uc6d0\uc758 \uc5f0\ucc28 \uc0ac\uc6a9 \ub0b4\uc5ed\ub3c4 \ubaa8\ub450 \uc0ad\uc81c\ub429\ub2c8\ub2e4.')) return;
+    if (!(await window._confirm(name + ' \uc9c1\uc6d0\uc744 \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?\n\ud574\ub2f9 \uc9c1\uc6d0\uc758 \uc5f0\ucc28 \uc0ac\uc6a9 \ub0b4\uc5ed\ub3c4 \ubaa8\ub450 \uc0ad\uc81c\ub429\ub2c8\ub2e4.','\uc0ad\uc81c',''))) return;
     try {
       await remove(ref(db, 'leaveEmployees/' + id));
       var toDelete = Object.entries(leaveUsage).filter(function(e){return e[1].empId===id;});
@@ -5336,7 +5336,7 @@
     btn.disabled = false; btn.textContent = '\ub4f1\ub85d';
   };
   window._deleteLeaveUse = async function(id) {
-    if (!confirm('\uc774 \uc0ac\uc6a9 \ub0b4\uc5ed\uc744 \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?')) return;
+    if (!(await window._confirm('\uc774 \uc0ac\uc6a9 \ub0b4\uc5ed\uc744 \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?','\uc0ad\uc81c',''))) return;
     try { await remove(ref(db, 'leaveUsage/' + id)); showNotif('\uc0ad\uc81c\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
     catch(e) { showNotif('\uc0ad\uc81c \uc2e4\ud328: ' + e.message, true); }
   };

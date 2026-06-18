@@ -1,5 +1,32 @@
 // 페이지 전환·UI 핸들러 (un-v2 리팩토링 3단계)
 
+  // ── 미니 확인 모달 (브라우저 confirm() 대체) ──
+  window._confirm = function(msg, yesLabel, noLabel) {
+    return new Promise(function(resolve) {
+      var modal = document.getElementById('miniConfirmModal');
+      var msgEl  = document.getElementById('miniConfirmMsg');
+      var yesBtn = document.getElementById('miniConfirmYes');
+      var noBtn  = document.getElementById('miniConfirmNo');
+      if (!modal || !msgEl || !yesBtn || !noBtn) { resolve(window.confirm(msg)); return; }
+      msgEl.textContent = msg;
+      yesBtn.textContent = yesLabel || '확인';
+      noBtn.textContent  = noLabel  || '취소';
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      function done(val) {
+        yesBtn.removeEventListener('click', onYes);
+        noBtn.removeEventListener('click', onNo);
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+        resolve(val);
+      }
+      function onYes() { done(true); }
+      function onNo()  { done(false); }
+      yesBtn.addEventListener('click', onYes);
+      noBtn.addEventListener('click', onNo);
+    });
+  };
+
   // PAGE SWITCH
   function switchPage(name) {
     document.body.setAttribute('data-page', name);

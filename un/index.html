@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v107-2026-06-18-code-quality">
+<link rel="stylesheet" href="styles.css?v=v108-2026-06-18-custom-confirm">
 </head>
 <body>
 
@@ -972,6 +972,19 @@
 
 <div class="notif" id="notif"></div>
 
+<!-- 미니 확인 모달 (confirm() 대체) -->
+<div class="modal-overlay" id="miniConfirmModal">
+  <div class="modal" style="max-width:360px;">
+    <div class="modal-body" style="padding:24px 24px 8px;">
+      <p id="miniConfirmMsg" style="font-size:14px;line-height:1.65;color:var(--text);white-space:pre-wrap;margin:0;"></p>
+    </div>
+    <div class="modal-footer" style="padding:12px 20px 20px;gap:8px;">
+      <button class="btn btn-ghost" id="miniConfirmNo">취소</button>
+      <button class="btn btn-primary" id="miniConfirmYes">확인</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- 상세보기 모달 -->
 <div class="modal-overlay" id="detailModal">
@@ -1112,9 +1125,9 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v107-2026-06-18-code-quality"></script>
+<script type="module" src="app-module.js?v=v108-2026-06-18-custom-confirm"></script>
 
-<script defer src="app-pages.js?v=v107-2026-06-18-code-quality"></script>
+<script defer src="app-pages.js?v=v108-2026-06-18-custom-confirm"></script>
 
 <!-- XLSX + JSZip: 보험 미결 탭 첫 진입 시 지연 로드 -->
 <script>
@@ -1134,7 +1147,7 @@
   };
 })();
 </script>
-<script defer src="app-insurance.js?v=v107-2026-06-18-code-quality"></script>
+<script defer src="app-insurance.js?v=v108-2026-06-18-custom-confirm"></script>
 
 
 <div id="page-estimate" class="page">
@@ -1296,7 +1309,7 @@
     <button class="ebsm2" onclick="eCSave()" style="margin-left:3px;color:var(--green);border-color:rgba(45,206,137,.3)">저장</button>
     <button class="ebsm2" onclick="eHist()" style="margin-left:3px;color:var(--blue);border-color:rgba(75,156,255,.3)">내역</button>
     <button class="ebsm2" onclick="ePrintEstimate()" style="margin-left:auto;color:var(--green);border-color:rgba(34,197,94,.3);font-weight:700"> 견적서</button>
-    <button class="ebsm2" onclick="if(confirm('전체 초기화하고 다음 차량으로 넘어갈까요?'))eRst()" style="color:var(--red);border-color:rgba(232,68,42,.3);font-weight:700"> 다음차량</button>
+    <button class="ebsm2" onclick="window._confirm('전체 초기화하고 다음 차량으로 넘어갈까요?','초기화','').then(function(ok){if(ok)eRst();})" style="color:var(--red);border-color:rgba(232,68,42,.3);font-weight:700"> 다음차량</button>
   </div>
   <div class="esrch">
     <div class="esrch-box">
@@ -2569,7 +2582,7 @@
   </div>
 </div>
 
-<script src="work-codes-data.js?v=v107-2026-06-18-code-quality"></script>
-<script defer src="app-features.js?v=v107-2026-06-18-code-quality"></script>
+<script src="work-codes-data.js?v=v108-2026-06-18-custom-confirm"></script>
+<script defer src="app-features.js?v=v108-2026-06-18-custom-confirm"></script>
 </body>
 </html>
