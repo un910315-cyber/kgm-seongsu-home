@@ -162,7 +162,7 @@ function ePrintEstimate(){
 function doPrint(){
   var content=document.getElementById('printContent').innerHTML;
   var win=window.open('','_blank','width=800,height=600');
-  if(!win){showNotif('팝업이 차단되어 인쇄 창을 열 수 없습니다. 팝업 허용 후 다시 시도해주세요.', true);return;}
+  if(!win){alert('팝업이 차단되어 인쇄 창을 열 수 없습니다. 팝업 허용 후 다시 시도해주세요.');return;}
   win.document.write('<html><head><title>KGM Seongsu 견적서</title>'
     +'<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">'
     +'<style>body{font-family:"Noto Sans KR",sans-serif;padding:30px;color:#000;}table{width:100%;border-collapse:collapse;}th,td{padding:6px 8px;border-bottom:1px solid #ddd;}@media print{body{padding:15px;}}</style>'
@@ -584,7 +584,7 @@ async function eHist(){
   if(!window.fsLoadEst){eTst2('Firestore 연결 대기');return;}
   var es=await window.fsLoadEst();
   var msg=es.length?es.map(function(e){var v=e.vehicle||{};return(v.plate||v.model||'차량')+' ('+e.date+') ₩'+(e.totalPrice||0).toLocaleString();}).join('\n'):'저장된 견적 없음';
-  await window._confirm(' 견적내역\n\n'+msg, '확인', '닫기');
+  alert(' 견적내역\n\n'+msg);
 }
 function eCopyAll(){
   var cs=[];eRes2.forEach(function(r){(r.codes||[]).forEach(function(c){if(c.code)cs.push(c.code);});});
@@ -1732,7 +1732,8 @@ function eTst2(msg){
       }
       document.getElementById('resModal').classList.remove('open');
     } catch(e) {
-      showNotif('저장 실패: ' + e.message, true);
+      if (typeof showNotif === 'function') showNotif('저장 실패: ' + e.message, true);
+      else alert('저장 실패: ' + e.message);
     }
     btn.disabled = false; btn.textContent = '저장';
   };

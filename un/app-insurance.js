@@ -129,7 +129,7 @@ function closeInsDetail() {
 
 function printInsDetail() {
   const w = window.open('','_blank','width=1100,height=800');
-  if (!w) { showNotif('팝업이 차단되어 인쇄 창을 열 수 없습니다. 팝업 허용 후 다시 시도해주세요.', true); return; }
+  if (!w) { alert('팝업이 차단되어 인쇄 창을 열 수 없습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
   w.document.write(`<html><head><meta charset="UTF-8"><title>${window._printInsTitle}</title>
   <style>body{font-family:'맑은 고딕',sans-serif;margin:20px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #c8d8f0;padding:6px 8px;font-size:11px;}th{background:#eef3fb;}tfoot td{background:#fff8e6;font-weight:bold;}@page{margin:15mm;}</style>
   </head><body>${window._printInsHtml}<script>window.onload=()=>{window.print();}<\/script></body></html>`);
@@ -140,7 +140,7 @@ function printAllSections(type) {
   const sections = currentSections[type];
   const today = new Date().toLocaleDateString('ko-KR');
   const w = window.open('','_blank','width=1100,height=800');
-  if (!w) { showNotif('팝업이 차단되어 인쇄 창을 열 수 없습니다. 팝업 허용 후 다시 시도해주세요.', true); return; }
+  if (!w) { alert('팝업이 차단되어 인쇄 창을 열 수 없습니다. 팝업 허용 후 다시 시도해주세요.'); return; }
   const body = sections.map(([ins, list]) => {
     const amt = list.reduce((s,r)=>s+(Number(r.청구금액)||0),0);
     const isAos = type==='aos';
@@ -181,7 +181,7 @@ function handleAosFile(file) {
         const 청구일자있음 = r['청구일자'] && r['청구일자'].toString().trim() !== '';
         return 지급일자없음 && 지급금액없음 && 소유자제외 && 청구일자있음;
       });
-      if (!미결.length) { showNotif('미결 건이 없습니다!'); return; }
+      if (!미결.length) { alert('미결 건이 없습니다!'); return; }
       const groups = {};
       미결.forEach(r => {
         const ins = r['보험사']||'미분류';
@@ -201,7 +201,7 @@ function handleAosFile(file) {
         });
       });
       renderSections('aos', groups);
-    } catch(err) { showNotif('파일을 읽을 수 없어요. xlsx 파일인지 확인해주세요.', true); console.error(err); }
+    } catch(err) { alert('파일을 읽을 수 없어요. xlsx 파일인지 확인해주세요.\n'+err); }
     }); // _loadXlsx
   };
   reader.readAsArrayBuffer(file);
@@ -263,14 +263,14 @@ function handleBoltFile(file) {
           청구일자,
         });
       }
-      if (!records.length) { showNotif('미결 건이 없습니다!'); return; }
+      if (!records.length) { alert('미결 건이 없습니다!'); return; }
       const groups = {};
       records.forEach(r => {
         if (!groups[r.보험사]) groups[r.보험사] = [];
         groups[r.보험사].push(r);
       });
       renderSections('bolt', groups);
-    } catch(err) { showNotif('파일을 읽을 수 없어요.', true); console.error(err); }
+    } catch(err) { alert('파일을 읽을 수 없어요.\n'+err); }
     }); // _loadXlsx
   };
   reader.readAsArrayBuffer(file);
