@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v111-2026-06-18-rollback">
+<link rel="stylesheet" href="styles.css?v=v112-2026-06-23">
 </head>
 <body>
 
@@ -1125,9 +1125,9 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v111-2026-06-18-rollback"></script>
+<script type="module" src="app-module.js?v=v112-2026-06-23"></script>
 
-<script defer src="app-pages.js?v=v111-2026-06-18-rollback"></script>
+<script defer src="app-pages.js?v=v112-2026-06-23"></script>
 
 <!-- XLSX + JSZip: 보험 미결 탭 첫 진입 시 지연 로드 -->
 <script>
@@ -1147,7 +1147,7 @@
   };
 })();
 </script>
-<script defer src="app-insurance.js?v=v111-2026-06-18-rollback"></script>
+<script defer src="app-insurance.js?v=v112-2026-06-23"></script>
 
 
 <div id="page-estimate" class="page">
@@ -1559,7 +1559,7 @@
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">유형 *</label>
-          <select class="form-select" id="mr-type" onchange="document.getElementById('mr-hours-group').style.display=(this.value==='조퇴'||this.value==='외출')?'flex':'none';">
+          <select class="form-select" id="mr-type" onchange="window._onMrTypeChange&&window._onMrTypeChange()">
             <option value="연차">연차 (1일)</option>
             <option value="오전반차">오전반차 (0.5일)</option>
             <option value="오후반차">오후반차 (0.5일)</option>
@@ -1581,8 +1581,13 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">사용일 *</label>
+          <label class="form-label" id="mr-date-label">사용일 *</label>
           <input class="form-input" id="mr-date" type="date">
+        </div>
+        <div class="form-group" id="mr-enddate-group" style="display:none;">
+          <label class="form-label">종료일 (연속 사용 시)</label>
+          <input class="form-input" id="mr-end-date" type="date">
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">비워두면 하루만 신청됩니다. 토·일은 자동 제외돼 차감되지 않습니다.</div>
         </div>
         <div class="form-group full">
           <label class="form-label">사유</label>
@@ -2582,7 +2587,7 @@
   </div>
 </div>
 
-<script src="work-codes-data.js?v=v111-2026-06-18-rollback"></script>
-<script defer src="app-features.js?v=v111-2026-06-18-rollback"></script>
+<script src="work-codes-data.js?v=v112-2026-06-23"></script>
+<script defer src="app-features.js?v=v112-2026-06-23"></script>
 </body>
 </html>

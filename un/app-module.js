@@ -3510,7 +3510,7 @@
     if (useSel) { var pv2=useSel.value; useSel.innerHTML='<option value="">\uc9c1\uc6d0 \uc120\ud0dd</option>'+allEmpList.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join(''); if(pv2) useSel.value=pv2; }
     var filterEmp = filterSel ? filterSel.value : '';
     var filterMonth = (document.getElementById('leaveFilterMonth')||{}).value || '';
-    var useList = Object.entries(leaveUsage).map(function(e){return {id:e[0],empId:e[1].empId,type:e[1].type,date:e[1].date,reason:e[1].reason,createdAt:e[1].createdAt};});
+    var useList = Object.entries(leaveUsage).map(function(e){return {id:e[0],empId:e[1].empId,type:e[1].type,date:e[1].date,reason:e[1].reason,createdAt:e[1].createdAt,fromRequestId:e[1].fromRequestId};});
     if (!isAdmin) {
       var myEmpIds = empList.map(function(e){return e.id;});
       useList = useList.filter(function(u){return myEmpIds.indexOf(u.empId)!==-1;});
@@ -3519,6 +3519,29 @@
     }
     if (filterMonth) useList = useList.filter(function(u){return (u.date||'').startsWith(filterMonth);});
     useList.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+    // 같은 신청건(fromRequestId)끼리 묶어 기간 1행으로 표시 (연차 연속 사용)
+    var _gmap = {}, _grouped = [];
+    useList.forEach(function(u){
+      var k = u.fromRequestId;
+      if (k) {
+        if (!_gmap[k]) { _gmap[k] = Object.assign({}, u); _gmap[k]._ids = []; _gmap[k]._dates = []; _grouped.push(_gmap[k]); }
+        _gmap[k]._ids.push(u.id); _gmap[k]._dates.push(u.date);
+      } else {
+        var s = Object.assign({}, u); s._ids = [u.id]; s._dates = [u.date]; _grouped.push(s);
+      }
+    });
+    _grouped.forEach(function(g){
+      g._dates.sort(function(a,b){return (a||'').localeCompare(b||'');});
+      g._count = g._dates.length;
+      if (g._count > 1) {
+        g._dateLabel = esc(g._dates[0]||'-') + ' ~ ' + esc(g._dates[g._count-1]||'-') + ' <span style="color:var(--text-dim);font-size:11px;">(' + g._count + '일)</span>';
+        g._delAttr = 'window._deleteLeaveUseGroup(\'' + esc(g._ids.join(',')) + '\')';
+      } else {
+        g._dateLabel = esc(g._dates[0]||'-');
+        g._delAttr = 'window._deleteLeaveUse(\'' + esc(g._ids[0]) + '\')';
+      }
+    });
+    useList = _grouped;
     var useTbody = document.getElementById('leave-use-tbody');
     var useEmpty = document.getElementById('leave-use-empty');
     if (!useTbody) return;
@@ -3532,8 +3555,8 @@
         else if (u.type==='\uc870\ud1f4') typeBadge='<span style="background:rgba(232,68,42,0.15);color:var(--red);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">\uc870\ud1f4 '+(u.hours||'')+'h</span>';
         else if (u.type==='\uc678\ucd9c') typeBadge='<span style="background:rgba(139,92,246,0.15);color:var(--accent);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">\uc678\ucd9c '+(u.hours||'')+'h</span>';
         else typeBadge='<span style="background:rgba(251,146,60,0.15);color:#fb923c;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">'+esc(u.type)+'</span>';
-        var deleteCell = isAdmin ? ('<td><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteLeaveUse(\''+esc(u.id)+'\')">\uc0ad\uc81c</button></td>') : '';
-        return '<tr><td>'+esc(empName)+'</td><td>'+typeBadge+'</td><td>'+esc(u.date||'-')+'</td><td>'+esc(u.reason||'-')+'</td><td style="font-size:11px;color:var(--text-dim);">'+esc((u.createdAt||'').split('T')[0])+'</td>'+deleteCell+'</tr>';
+        var deleteCell = isAdmin ? ('<td><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="'+(u._delAttr||('window._deleteLeaveUse(\''+esc(u.id)+'\')'))+'">\uc0ad\uc81c</button></td>') : '';
+        return '<tr><td>'+esc(empName)+'</td><td>'+typeBadge+'</td><td>'+(u._dateLabel||esc(u.date||'-'))+'</td><td>'+esc(u.reason||'-')+'</td><td style="font-size:11px;color:var(--text-dim);">'+esc((u.createdAt||'').split('T')[0])+'</td>'+deleteCell+'</tr>';
       }).join('');
     }
     try { if(window._renderMyRequests) window._renderMyRequests(); if(window._renderApprovalQueue) window._renderApprovalQueue(); } catch(e) { console.error(e); }
@@ -4512,14 +4535,73 @@
     return false;
   }
 
+  // \uc2dc\uc791~\uc885\ub8cc \uc0ac\uc774\uc758 \ud3c9\uc77c(\uc6d4~\uae08) \ub0a0\uc9dc \ubb38\uc790\uc5f4 \ubc30\uc5f4 \ubc18\ud658 (\uc8fc\ub9d0 \uc81c\uc678)
+  function eachWeekdayInRange(start, end) {
+    var out = [];
+    if (!start || !end) return out;
+    var s = new Date(start + 'T00:00:00');
+    var e = new Date(end + 'T00:00:00');
+    if (isNaN(s.getTime()) || isNaN(e.getTime()) || e < s) return out;
+    var cur = new Date(s);
+    var guard = 0;
+    while (cur <= e && guard < 400) {
+      var dow = cur.getDay();
+      if (dow !== 0 && dow !== 6) {
+        var yy = cur.getFullYear();
+        var mm = String(cur.getMonth() + 1).padStart(2, '0');
+        var dd = String(cur.getDate()).padStart(2, '0');
+        out.push(yy + '-' + mm + '-' + dd);
+      }
+      cur.setDate(cur.getDate() + 1);
+      guard++;
+    }
+    return out;
+  }
+  // \uc2e0\uccad\uac74(req)\uc5d0 \ud574\ub2f9\ud558\ub294 \uc0ac\uc6a9\ub0b4\uc5ed\uc744 leaveUsage\uc5d0 \uc0dd\uc131. \uc5f0\ucc28 \ub2e4\uc77c\uc774\uba74 \ud3c9\uc77c\ub9c8\ub2e4 1\uac74\uc529 \uac19\uc740 fromRequestId\ub85c \ubb36\uc74c.
+  // \ubc18\ud658: \uc0dd\uc131\ub41c \uccab usage \ud0a4 (finalUsageId \uc6a9)
+  async function createLeaveUsageForRequest(req, requestId, extraUsageFields) {
+    extraUsageFields = extraUsageFields || {};
+    var nowStr = new Date().toISOString();
+    var dates;
+    if (req.type === '\uc5f0\ucc28' && req.endDate && req.endDate !== req.date) {
+      dates = eachWeekdayInRange(req.date, req.endDate);
+    }
+    if (!dates || !dates.length) dates = [req.date];
+    var firstKey = null;
+    for (var i = 0; i < dates.length; i++) {
+      var usageData = Object.assign({
+        empId: req.empId, type: req.type, date: dates[i],
+        reason: req.reason || '', createdAt: nowStr, fromRequestId: requestId
+      }, extraUsageFields);
+      if (req.hours) usageData.hours = req.hours;
+      var uref = await push(leaveUseRef, usageData);
+      if (!firstKey) firstKey = uref.key;
+    }
+    return firstKey;
+  }
+  // \uc2e0\uccad \ubaa8\ub2ec \uc720\ud615 \ubcc0\uacbd: \uc2dc\uac04 \uc120\ud0dd(\uc870\ud1f4/\uc678\ucd9c)\u00b7\uc885\ub8cc\uc77c(\uc5f0\ucc28)\u00b7\ub77c\ubca8 \ud1a0\uae00
+  window._onMrTypeChange = function() {
+    var type = (document.getElementById('mr-type') || {}).value;
+    var hoursGroup = document.getElementById('mr-hours-group');
+    if (hoursGroup) hoursGroup.style.display = (type === '\uc870\ud1f4' || type === '\uc678\ucd9c') ? 'flex' : 'none';
+    var endGroup = document.getElementById('mr-enddate-group');
+    var isYC = (type === '\uc5f0\ucc28');
+    if (endGroup) endGroup.style.display = isYC ? 'flex' : 'none';
+    var dateLabel = document.getElementById('mr-date-label');
+    if (dateLabel) dateLabel.textContent = isYC ? '\uc2dc\uc791\uc77c *' : '\uc0ac\uc6a9\uc77c *';
+    if (!isYC) { var ed = document.getElementById('mr-end-date'); if (ed) ed.value = ''; }
+  };
+
   window._openMyRequestModal = function() {
     var myEmp = getMyEmpRecord();
     if (!myEmp) { showNotif('\ubcf8\uc778 \uc9c1\uc6d0 \uc815\ubcf4\uac00 \ub4f1\ub85d\ub418\uc9c0 \uc54a\uc544 \uc2e0\uccad\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4. \uad00\ub9ac\uc790\uc5d0\uac8c \ubb38\uc758\ud574\uc8fc\uc138\uc694.', true); return; }
     document.getElementById('mr-type').value = '\uc5f0\ucc28';
     document.getElementById('mr-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('mr-end-date').value = '';
     document.getElementById('mr-reason').value = '';
     document.getElementById('mr-hours').value = '1';
     document.getElementById('mr-hours-group').style.display = 'none';
+    window._onMrTypeChange();
     var pos = myEmp.position || '\uc77c\ubc18';
     var flowText = '';
     if (pos === '\ub300\ud45c') flowText = '\ub300\ud45c\ub2d8 \uc2e0\uccad\uc740 \uc81c\ucd9c \uc989\uc2dc \uc2b9\uc778\ub429\ub2c8\ub2e4.';
@@ -4536,9 +4618,17 @@
     if (!myEmp) { showNotif('\uc9c1\uc6d0 \uc815\ubcf4\uac00 \uc5c6\uc2b5\ub2c8\ub2e4', true); return; }
     var type = document.getElementById('mr-type').value;
     var date = document.getElementById('mr-date').value;
+    var endDate = (type === '\uc5f0\ucc28') ? ((document.getElementById('mr-end-date')||{}).value || '') : '';
     var reason = document.getElementById('mr-reason').value.trim();
     var hours = (type === '\uc870\ud1f4' || type === '\uc678\ucd9c') ? parseInt(document.getElementById('mr-hours').value) : null;
     if (!date) { showNotif('\uc0ac\uc6a9\uc77c\uc744 \uc120\ud0dd\ud574\uc8fc\uc138\uc694', true); return; }
+    // \uc5f0\ucc28 \uc5f0\uc18d \uc2e0\uccad: \uc885\ub8cc\uc77c \uac80\uc99d
+    var rangeDays = null;
+    if (endDate && endDate !== date) {
+      if (endDate < date) { showNotif('\uc885\ub8cc\uc77c\uc774 \uc2dc\uc791\uc77c\ubcf4\ub2e4 \ube60\ub985\ub2c8\ub2e4', true); return; }
+      rangeDays = eachWeekdayInRange(date, endDate);
+      if (!rangeDays.length) { showNotif('\uc120\ud0dd\ud55c \uae30\uac04\uc5d0 \ud3c9\uc77c\uc774 \uc5c6\uc2b5\ub2c8\ub2e4 (\uc8fc\ub9d0\ub9cc \uc120\ud0dd\ub428)', true); return; }
+    }
     var btn = document.getElementById('myReqSaveBtn');
     btn.disabled = true; btn.textContent = '\uc81c\ucd9c \uc911...';
     try {
@@ -4546,18 +4636,17 @@
       var nowStr = new Date().toISOString();
       var data = { empId: myEmp.id, type: type, date: date, reason: reason, team: myEmp.team || '', status: initStatus, createdAt: nowStr, requestedBy: window._userEmail || '' };
       if (hours) data.hours = hours;
+      if (rangeDays) data.endDate = endDate;
       if (initStatus === 'approved') {
         data.approvedAt = nowStr; data.approvedBy = window._userEmail || '';
         data.directorApprovedAt = nowStr; data.directorApprovedBy = window._userEmail || '';
         var newRef = await push(leaveRequestsRef, data);
-        var usageData = { empId: myEmp.id, type: type, date: date, reason: reason, createdAt: nowStr, fromRequestId: newRef.key };
-        if (hours) usageData.hours = hours;
-        var usageRef = await push(leaveUseRef, usageData);
-        await update(ref(db, 'leaveRequests/' + newRef.key), { finalUsageId: usageRef.key });
-        showNotif('\uc2e0\uccad\uc774 \uc989\uc2dc \uc2b9\uc778\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
+        var firstUsageKey = await createLeaveUsageForRequest(data, newRef.key);
+        await update(ref(db, 'leaveRequests/' + newRef.key), { finalUsageId: firstUsageKey });
+        showNotif(rangeDays ? ('\uc2e0\uccad\uc774 \uc989\uc2dc \uc2b9\uc778\ub418\uc5c8\uc2b5\ub2c8\ub2e4 (\ud3c9\uc77c ' + rangeDays.length + '\uc77c)') : '\uc2e0\uccad\uc774 \uc989\uc2dc \uc2b9\uc778\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
       } else {
         await push(leaveRequestsRef, data);
-        showNotif('\uc2e0\uccad\uc774 \uc81c\ucd9c\ub418\uc5c8\uc2b5\ub2c8\ub2e4 (' + statusLabel(initStatus) + ')');
+        showNotif('\uc2e0\uccad\uc774 \uc81c\ucd9c\ub418\uc5c8\uc2b5\ub2c8\ub2e4' + (rangeDays ? ' \u00b7 \ud3c9\uc77c ' + rangeDays.length + '\uc77c' : '') + ' (' + statusLabel(initStatus) + ')');
       }
       document.getElementById('myRequestModal').classList.remove('open');
     } catch(e) { showNotif('\uc81c\ucd9c \uc2e4\ud328: ' + e.message, true); }
@@ -4623,10 +4712,8 @@
       };
       if (hours) data.hours = hours;
       var newRef = await push(leaveRequestsRef, data);
-      var usageData = { empId: empId, type: type, date: date, reason: reason, createdAt: nowStr, fromRequestId: newRef.key, registeredOnBehalfBy: adminEmail };
-      if (hours) usageData.hours = hours;
-      var usageRef = await push(leaveUseRef, usageData);
-      await update(ref(db, 'leaveRequests/' + newRef.key), { finalUsageId: usageRef.key });
+      var firstUsageKey = await createLeaveUsageForRequest(data, newRef.key, { registeredOnBehalfBy: adminEmail });
+      await update(ref(db, 'leaveRequests/' + newRef.key), { finalUsageId: firstUsageKey });
       showNotif(emp.name + ' \ub2d8\uc758 ' + type + ' \uc2e0\uccad\uc744 \ub300\uc2e0 \ub4f1\ub85d\u00b7\uc2b9\uc778\ud588\uc2b5\ub2c8\ub2e4');
       document.getElementById('proxyRequestModal').classList.remove('open');
     } catch(e) { showNotif('\ub4f1\ub85d \uc2e4\ud328: ' + e.message, true); }
@@ -4658,11 +4745,10 @@
     try {
       await update(ref(db, 'leaveRequests/' + id), updates);
       if (nextStatus === 'approved') {
-        var usageData = { empId: req.empId, type: req.type, date: req.date, reason: req.reason || '', createdAt: nowStr, fromRequestId: id };
-        if (req.hours) usageData.hours = req.hours;
-        var usageRef = await push(leaveUseRef, usageData);
-        await update(ref(db, 'leaveRequests/' + id), { finalUsageId: usageRef.key });
-        showNotif('\ucd5c\uc885 \uc2b9\uc778 \uc644\ub8cc, \uc0ac\uc6a9 \ub0b4\uc5ed\uc5d0 \uc790\ub3d9 \ub4f1\ub85d\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
+        var firstUsageKey = await createLeaveUsageForRequest(req, id);
+        await update(ref(db, 'leaveRequests/' + id), { finalUsageId: firstUsageKey });
+        var isRange = (req.type === '\uc5f0\ucc28' && req.endDate && req.endDate !== req.date);
+        showNotif('\ucd5c\uc885 \uc2b9\uc778 \uc644\ub8cc, \uc0ac\uc6a9 \ub0b4\uc5ed\uc5d0 \uc790\ub3d9 \ub4f1\ub85d\ub418\uc5c8\uc2b5\ub2c8\ub2e4' + (isRange ? ' (\ud3c9\uc77c ' + eachWeekdayInRange(req.date, req.endDate).length + '\uc77c)' : ''));
       } else {
         showNotif('\uc2b9\uc778 \uc644\ub8cc \u2192 ' + statusLabel(nextStatus));
       }
@@ -4713,6 +4799,12 @@
     var y = d ? d.getFullYear() : '';
     var mo = d ? (d.getMonth()+1) : '';
     var da = d ? d.getDate() : '';
+    // 연차 연속 사용 시 종료일(까지) 별도 표기
+    var endDate = req.endDate || date;
+    var ed = endDate ? new Date(endDate) : d;
+    var ey = ed ? ed.getFullYear() : '';
+    var emo = ed ? (ed.getMonth()+1) : '';
+    var eda = ed ? ed.getDate() : '';
     var isOut = (type === '\uc678\ucd9c');
     var isEarly = (type === '\uc870\ud1f4');
     var isYC = (type === '\uc5f0\ucc28');
@@ -4762,7 +4854,7 @@
       + '<div style="margin-bottom:8px;">\uc704 \uc0ac\ub78c\uc758 ( '+esc(type)+' ) \uc2e0\uccad\uc6d0\uc744 \uc81c\ucd9c\ud558\uc624\ub2c8 \ud5c8\uac00\ud558\uc5ec \uc8fc\uc2dc\uae30 \ubc14\ub78d\ub2c8\ub2e4.</div>'
       + '<div style="margin:14px 0 6px;font-weight:700;">1. \uae30 \uac04 :</div>'
       + '<div style="margin-left:18px;">'+y+'\ub144 '+mo+'\uc6d4 '+da+'\uc77c \ubd80\ud130</div>'
-      + '<div style="margin-left:18px;">'+y+'\ub144 '+mo+'\uc6d4 '+da+'\uc77c \uae4c\uc9c0</div>'
+      + '<div style="margin-left:18px;">'+ey+'\ub144 '+emo+'\uc6d4 '+eda+'\uc77c \uae4c\uc9c0</div>'
       + (hours ? '<div style="margin-left:18px;color:#444;">( \u3000 \uc2dc \u3000 \ubd84\ubd80\ud130 \u3000 \uc2dc \u3000 \ubd84\uae4c\uc9c0 \u00a0\u00a0 '+hours+'\uc2dc\uac04 )</div>' : '')
       + (halfNote ? '<div style="margin-left:18px;color:#444;">( '+halfNote+' )</div>' : '')
       + '<div style="margin:18px 0 6px;font-weight:700;">2. \uc0ac \uc720 :</div>'
@@ -5227,13 +5319,14 @@
     if (empty) empty.style.display = 'none';
     tbody.innerHTML = list.map(function(r) {
       var typeText = r.type + (r.hours ? ' '+r.hours+'h' : '');
+      var dateText = (r.endDate && r.endDate !== r.date) ? (esc(r.date)+' ~ '+esc(r.endDate)) : esc(r.date||'-');
       var canCancel = (r.status === 'pending_manager' || r.status === 'pending_admin' || r.status === 'pending_director');
       var viewBtn = '<button class="btn btn-ghost btn-sm" onclick="window._openRequestPrintView(\''+esc(r.id)+'\')">\uc591\uc2dd</button>';
       var afterBtn = canCancel
         ? '<button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._cancelMyRequest(\''+esc(r.id)+'\')">\ucde8\uc18c</button>'
         : (r.status === 'rejected' && r.rejectedReason ? '<span style="font-size:11px;color:var(--text-dim);" title="'+esc(r.rejectedReason)+'">\uc0ac\uc720: '+esc(r.rejectedReason).slice(0,20)+'</span>' : '');
       var actionCell = '<div style="display:flex;gap:5px;align-items:center;">'+viewBtn+afterBtn+'</div>';
-      return '<tr><td>'+esc(typeText)+'</td><td>'+esc(r.date||'-')+'</td><td>'+esc(r.reason||'-')+'</td><td>'+reqStatusBadge(r.status)+'</td><td style="font-size:11px;color:var(--text-dim);">'+esc((r.createdAt||'').split('T')[0])+'</td><td>'+actionCell+'</td></tr>';
+      return '<tr><td>'+esc(typeText)+'</td><td>'+dateText+'</td><td>'+esc(r.reason||'-')+'</td><td>'+reqStatusBadge(r.status)+'</td><td style="font-size:11px;color:var(--text-dim);">'+esc((r.createdAt||'').split('T')[0])+'</td><td>'+actionCell+'</td></tr>';
     }).join('');
   }
   function renderApprovalQueue() {
@@ -5271,6 +5364,7 @@
       var name = emp ? emp.name : '(\uc0ad\uc81c\ub428)';
       var team = emp ? (emp.team || '-') : '-';
       var typeText = r.type + (r.hours ? ' '+r.hours+'h' : '');
+      var dateText = (r.endDate && r.endDate !== r.date) ? (esc(r.date)+' ~ '+esc(r.endDate)) : esc(r.date||'-');
       var viewBtn = '<button class="btn btn-ghost btn-sm" onclick="window._openRequestPrintView(\''+esc(r.id)+'\')">\uc591\uc2dd</button>';
       var actBtns;
       var rowStyle = '';
@@ -5284,7 +5378,7 @@
         actBtns = '<span style="font-size:11px;color:var(--text-dim);">' + (r.status==='pending_manager'?(team+' \ubd80\uc11c\uc7a5'):(r.status==='pending_admin'?'\uad00\ub9ac\uc790':'\ub300\ud45c')) + ' \ub300\uae30 \uc911</span>';
       }
       var actions = '<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">'+viewBtn+actBtns+'</div>';
-      return '<tr'+rowStyle+'><td><strong>'+esc(name)+'</strong></td><td style="font-size:12px;">'+esc(team)+'</td><td>'+esc(typeText)+'</td><td>'+esc(r.date||'-')+'</td><td>'+esc(r.reason||'-')+'</td><td>'+reqStatusBadge(r.status)+'</td><td>'+actions+'</td></tr>';
+      return '<tr'+rowStyle+'><td><strong>'+esc(name)+'</strong></td><td style="font-size:12px;">'+esc(team)+'</td><td>'+esc(typeText)+'</td><td>'+dateText+'</td><td>'+esc(r.reason||'-')+'</td><td>'+reqStatusBadge(r.status)+'</td><td>'+actions+'</td></tr>';
     }).join('');
   }
   window._renderMyRequests = renderMyRequests;
@@ -5339,4 +5433,14 @@
     if (!(await window._confirm('\uc774 \uc0ac\uc6a9 \ub0b4\uc5ed\uc744 \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?','\uc0ad\uc81c',''))) return;
     try { await remove(ref(db, 'leaveUsage/' + id)); showNotif('\uc0ad\uc81c\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
     catch(e) { showNotif('\uc0ad\uc81c \uc2e4\ud328: ' + e.message, true); }
+  };
+  // \ub2e4\uc77c \uc5f0\ucc28(\uac19\uc740 \uc2e0\uccad\uac74) \uc0ac\uc6a9\ub0b4\uc5ed\uc744 \ud55c \ubc88\uc5d0 \uc0ad\uc81c
+  window._deleteLeaveUseGroup = async function(idsCsv) {
+    var ids = (idsCsv || '').split(',').filter(function(x){ return x; });
+    if (!ids.length) return;
+    if (!(await window._confirm('\uc774 \uae30\uac04(' + ids.length + '\uc77c)\uc758 \uc0ac\uc6a9 \ub0b4\uc5ed\uc744 \ubaa8\ub450 \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?','\uc0ad\uc81c',''))) return;
+    try {
+      for (var i = 0; i < ids.length; i++) { await remove(ref(db, 'leaveUsage/' + ids[i])); }
+      showNotif(ids.length + '\uac74 \uc0ad\uc81c\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
+    } catch(e) { showNotif('\uc0ad\uc81c \uc2e4\ud328: ' + e.message, true); }
   };
