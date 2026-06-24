@@ -1041,15 +1041,68 @@ function eTst2(msg){
     }, 60000);
   };
 
+  // JSZip을 필요 시점에 로드 (페이지 초기엔 로드 안 됨 → 사진 모달에서 바로 쓰려면 직접 로드)
+  function ensureJSZip() {
+    return new Promise(function(res){
+      if (typeof JSZip !== 'undefined') { res(true); return; }
+      if (window._loadXlsx) {
+        window._loadXlsx(function(){ res(typeof JSZip !== 'undefined'); });
+      } else {
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+        s.onload = function(){ res(typeof JSZip !== 'undefined'); };
+        s.onerror = function(){ res(false); };
+        document.head.appendChild(s);
+      }
+    });
+  }
+  // 폴백: fetch가 막히거나(CORS) JSZip이 없을 때 한 장씩 받기
+  async function downloadEachPhoto(arr, carNum, progEl) {
+    var done = 0;
+    for (var i = 0; i < arr.length; i++) {
+      var p = arr[i];
+      if (progEl) progEl.textContent = '한 장씩 받는 중... (' + (i+1) + '/' + arr.length + ')';
+      var fileName = carNum + '_' + currentStage + '_' + String(i+1).padStart(2,'0') + '.jpg';
+      try {
+        var resp = await fetch(p.url);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        var blob = await resp.blob();
+        var burl = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = burl; a.download = fileName;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout((function(u){ return function(){ URL.revokeObjectURL(u); }; })(burl), 2000);
+        done++;
+      } catch(e) {
+        // cross-origin이라 fetch 불가 → 새 탭으로 열어 직접 저장
+        var a2 = document.createElement('a');
+        a2.href = p.url; a2.target = '_blank'; a2.rel = 'noopener';
+        document.body.appendChild(a2); a2.click(); document.body.removeChild(a2);
+      }
+      await new Promise(function(r){ setTimeout(r, 500); }); // 브라우저 연속 다운로드 차단 완화
+    }
+    return done;
+  }
   window._downloadAllPhotos = async function() {
     if (window._userRole !== 'admin') return;
     var arr = getPhotoArr(currentStage);
     if (!arr.length) { showNotif('다운로드할 사진이 없습니다', true); return; }
-    if (typeof JSZip === 'undefined') { showNotif('ZIP 라이브러리 로딩 실패', true); return; }
     var r = getRecord();
     var carNum = (r && r.carNum) ? r.carNum : 'vehicle';
     var progEl = document.getElementById('photoProgress');
     progEl.style.display = '';
+    // JSZip 미로드 시 즉시 로드
+    if (typeof JSZip === 'undefined') {
+      progEl.textContent = '압축 라이브러리 불러오는 중...';
+      await ensureJSZip();
+    }
+    if (typeof JSZip === 'undefined') {
+      // 그래도 없으면 한 장씩 받기로 폴백
+      var n0 = await downloadEachPhoto(arr, carNum, progEl);
+      progEl.textContent = '완료 — ' + n0 + '장 받음 (압축 불가로 개별 저장)';
+      setTimeout(function(){ progEl.style.display = 'none'; }, 3000);
+      return;
+    }
     var zip = new JSZip();
     var done = 0, fail = 0;
     for (var i = 0; i < arr.length; i++) {
@@ -1068,8 +1121,11 @@ function eTst2(msg){
       }
     }
     if (!done) {
-      progEl.textContent = '다운로드 실패 — 사진을 가져올 수 없습니다';
-      setTimeout(function(){ progEl.style.display = 'none'; }, 3000);
+      // 전부 fetch 실패(대개 Storage CORS) → 한 장씩 받기로 폴백
+      progEl.textContent = '묶음 다운로드 불가 — 한 장씩 받습니다';
+      var n1 = await downloadEachPhoto(arr, carNum, progEl);
+      progEl.textContent = '완료 — ' + n1 + '장 받음 (개별 저장)';
+      setTimeout(function(){ progEl.style.display = 'none'; }, 3500);
       return;
     }
     progEl.textContent = 'ZIP 생성 중...';
