@@ -5015,6 +5015,9 @@
     document.getElementById('ni-accrue-end').value = yr + '-12-31';
     document.getElementById('ni-usage-start').value = yr + '-01-01';
     document.getElementById('ni-usage-end').value = yr + '-12-31';
+    // 제출기한 기본값: 오늘 + 10일 (법정 사용촉진 기준). 필요 시 발행 시 직접 수정
+    var dl = new Date(); dl.setDate(dl.getDate() + 10);
+    document.getElementById('ni-submit-deadline').value = dl.toISOString().split('T')[0];
     document.getElementById('issueNoticeModal').classList.add('open');
   };
   window._onIssueEmpSelect = function() {
@@ -5062,6 +5065,7 @@
         usagePeriod: { start: document.getElementById('ni-usage-start').value, end: document.getElementById('ni-usage-end').value }
       },
       noticeDate: new Date().toISOString(),
+      submitDeadline: document.getElementById('ni-submit-deadline').value,
       plan: [],
       status: 'issued',
       createdAt: new Date().toISOString(),
@@ -5069,6 +5073,7 @@
     };
     if (!data.employee.department) { showNotif('부서를 입력해주세요', true); return; }
     if (!data.leaveInfo.usagePeriod.start || !data.leaveInfo.usagePeriod.end) { showNotif('사용대상기간을 입력해주세요', true); return; }
+    if (!data.submitDeadline) { showNotif('사용계획서 제출기한을 입력해주세요', true); return; }
     var btn = document.getElementById('issueNoticeBtn');
     btn.disabled = true; btn.textContent = '발행 중...';
     try {
@@ -5175,6 +5180,8 @@
     var ap = li.accrualPeriod || {}; var up = li.usagePeriod || {};
     var plan = n.plan || [];
     var noticeDateStr = n.noticeDate ? n.noticeDate.split('T')[0] : '';
+    var deadlineStr = n.submitDeadline ? String(n.submitDeadline).split('T')[0] : '';
+    function fmtKorDate(d) { if (!d) return ''; var p = String(d).split('-'); if (p.length < 3) return d; return p[0] + '년 ' + parseInt(p[1],10) + '월 ' + parseInt(p[2],10) + '일'; }
     var approval = n.approval || {};
     var border = 'border:1px solid #000;';
     var hdr = 'border:1px solid #000;background:#f0f0f0;text-align:center;font-weight:600;padding:6px 8px;font-size:12px;';
@@ -5223,8 +5230,14 @@
       + '<td style="'+hdr+'width:90px;">휴가사용일수</td>'
       + '<td style="'+hdr+'width:140px;">비고</td>'
       + '</tr></thead><tbody>' + planRows + '</tbody></table>'
-      + '<div style="margin:18px 0 6px;">* 휴가사용일 지정 통지일: ' + esc(noticeDateStr) + '</div>'
+      + (deadlineStr ? '<div style="margin:18px 0 6px;">※ 본 통지서를 받은 후 <strong>' + esc(fmtKorDate(deadlineStr)) + '</strong>까지 사용계획서를 제출해 주십시오.</div>' : '')
       + '<div style="text-align:center;margin-top:24px;font-size:14px;font-weight:700;">회사명: 케이지모빌리티성수서비스센터(주)</div>';
+    html += '<div style="margin-top:26px;border-top:1px solid #000;padding-top:14px;font-size:12px;">'
+      + '<div style="margin-bottom:16px;">위 「연차휴가 사용일 지정 통지서」를 통지받았음을 확인합니다.</div>'
+      + '<div style="text-align:right;line-height:2.3;">'
+      + '통지받은 날 : 20&nbsp;&nbsp;&nbsp;년&nbsp;&nbsp;&nbsp;월&nbsp;&nbsp;&nbsp;일<br>'
+      + '대상근로자 : ' + esc(emp.name || '') + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(서명 또는 인)'
+      + '</div></div>';
     if (approval.approved) {
       var apDate = approval.timestamp ? approval.timestamp.replace('T',' ').slice(0,16) : '';
       html += '<div style="margin-top:20px;border:2px solid #c00;padding:14px 16px;text-align:right;font-size:12px;">'
