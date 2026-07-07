@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v114-2026-07-06">
+<link rel="stylesheet" href="styles.css?v=v115-2026-07-07">
 </head>
 <body>
 
@@ -1125,9 +1125,9 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v114-2026-07-06"></script>
+<script type="module" src="app-module.js?v=v115-2026-07-07"></script>
 
-<script defer src="app-pages.js?v=v114-2026-07-06"></script>
+<script defer src="app-pages.js?v=v115-2026-07-07"></script>
 
 <!-- XLSX + JSZip: 보험 미결 탭 첫 진입 시 지연 로드 -->
 <script>
@@ -1147,7 +1147,7 @@
   };
 })();
 </script>
-<script defer src="app-insurance.js?v=v114-2026-07-06"></script>
+<script defer src="app-insurance.js?v=v115-2026-07-07"></script>
 
 
 <div id="page-estimate" class="page">
@@ -1384,6 +1384,7 @@
           <option value="submitted">제출됨</option>
           <option value="approved">승인완료</option>
         </select>
+        <button class="btn btn-sm leave-admin-only" onclick="window._printAllNotices()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);">🖨️ 전체 프린트</button>
         <button class="btn btn-primary btn-sm leave-admin-only" onclick="window._openIssueNoticeModal()"> 통지서 발행</button>
       </div>
     </div>
@@ -2591,7 +2592,7 @@
   </div>
 </div>
 
-<script src="work-codes-data.js?v=v114-2026-07-06"></script>
-<script defer src="app-features.js?v=v114-2026-07-06"></script>
+<script src="work-codes-data.js?v=v115-2026-07-07"></script>
+<script defer src="app-features.js?v=v115-2026-07-07"></script>
 </body>
 </html>

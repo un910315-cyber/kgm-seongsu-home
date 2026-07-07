@@ -5269,6 +5269,26 @@
     w.document.write(html); w.document.close(); w.focus();
     setTimeout(function(){ try { w.print(); } catch(e){} }, 300);
   };
+  window._printAllNotices = function() {
+    if (window._userRole !== 'admin') return;
+    var filter = (document.getElementById('noticeFilterStatus') || {}).value || '';
+    var list = Object.keys(leaveNotices).map(function(id){ return leaveNotices[id]; });
+    if (filter) list = list.filter(function(n){ return n.status === filter; });
+    if (!list.length) { showNotif('프린트할 통지서가 없습니다', true); return; }
+    // 발행일(createdAt) 순 정렬
+    list.sort(function(a,b){ return new Date(a.createdAt||0) - new Date(b.createdAt||0); });
+    var body = list.map(function(n, i){
+      var brk = (i < list.length - 1) ? 'always' : 'auto';
+      return '<div style="page-break-after:' + brk + ';">' + buildNoticeFormHTML(n) + '</div>';
+    }).join('');
+    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>연차휴가 사용일 지정 통지서 (전체 ' + list.length + '건)</title>'
+      + '<style>@page{size:A4;margin:18mm 16mm;}body{margin:0;padding:0;background:#fff;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style>'
+      + '</head><body>' + body + '</body></html>';
+    var w = window.open('', '_blank', 'width=820,height=1100');
+    if (!w) { showNotif('팝업 차단 시 인쇄 안 됩니다', true); return; }
+    w.document.write(html); w.document.close(); w.focus();
+    setTimeout(function(){ try { w.print(); } catch(e){} }, 500);
+  };
   window._deleteNotice = async function(id) {
     if (window._userRole !== 'admin') return;
     if (!(await window._confirm('이 통지서를 삭제하시겠습니까?','삭제',''))) return;
