@@ -334,15 +334,21 @@
         badge.title='클릭하면 로그아웃';
         badge.onclick=async function(){if(await window._confirm('로그아웃 하시겠습니까?','로그아웃','취소'))authSignOut();};
         headerRight.appendChild(badge);
-        // 눈에 보이는 로그아웃 버튼
-        const logoutBtn = document.createElement('button');
-        logoutBtn.id = 'logout-btn';
-        logoutBtn.type = 'button';
-        logoutBtn.textContent = '로그아웃';
-        logoutBtn.style.cssText='cursor:pointer;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:600;padding:5px 12px;border-radius:8px;white-space:nowrap;';
-        logoutBtn.onclick=async function(){if(await window._confirm('로그아웃 하시겠습니까?','로그아웃','취소'))authSignOut();};
-        headerRight.appendChild(logoutBtn);
       }
+      // 사이드바(nav-tabs) 맨 아래에 항상 보이는 로그아웃 버튼
+      // (.header-right는 사이드바 레이아웃에서 display:none 이라 여기 넣어야 보임)
+      try {
+        const navTabs = document.querySelector('.nav-tabs');
+        if (navTabs) {
+          const logoutBtn = document.createElement('button');
+          logoutBtn.id = 'logout-btn';
+          logoutBtn.type = 'button';
+          logoutBtn.textContent = '🚪 로그아웃';
+          logoutBtn.style.cssText='margin-top:auto;width:100%;flex:0 0 auto;box-sizing:border-box;cursor:pointer;background:rgba(232,68,42,0.12);color:#e8442a;border:1px solid rgba(232,68,42,0.35);font-size:12px;font-weight:700;padding:9px 12px;border-radius:10px;white-space:nowrap;';
+          logoutBtn.onclick=async function(){if(await window._confirm('로그아웃 하시겠습니까?','로그아웃','취소'))authSignOut();};
+          navTabs.appendChild(logoutBtn);
+        }
+      } catch(_) {}
 
       // 로그인 화면 숨기기 → 앱 표시
       _authDiag('-> login OK, role=' + role + ', hiding login screen');
