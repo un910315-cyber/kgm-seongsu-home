@@ -321,6 +321,8 @@
       const headerRight = document.querySelector('.header-right');
       const existingBadge = document.getElementById('user-badge');
       if(existingBadge) existingBadge.remove();
+      const existingLogout = document.getElementById('logout-btn');
+      if(existingLogout) existingLogout.remove();
       if(headerRight){
         const badge = document.createElement('div');
         badge.id = 'user-badge';
@@ -329,8 +331,17 @@
         badge.innerHTML='<img src="'+(user.photoURL||'')+'" style="width:20px;height:20px;border-radius:50%;border:1px solid rgba(139,92,246,.3)">'
           +'<span style="font-family:Inter,sans-serif;font-size:11px;">'+(window._userName||'').split(' ')[0]+'</span>'
           +'<span style="font-size:9px;color:var(--accent);font-weight:700;text-transform:uppercase;">'+role+'</span>';
+        badge.title='클릭하면 로그아웃';
         badge.onclick=async function(){if(await window._confirm('로그아웃 하시겠습니까?','로그아웃','취소'))authSignOut();};
         headerRight.appendChild(badge);
+        // 눈에 보이는 로그아웃 버튼
+        const logoutBtn = document.createElement('button');
+        logoutBtn.id = 'logout-btn';
+        logoutBtn.type = 'button';
+        logoutBtn.textContent = '로그아웃';
+        logoutBtn.style.cssText='cursor:pointer;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-size:11px;font-weight:600;padding:5px 12px;border-radius:8px;white-space:nowrap;';
+        logoutBtn.onclick=async function(){if(await window._confirm('로그아웃 하시겠습니까?','로그아웃','취소'))authSignOut();};
+        headerRight.appendChild(logoutBtn);
       }
 
       // 로그인 화면 숨기기 → 앱 표시
