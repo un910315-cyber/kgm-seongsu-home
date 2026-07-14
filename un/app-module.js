@@ -1846,6 +1846,18 @@
     return Object.entries(records).map(([id, val]) => ({ id, ...val }));
   }
 
+  function recordTimeValue(r) {
+    const t = new Date(r.createdAt || '').getTime();
+    return Number.isFinite(t) ? t : 0;
+  }
+  function sortByInDateNewestRegistered(a, b) {
+    const dateDiff = new Date(b.inDate || 0) - new Date(a.inDate || 0);
+    if (dateDiff) return dateDiff;
+    const createdDiff = recordTimeValue(b) - recordTimeValue(a);
+    if (createdDiff) return createdDiff;
+    return String(b.id || '').localeCompare(String(a.id || ''));
+  }
+
   function _activePage() {
     const el = document.querySelector('.page.active');
     return el ? el.id.replace('page-','') : 'dashboard';
@@ -2161,7 +2173,7 @@
       const ml = !dLoc || (r.location||'') === dLoc;
       const ms = !dSt || r.status === dSt;
       return mq && ml && ms;
-    }).sort((a,b) => new Date(b.inDate)-new Date(a.inDate));
+    }).sort(sortByInDateNewestRegistered);
 
     const recentTbody = document.getElementById('recent-dashboard-tbody');
     if (recentTbody) {
@@ -2443,7 +2455,7 @@
     let data = getList().filter(r => {
       const m = !q || (r.carNum||'').toLowerCase().includes(q) || (r.name||'').toLowerCase().includes(q) || (r.phone||'').includes(q);
       return m && (!fs || r.status===fs);
-    }).sort((a,b) => new Date(b.inDate)-new Date(a.inDate));
+    }).sort(sortByInDateNewestRegistered);
 
     const tbody = document.getElementById('list-tbody');
     const empty = document.getElementById('list-empty');
@@ -2514,7 +2526,7 @@
   // ---- COMPLETE ----
   function renderComplete() {
     const allList = getList();
-    const data = allList.filter(r => r.status === '수리완료' || r.status === '금일 출고예정').sort((a,b)=>new Date(b.inDate)-new Date(a.inDate));
+    const data = allList.filter(r => r.status === '수리완료' || r.status === '금일 출고예정').sort(sortByInDateNewestRegistered);
     const tbody = document.getElementById('complete-tbody');
     const empty = document.getElementById('complete-empty');
     if (!data.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
