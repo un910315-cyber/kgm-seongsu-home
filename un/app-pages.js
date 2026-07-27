@@ -36,7 +36,7 @@
     var el = document.getElementById('page-'+name);
     if(el) el.classList.add('active');
     var opsGroup = document.getElementById('opsNavGroup');
-    if (opsGroup && ['list','status','complete','out'].indexOf(name) >= 0) {
+    if (opsGroup && ['list','status','complete','out','reservation'].indexOf(name) >= 0) {
       opsGroup.classList.add('nav-group-open', 'active');
     } else if (opsGroup) {
       opsGroup.classList.remove('active');

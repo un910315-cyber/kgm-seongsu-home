@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v120-2026-07-27">
+<link rel="stylesheet" href="styles.css?v=v121-2026-07-27">
 </head>
 <body>
 
@@ -93,6 +93,7 @@
       <div class="nav-tab nav-subtab" onclick="switchPage('status')">현황 목록</div>
       <div class="nav-tab nav-subtab" onclick="switchPage('complete')">금일 출고 예정</div>
       <div class="nav-tab nav-subtab" onclick="switchPage('out')">출고완료</div>
+      <div class="nav-tab nav-subtab" onclick="switchPage('reservation')" id="tab-reservation" style="display:none">예약 및 체크 현황판</div>
     </div>
   </div>
   <div class="nav-tab" onclick="switchPage('migyeol')">보험 미결</div>
@@ -102,7 +103,6 @@
   <div class="nav-tab" onclick="switchPage('estimate')">견적 도우미</div>
   <div class="nav-tab" onclick="switchPage('insurance')" id="tab-insurance">보험사 연락처</div>
   <div class="nav-tab" onclick="switchPage('vendors')" id="tab-vendors">거래처 연락처</div>
-  <div class="nav-tab" onclick="switchPage('reservation')" id="tab-reservation" style="display:none">예약 및 체크 현황판</div>
   <div class="nav-tab" onclick="switchPage('usermgmt')" id="tab-usermgmt" style="display:none">사용자 관리</div>
   <button type="button" id="logout-btn" onclick="window._logout&&window._logout()" style="display:none;margin-top:auto;width:100%;box-sizing:border-box;cursor:pointer;background:rgba(232,68,42,0.12);color:#e8442a;border:1px solid rgba(232,68,42,0.35);font-size:12px;font-weight:700;padding:9px 12px;border-radius:10px;white-space:nowrap;">🚪 로그아웃</button>
 </div>
@@ -1127,9 +1127,9 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v120-2026-07-27"></script>
+<script type="module" src="app-module.js?v=v121-2026-07-27"></script>
 
-<script defer src="app-pages.js?v=v120-2026-07-27"></script>
+<script defer src="app-pages.js?v=v121-2026-07-27"></script>
 
 <!-- XLSX + JSZip: 보험 미결 탭 첫 진입 시 지연 로드 -->
 <script>
@@ -1149,7 +1149,7 @@
   };
 })();
 </script>
-<script defer src="app-insurance.js?v=v120-2026-07-27"></script>
+<script defer src="app-insurance.js?v=v121-2026-07-27"></script>
 
 
 <div id="page-estimate" class="page">
@@ -2629,7 +2629,7 @@
   </div>
 </div>
 
-<script src="work-codes-data.js?v=v120-2026-07-27"></script>
-<script defer src="app-features.js?v=v120-2026-07-27"></script>
+<script src="work-codes-data.js?v=v121-2026-07-27"></script>
+<script defer src="app-features.js?v=v121-2026-07-27"></script>
 </body>
 </html>
