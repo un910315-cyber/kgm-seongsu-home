@@ -258,4 +258,6 @@ Firebase 규칙 주소:
 - 규칙 백업: `firebase-rules-backups/realtime-before-admin-reservation-20260727.json`
 - 변경 파일: `un/app-module.js`, `un/app-pages.js`, `un/index.html`, `un/sw.js`, `CODEX.md`
 - 캐시 버전: `v122-2026-07-27`
-- 배포 커밋과 롤백 태그는 배포 완료 후 기록
+- 배포 커밋: `9105ccc` — 예약 현황판을 관리자 전체에 개방
+- 롤백 태그: `rollback-before-admin-reservation-access-20260727`
+- Firebase 규칙과 라이브 캐시·관리자 가드 반영 확인 완료
