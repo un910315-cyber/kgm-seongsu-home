@@ -99,3 +99,139 @@
 - [ ] 별도 커밋과 원격 롤백 태그 push
 - [ ] 실제 사이트 반영 확인
 - [ ] 사용자에게 배포 커밋과 롤백 지점 보고
+## 문서 우선순위와 Claude 기록 인수 원칙
+
+- 앞으로 이 프로젝트의 **최우선 작업 문서는 `CODEX.md`**다.
+- `CLAUDE.md`와 `claude-handoff-brief.md`는 과거 의사결정과 업무 맥락을 확인하는 참고 자료다.
+- Claude 문서와 실제 운영 코드가 다르면 다음 순서로 판단한다.
+  1. GitHub `origin/master`의 최신 운영 코드
+  2. 라이브 사이트에서 확인된 상태
+  3. `CODEX.md`의 최신 작업 기록
+  4. `CLAUDE.md` 및 과거 인수인계 문서
+- 과거 Claude 문서의 “`un/index.html` 단일 파일” 및 “바탕화면 `dist/index.html`이 최신” 설명은 현재 기준으로 오래된 정보다.
+- 현재 내부 페이지는 `index.html`과 `app-module.js`, `app-pages.js`, `app-features.js`, `app-insurance.js`, `styles.css`로 분리되어 있다.
+- Claude 문서를 삭제하지는 않는다. 과거 결정의 근거를 추적할 수 있도록 보존한다.
+
+## 사용자 업무 맥락과 협업 방식
+
+- 사용자: 윤유현 부장
+- 소속: 케이지모빌리티성수서비스센터(주) · UN Motors
+- 주 사용 언어와 커밋 메시지: 한국어
+- 홈페이지, 내부 시스템, 디지털 명함, 인사·노무 실무까지 폭넓게 직접 관리한다.
+- 작업 방식은 작은 개선을 빠르게 반복하는 형태를 선호한다.
+- 디자인은 화려한 강조보다 절제되고 업무 가독성이 높은 구성을 선호한다.
+- 법률·개인정보·보안 리스크는 임의로 단정하지 않고 공식 자료 또는 전문가 확인을 권한다.
+- 조직 위계와 직함·표시 순서를 정확하게 유지한다.
+
+## 현재 내부 페이지 구조
+
+### 주요 운영 메뉴
+
+- 대시보드
+- 입출고 목록
+  - 입출고 목록
+  - 현황 목록
+  - 금일 출고 예정
+  - 출고완료
+- 보험 미결
+- 연차관리
+- 공지·게시판
+- 매출 보고
+- 견적 도우미
+- 보험사 연락처
+- 거래처 연락처
+- 예약 및 체크 현황판 — `un910315@gmail.com` 개인 전용
+- 사용자 관리
+- 블랙 관리는 출고완료 화면의 관리자 전용 진입 버튼으로 접근
+
+### 현재 역할 메뉴 — 코드 확인 기준
+
+- `admin`: dashboard, list, status, complete, out, migyeol, leave, board, estimate, insurance, vendors, sales, reservation, usermgmt
+- `staff`: status, complete, leave, board, estimate, insurance, vendors
+- `viewer`: status, complete, leave, board, vendors
+- `reservation`은 `ROLE_MENUS`만으로 허용하지 않고 이메일을 추가 검사한다.
+- 메뉴 숨김만 보안으로 간주하지 않는다. 민감 기능은 페이지 진입 가드와 Firebase 규칙을 함께 적용한다.
+
+## Firebase 데이터 경로 — 2026-07-27 규칙 기준
+
+- `allowedEmails`
+- `records`
+- `blacklist`
+- `leaveEmployees`
+- `leaveUsage`
+- `leaveRequests`
+- `annualLeaveNotices`
+- `notices`
+- `board`
+- `companyEvents`
+- `kgmDailyCount`
+- `salesDaily`
+- `monthlyDeposit`
+- `monthlyTarget`
+- `workCodes`
+- `aosClaims`
+- `insuranceContacts`
+- `vendorContacts`
+- `reservationChecks` — `un910315@gmail.com` 전용
+- `$other`는 읽기·쓰기 모두 차단
+
+Firebase 규칙 주소:
+`https://console.firebase.google.com/project/unmotors/database/unmotors-default-rtdb/rules`
+
+## 연차 및 조직 업무 맥락
+
+### 연차 결재 흐름
+
+신청 → 부서장 → 시스템 관리자 → 대표 → 최종 승인 시 `leaveUsage` 자동 등록
+
+자동 처리 원칙:
+
+- 대표 신청은 즉시 최종 승인
+- 임원 신청은 부서장·관리자 단계를 건너뛰고 대표 결재
+- 부서장은 부서장 단계를 자동 통과
+- 팀에 부서장이 없으면 부서장 단계를 자동 통과
+- 신청자가 시스템 관리자이고 부서장 단계도 자동 통과된 경우 관리자 단계도 자동 통과
+
+### 조직 표시 주의
+
+- 대표: 양은주
+- 임원 및 대표 직속 인력의 결재선을 함부로 변경하지 않는다.
+- `team`은 결재 라우팅용이다.
+- `displayTeam`은 조직도 표시용이다.
+- 사고전담부처럼 결재 부서와 조직도 표시 부서가 다른 경우 두 필드를 구분한다.
+
+### 연차 사용촉진
+
+- 통지서 기능은 법적 증빙과 관련되어 있으므로 구조·일자·승인 기록 변경 시 특히 신중해야 한다.
+- 회계연도 기준 1차 촉진은 일반적으로 7월 초, 2차 지정은 10월 말 시점과 연관된다.
+- 법적 효력에 관한 답변이나 기능 변경은 최신 법령과 전문가 검토가 필요하다.
+
+## 공개 페이지와 디지털 명함
+
+- `/` — 메인 홈페이지
+- `/digital-card/` — 박경영 총괄이사
+- `/digital-card-lee/` — 이동근 정비팀장
+- `/digital-card-yang/` — 양은주 대표이사
+- `/digital-card-yoon/` — 윤유현 부장
+- `/kakao-qr/` — 카카오톡 QR
+- 명함 수정 시 직함, 전화번호, `og:image`, `og:url`, Twitter 메타태그를 함께 확인한다.
+- 카카오톡 미리보기 캐시가 갱신되지 않으면 OG 이미지 파일명을 새 버전으로 변경하고 HTML 경로도 함께 수정한다.
+- `CNAME`, GitHub Pages 설정, 가비아 DNS는 명시적인 요청과 충분한 확인 없이 변경하지 않는다.
+
+## 코드 안정성 세부 규칙
+
+- `onValue` 콜백의 추가 렌더는 `try-catch`로 감싸 한 기능의 오류가 전체 화면을 멈추지 않도록 한다.
+- 일반 스크립트에서 ES module의 함수를 호출해야 하면 `window._기능명` 형태로 명시적으로 내보낸다.
+- `statusBadge`처럼 흔한 함수명은 충돌 위험이 있으므로 도메인 접두사를 사용한다.
+- 인라인 이벤트 속성 안에서 복잡한 한글 문자열 비교가 필요하면 기존 코드의 유니코드 이스케이프 관습을 따른다.
+- 역할 라벨이나 옵션을 바꿀 때 `ROLE_MENUS`, 역할 라벨/설명/색상, 사용자 관리 드롭다운 등 중복 정의를 모두 검색한다.
+- 명함 공통 구조 변경은 4개 명함을 함께 비교한다.
+- 서비스워커 변경 시 운영 `/un/` 캐시와 시험용 `/un-v2/` 캐시를 혼동하지 않는다.
+- 배포 후 브라우저에 이전 버전이 남으면 새 `CACHE_VERSION` 확인, 앱 완전 종료 후 재실행, `Ctrl+F5` 순서로 점검한다.
+
+## Codex 기록 유지 규칙
+
+- 기능을 추가·수정·삭제할 때마다 이 문서의 작업 기록에 날짜, 목적, 변경 파일, Firebase 영향, 커밋, 롤백 태그, 라이브 확인 결과를 추가한다.
+- 운영 구조가 바뀌면 과거 설명을 조용히 방치하지 말고 현재 기준과 과거 기준을 명확히 구분한다.
+- 작업이 끝나도 로컬에만 기록하지 않고 GitHub 저장소의 `CODEX.md`를 새 커밋으로 보존한다.
+- 문서 변경 자체도 Git 기록으로 복구 가능하게 만든다.
