@@ -243,4 +243,6 @@ Firebase 규칙 주소:
 - 예약 페이지를 열었을 때 입출고 하위 메뉴가 펼쳐진 상태를 유지하도록 `app-pages.js` 보완
 - 변경 파일: `un/index.html`, `un/app-pages.js`, `un/sw.js`
 - 캐시 버전: `v121-2026-07-27`
-- 배포 커밋과 롤백 태그는 배포 완료 후 기록
+- 배포 커밋: `09a509a` — 예약 현황판을 입출고 하위 메뉴로 이동
+- 롤백 태그: `rollback-before-reservation-menu-move-20260727`
+- 라이브 메뉴 순서와 캐시 버전 반영 확인 완료
