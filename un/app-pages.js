@@ -29,7 +29,7 @@
 
   // PAGE SWITCH
   function switchPage(name) {
-    if (name === 'reservation' && (window._userEmail || '').toLowerCase() !== 'un910315@gmail.com') { console.warn('예약 현황판 접근 차단'); return; }
+    if (name === 'reservation' && window._userRole !== 'admin') { console.warn('예약 현황판 접근 차단'); return; }
     document.body.setAttribute('data-page', name);
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));

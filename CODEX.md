@@ -6,7 +6,7 @@
 ## 사용자 및 전용 기능
 
 - 담당자: 윤유현 부장
-- 개인 전용 이메일: `un910315@gmail.com`
+- 주 담당자 이메일: `un910315@gmail.com`
 - 내부 업무 페이지: `https://kgm-seongsu.co.kr/un/`
 - Firebase 프로젝트: `unmotors`
 - 배포 저장소: `https://github.com/un910315-cyber/kgm-seongsu-home`
@@ -140,7 +140,7 @@
 - 견적 도우미
 - 보험사 연락처
 - 거래처 연락처
-- 예약 및 체크 현황판 — `un910315@gmail.com` 개인 전용
+- 예약 및 체크 현황판 — `admin` 역할 전용
 - 사용자 관리
 - 블랙 관리는 출고완료 화면의 관리자 전용 진입 버튼으로 접근
 
@@ -149,7 +149,7 @@
 - `admin`: dashboard, list, status, complete, out, migyeol, leave, board, estimate, insurance, vendors, sales, reservation, usermgmt
 - `staff`: status, complete, leave, board, estimate, insurance, vendors
 - `viewer`: status, complete, leave, board, vendors
-- `reservation`은 `ROLE_MENUS`만으로 허용하지 않고 이메일을 추가 검사한다.
+- `reservation`은 `ROLE_MENUS`, 페이지 진입 가드, Firebase 관리자 규칙으로 보호한다.
 - 메뉴 숨김만 보안으로 간주하지 않는다. 민감 기능은 페이지 진입 가드와 Firebase 규칙을 함께 적용한다.
 
 ## Firebase 데이터 경로 — 2026-07-27 규칙 기준
@@ -172,7 +172,7 @@
 - `aosClaims`
 - `insuranceContacts`
 - `vendorContacts`
-- `reservationChecks` — `un910315@gmail.com` 전용
+- `reservationChecks` — `allowedEmails` 값이 `admin`인 사용자 전용
 - `$other`는 읽기·쓰기 모두 차단
 
 Firebase 규칙 주소:
@@ -246,3 +246,16 @@ Firebase 규칙 주소:
 - 배포 커밋: `09a509a` — 예약 현황판을 입출고 하위 메뉴로 이동
 - 롤백 태그: `rollback-before-reservation-menu-move-20260727`
 - 라이브 메뉴 순서와 캐시 버전 반영 확인 완료
+## 2026-07-27 작업 기록 — 예약 현황판을 전체 관리자에게 개방
+
+- 요청: 윤유현 개인 전용에서 Firestore 역할이 `admin`인 모든 관리자 사용으로 변경
+- 화면: `ROLE_MENUS`의 admin 사용자에게 메뉴 표시
+- 페이지: `window._userRole === 'admin'` 진입 가드 적용
+- 데이터 구독과 등록·수정·완료·삭제: admin 역할 가드 적용
+- Firebase: `allowedEmails/{emailKey}` 값이 `admin`인 계정만 `reservationChecks` 읽기·쓰기 허용
+- Firebase 안전 강화: `allowedEmails` 쓰기도 기존 admin만 가능하도록 변경
+- 누락돼 있던 `autodent7@gmail.com` 관리자 미러를 동기화
+- 규칙 백업: `firebase-rules-backups/realtime-before-admin-reservation-20260727.json`
+- 변경 파일: `un/app-module.js`, `un/app-pages.js`, `un/index.html`, `un/sw.js`, `CODEX.md`
+- 캐시 버전: `v122-2026-07-27`
+- 배포 커밋과 롤백 태그는 배포 완료 후 기록

@@ -291,6 +291,7 @@
       window._userRole = role;
       window._userEmail = user.email;
       window._userName = user.displayName || user.email;
+      if (window._startReservationSubscription) window._startReservationSubscription();
       // 기존 승인 사용자 자기치유 마이그레이션 — 로그인 시 allowedEmails에 본인 등록 (비차단)
       _syncAllowedEmail(user.email, role);
 
@@ -300,7 +301,6 @@
         const page = tab.getAttribute('onclick')?.match(/switchPage\('(.+?)'\)/)?.[1];
         if(page){
           tab.style.display = allowedMenus.includes(page) ? '' : 'none';
-          if (page === 'reservation') tab.style.display = user.email.toLowerCase() === 'un910315@gmail.com' ? '' : 'none';
         }
       });
       // 권한 없는 페이지가 active면 첫 허용 페이지로 자동 전환 (예: 비admin이 대시보드 못 봄)
@@ -3586,17 +3586,17 @@
   window._renderLeave = renderLeave;
 
 
-  // ---- 예약 및 체크 현황판 (un910315@gmail.com 전용) ----
+  // ---- 예약 및 체크 현황판 (admin 전용) ----
   const reservationRef = ref(db, 'reservationChecks');
   let reservationChecks = {}, editingReservationId = null;
   let reservationSubscribed = false;
-  onAuthStateChanged(auth, function(user){
-    if (!user || user.email.toLowerCase() !== 'un910315@gmail.com' || reservationSubscribed) return;
+  window._startReservationSubscription = function(){
+    if (window._userRole !== 'admin' || reservationSubscribed) return;
     reservationSubscribed = true;
     onValue(reservationRef, function(snap){ reservationChecks=snap.val()||{}; try{renderReservationBoard();}catch(e){console.error('reservation board:',e);} });
-  });
+  };
   function renderReservationBoard(){
-    if((window._userEmail||'').toLowerCase()!=='un910315@gmail.com') return;
+    if(window._userRole!=='admin') return;
     var q=((document.getElementById('rv-search')||{}).value||'').trim().toLowerCase(), tf=((document.getElementById('rv-type-filter')||{}).value||'all'), sf=((document.getElementById('rv-status-filter')||{}).value||'active'), today=new Date().toISOString().split('T')[0];
     var all=Object.entries(reservationChecks).map(function(e){return Object.assign({id:e[0]},e[1]);});
     var nums=[all.filter(i=>i.type==='reservation'&&i.status!=='done').length,all.filter(i=>i.type==='check'&&i.status!=='done').length,all.filter(i=>i.dueDate===today&&i.status!=='done').length,all.filter(i=>i.status==='done').length];
@@ -3607,11 +3607,11 @@
     box.innerHTML=list.map(function(i){var done=i.status==='done',late=!done&&i.dueDate&&i.dueDate<today,c=i.type==='reservation'?'#60a5fa':'#f59e0b',date=i.dueDate?(Number(i.dueDate.slice(5,7))+'/'+Number(i.dueDate.slice(8,10))+(i.dueTime?' '+i.dueTime:'')):'날짜 미정';return '<article style="background:var(--surface);border:1px solid '+(late?'rgba(232,68,42,.55)':'var(--border)')+';border-left:4px solid '+c+';border-radius:12px;padding:16px;opacity:'+(done?'.65':'1')+'"><div style="display:flex;justify-content:space-between;gap:12px"><div style="min-width:0"><div style="color:'+c+';font-size:11px;font-weight:800;margin-bottom:6px">'+(i.type==='reservation'?'차량 예약':'체크 업무')+' · '+(done?'완료':i.status==='confirmed'?'확정':'대기')+(late?' · <span style="color:var(--red)">기한 지남</span>':'')+'</div><div style="font-size:16px;font-weight:800;word-break:break-word;'+(done?'text-decoration:line-through':'')+'">'+esc(i.title||'')+'</div></div><strong style="white-space:nowrap;color:'+(late?'var(--red)':'var(--text)')+'">'+date+'</strong></div>'+(i.carNum||i.customer||i.phone?'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'+(i.carNum?'<b style="color:var(--accent)">차량 '+esc(i.carNum)+'</b>':'')+(i.customer?'<span>고객 '+esc(i.customer)+'</span>':'')+(i.phone?'<a href="tel:'+esc(i.phone.replace(/[^0-9+]/g,''))+'" style="color:var(--blue)">'+esc(i.phone)+'</a>':'')+'</div>':'')+(i.memo?'<div style="white-space:pre-wrap;word-break:break-word;background:var(--surface2);padding:10px;border-radius:8px;color:var(--text-dim);font-size:13px;margin-top:10px">'+esc(i.memo)+'</div>':'')+'<div style="display:flex;justify-content:flex-end;gap:6px;margin-top:12px"><button class="btn btn-sm" style="color:var(--green)" onclick="window._toggleReservation(\''+esc(i.id)+'\')">'+(done?'다시 열기':'완료')+'</button><button class="btn btn-ghost btn-sm" onclick="window._editReservation(\''+esc(i.id)+'\')">수정</button><button class="btn btn-sm" style="color:var(--red)" onclick="window._deleteReservation(\''+esc(i.id)+'\')">삭제</button></div></article>';}).join('');
   }
   window._renderReservationBoard=renderReservationBoard;
-  window._openReservationModal=function(){if((window._userEmail||'').toLowerCase()!=='un910315@gmail.com')return;editingReservationId=null;document.getElementById('reservationModalTitle').textContent='새 항목 등록';['rv-title','rv-time','rv-car','rv-customer','rv-phone','rv-memo'].forEach(id=>document.getElementById(id).value='');document.getElementById('rv-type').value='reservation';document.getElementById('rv-status').value='waiting';document.getElementById('rv-date').value=new Date().toISOString().split('T')[0];document.getElementById('reservationModal').classList.add('open');};
-  window._editReservation=function(id){var i=reservationChecks[id];if(!i)return;editingReservationId=id;document.getElementById('reservationModalTitle').textContent='항목 수정';[['rv-type','type'],['rv-status','status'],['rv-title','title'],['rv-date','dueDate'],['rv-time','dueTime'],['rv-car','carNum'],['rv-customer','customer'],['rv-phone','phone'],['rv-memo','memo']].forEach(x=>document.getElementById(x[0]).value=i[x[1]]||'');document.getElementById('reservationModal').classList.add('open');};
-  window._saveReservation=async function(){if((window._userEmail||'').toLowerCase()!=='un910315@gmail.com')return;var title=document.getElementById('rv-title').value.trim();if(!title){showNotif('내용을 입력해주세요',true);return;}var d={type:document.getElementById('rv-type').value,status:document.getElementById('rv-status').value,title:title,dueDate:document.getElementById('rv-date').value,dueTime:document.getElementById('rv-time').value,carNum:document.getElementById('rv-car').value.trim(),customer:document.getElementById('rv-customer').value.trim(),phone:document.getElementById('rv-phone').value.trim(),memo:document.getElementById('rv-memo').value.trim(),author:window._userName||'',authorEmail:window._userEmail||'',updatedAt:new Date().toISOString()},btn=document.getElementById('rv-save-btn');btn.disabled=true;try{if(editingReservationId)await update(ref(db,'reservationChecks/'+editingReservationId),d);else{d.createdAt=new Date().toISOString();await push(reservationRef,d);}document.getElementById('reservationModal').classList.remove('open');showNotif('저장되었습니다');}catch(e){showNotif('저장 실패: '+e.message,true);}btn.disabled=false;};
-  window._toggleReservation=async function(id){var i=reservationChecks[id];if(i)try{await update(ref(db,'reservationChecks/'+id),{status:i.status==='done'?'waiting':'done',updatedAt:new Date().toISOString()});}catch(e){showNotif('상태 변경 실패: '+e.message,true);}};
-  window._deleteReservation=async function(id){if(await window._confirm('이 항목을 삭제하시겠습니까?','삭제','취소'))try{await remove(ref(db,'reservationChecks/'+id));showNotif('삭제되었습니다');}catch(e){showNotif('삭제 실패: '+e.message,true);}};
+  window._openReservationModal=function(){if(window._userRole!=='admin')return;editingReservationId=null;document.getElementById('reservationModalTitle').textContent='새 항목 등록';['rv-title','rv-time','rv-car','rv-customer','rv-phone','rv-memo'].forEach(id=>document.getElementById(id).value='');document.getElementById('rv-type').value='reservation';document.getElementById('rv-status').value='waiting';document.getElementById('rv-date').value=new Date().toISOString().split('T')[0];document.getElementById('reservationModal').classList.add('open');};
+  window._editReservation=function(id){if(window._userRole!=='admin')return;var i=reservationChecks[id];if(!i)return;editingReservationId=id;document.getElementById('reservationModalTitle').textContent='항목 수정';[['rv-type','type'],['rv-status','status'],['rv-title','title'],['rv-date','dueDate'],['rv-time','dueTime'],['rv-car','carNum'],['rv-customer','customer'],['rv-phone','phone'],['rv-memo','memo']].forEach(x=>document.getElementById(x[0]).value=i[x[1]]||'');document.getElementById('reservationModal').classList.add('open');};
+  window._saveReservation=async function(){if(window._userRole!=='admin')return;var title=document.getElementById('rv-title').value.trim();if(!title){showNotif('내용을 입력해주세요',true);return;}var d={type:document.getElementById('rv-type').value,status:document.getElementById('rv-status').value,title:title,dueDate:document.getElementById('rv-date').value,dueTime:document.getElementById('rv-time').value,carNum:document.getElementById('rv-car').value.trim(),customer:document.getElementById('rv-customer').value.trim(),phone:document.getElementById('rv-phone').value.trim(),memo:document.getElementById('rv-memo').value.trim(),author:window._userName||'',authorEmail:window._userEmail||'',updatedAt:new Date().toISOString()},btn=document.getElementById('rv-save-btn');btn.disabled=true;try{if(editingReservationId)await update(ref(db,'reservationChecks/'+editingReservationId),d);else{d.createdAt=new Date().toISOString();await push(reservationRef,d);}document.getElementById('reservationModal').classList.remove('open');showNotif('저장되었습니다');}catch(e){showNotif('저장 실패: '+e.message,true);}btn.disabled=false;};
+  window._toggleReservation=async function(id){if(window._userRole!=='admin')return;var i=reservationChecks[id];if(i)try{await update(ref(db,'reservationChecks/'+id),{status:i.status==='done'?'waiting':'done',updatedAt:new Date().toISOString()});}catch(e){showNotif('상태 변경 실패: '+e.message,true);}};
+  window._deleteReservation=async function(id){if(window._userRole!=='admin')return;if(await window._confirm('이 항목을 삭제하시겠습니까?','삭제','취소'))try{await remove(ref(db,'reservationChecks/'+id));showNotif('삭제되었습니다');}catch(e){showNotif('삭제 실패: '+e.message,true);}};
   // ---- BOARD (게시판) ----
   const boardRef = ref(db, 'board');
   let boardPosts = {};
