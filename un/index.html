@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v122-2026-07-27">
+<link rel="stylesheet" href="styles.css?v=v123-2026-07-28">
 </head>
 <body>
 
@@ -167,7 +167,7 @@
       </div>
     </div>
 
-    <!-- 매출·정비(KGM) 섹션은 사고차 섹션 아래로 이동 (페이지 하단 참조) -->
+    <!-- 매출 위젯 제거됨: 사고차 통계와 정비차량(KGM) 현황만 유지 -->
 
     <!-- 월별 통계 위젯 카드 (풀폭) -->
     <div class="dashboard-bottom-row">
@@ -292,106 +292,8 @@
       </div>
     </div>
 
-    <!-- ═══════════ 매출 섹션 (사고차·정비 공통) ═══════════ -->
-    <div class="dash-band-label band-sales">매출</div>
-    <div class="dashboard-sales-row">
-      <!-- 매출 일별 추이 (막대그래프) -->
-      <div class="chart-card widget-card sales-trend-card">
-        <div class="chart-header" style="justify-content:space-between;">
-          <div>
-            <div class="chart-title">매출 일별 추이</div>
-            <div class="chart-subtitle" id="salesTrendSub">평일 5일 · 보증·기능·파손보험 합계</div>
-          </div>
-          <a href="#" onclick="switchPage('sales');return false;" style="color:#c4b5fd;text-decoration:none;font-size:11px;font-weight:600;">매출 입력 →</a>
-        </div>
-        <div id="salesTrendChart" class="sales-trend-chart"></div>
-        <div class="sales-trend-legend">
-          <span style="--lc:#fbbf24;">보증</span>
-          <span style="--lc:#34d399;">기능</span>
-          <span style="--lc:#ef4444;">파손+보험</span>
-        </div>
-        <div class="trend-wait" id="trendWaitList"></div>
-      </div>
-
-      <div class="daily-sales-section">
-        <div class="chart-card widget-card daily-sales-card">
-          <div class="chart-header" style="justify-content:space-between;">
-            <div>
-              <div class="chart-title">매출 보고</div>
-              <div class="chart-subtitle" id="daily-sales-date">—</div>
-            </div>
-            <a href="#" onclick="switchPage('sales');return false;" style="color:#c4b5fd;text-decoration:none;font-size:11px;font-weight:700;">입력 →</a>
-          </div>
-
-          <div class="dash-sales-grp">
-            <div class="dsg-head"><span class="dsg-dot" style="color:#fbbf24;background:#fbbf24"></span>보증</div>
-            <div class="dsg-rows">
-              <div class="dsg-line"><span>공임</span><strong id="dash-w-labor">₩0</strong></div>
-              <div class="dsg-line"><span>부품</span><strong id="dash-w-parts">₩0</strong></div>
-              <div class="dsg-line dsg-total"><span>합계</span><strong id="dash-w-total">₩0</strong></div>
-            </div>
-          </div>
-
-          <div class="dash-sales-grp">
-            <div class="dsg-head"><span class="dsg-dot" style="color:#34d399;background:#34d399"></span>기능</div>
-            <div class="dsg-rows">
-              <div class="dsg-line"><span>공임</span><strong id="dash-f-labor">₩0</strong></div>
-              <div class="dsg-line"><span>부품</span><strong id="dash-f-parts">₩0</strong></div>
-              <div class="dsg-line dsg-total"><span>합계</span><strong id="dash-f-total">₩0</strong></div>
-            </div>
-          </div>
-
-          <div class="dash-sales-grp">
-            <div class="dsg-head"><span class="dsg-dot" style="color:#ef4444;background:#ef4444"></span>파손+보험</div>
-            <div class="dsg-rows">
-              <div class="dsg-line"><span>공임</span><strong id="dash-d-labor">₩0</strong></div>
-              <div class="dsg-line"><span>부품</span><strong id="dash-d-parts">₩0</strong></div>
-              <div class="dsg-line dsg-total"><span>합계</span><strong id="dash-d-total">₩0</strong></div>
-            </div>
-          </div>
-
-          <div class="dash-received">
-            <span>총 수납금계</span>
-            <strong id="dash-received">₩0</strong>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="dash-cum-kgm-row">
-      <div class="sales-chart-section">
-      <div class="chart-card widget-card cumulative-sales-card">
-        <div class="chart-header">
-          <div>
-            <div class="chart-title">누적 매출</div>
-            <div class="chart-subtitle">이번 달 · 부품·기능·보증</div>
-          </div>
-        </div>
-        <div class="cum-sales-summary">
-          <div><span>이번 달 누적</span><strong id="cum-sales-total">₩0</strong></div>
-          <div><span>부품</span><strong id="cum-sales-parts">₩0</strong></div>
-          <div><span>기능</span><strong id="cum-sales-function">₩0</strong></div>
-        </div>
-        <div class="cum-sales-mix">
-          <div id="cumSalesMixChart" class="cum-sales-mix-chart"></div>
-          <div class="cum-sales-mix-copy">
-            <span>매출 구성</span>
-            <strong id="cum-sales-mix-main">데이터 대기</strong>
-            <em id="cum-sales-mix-sub">부품·기능·보증 비중</em>
-          </div>
-        </div>
-        <div class="cum-chart-label">주차별 매출</div>
-        <div id="cumSalesChart" class="cum-sales-chart"></div>
-        <div class="cum-chart-label">월별 매출</div>
-        <div id="cumMonthChart" class="cum-month-chart"></div>
-        <div class="cum-sales-legend">
-          <span style="--legend-color:#fb923c;">부품</span>
-          <span style="--legend-color:#34d399;">기능 공임</span>
-          <span style="--legend-color:#fbbf24;">보증 공임</span>
-        </div>
-      </div>
-    </div>
-
+    <!-- 정비차량(KGM) 현황 — 대시보드 매출 위젯 제거 후 전체 너비 유지 -->
+    <div class="dash-cum-kgm-row" style="grid-template-columns:minmax(0,1fr);">
       <div class="kgm-section">
       <!-- 정비차량(KGM) 위젯 카드 -->
       <div class="chart-card widget-card">
@@ -1127,9 +1029,9 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v122-2026-07-27"></script>
+<script type="module" src="app-module.js?v=v123-2026-07-28"></script>
 
-<script defer src="app-pages.js?v=v122-2026-07-27"></script>
+<script defer src="app-pages.js?v=v123-2026-07-28"></script>
 
 <!-- XLSX + JSZip: 보험 미결 탭 첫 진입 시 지연 로드 -->
 <script>
@@ -1149,7 +1051,7 @@
   };
 })();
 </script>
-<script defer src="app-insurance.js?v=v122-2026-07-27"></script>
+<script defer src="app-insurance.js?v=v123-2026-07-28"></script>
 
 
 <div id="page-estimate" class="page">
@@ -2629,7 +2531,7 @@
   </div>
 </div>
 
-<script src="work-codes-data.js?v=v122-2026-07-27"></script>
-<script defer src="app-features.js?v=v122-2026-07-27"></script>
+<script src="work-codes-data.js?v=v123-2026-07-28"></script>
+<script defer src="app-features.js?v=v123-2026-07-28"></script>
 </body>
 </html>
