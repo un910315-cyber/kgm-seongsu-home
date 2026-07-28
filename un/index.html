@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v123-2026-07-28">
+<link rel="stylesheet" href="styles.css?v=v124-2026-07-28">
 </head>
 <body>
 
@@ -167,7 +167,7 @@
       </div>
     </div>
 
-    <!-- 매출 위젯 제거됨: 사고차 통계와 정비차량(KGM) 현황만 유지 -->
+    <!-- 대시보드 하단 수기 관리 위젯 제거됨 -->
 
     <!-- 월별 통계 위젯 카드 (풀폭) -->
     <div class="dashboard-bottom-row">
@@ -292,46 +292,6 @@
       </div>
     </div>
 
-    <!-- 정비차량(KGM) 현황 — 대시보드 매출 위젯 제거 후 전체 너비 유지 -->
-    <div class="dash-cum-kgm-row" style="grid-template-columns:minmax(0,1fr);">
-      <div class="kgm-section">
-      <!-- 정비차량(KGM) 위젯 카드 -->
-      <div class="chart-card widget-card">
-        <div class="chart-header">
-          <div class="chart-title">정비차량 (KGM) 현황</div>
-          <div class="chart-subtitle">하루 끝에 카운트만 기록</div>
-        </div>
-        <div class="stats-grid" style="margin-bottom:10px;grid-template-columns:1fr;">
-          <!-- 오늘 입고 — 읽기 전용 (입력은 '매출 보고' 탭에서) -->
-          <div class="stat-card red">
-            <div class="stat-label">오늘 입고</div>
-            <div class="stat-value" id="stat-kgm-today">0</div>
-            <div class="stat-sub">매출 보고 탭에서 입력</div>
-          </div>
-        </div>
-        <div id="kgmIntakeChart" class="chart-wrap"></div>
-
-        <!-- 누적 통계 (주/월/분기) -->
-        <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06);">
-          <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px;letter-spacing:0.4px;text-transform:uppercase;font-weight:600;"> 누적 통계</div>
-          <div class="stats-grid" style="grid-template-columns:1fr 1fr;gap:6px;margin-bottom:0;">
-            <div class="stat-card purple"><div class="stat-label">이번 주</div><div class="stat-value" id="stat-kgm-week">0</div><div class="stat-sub">월~일</div></div>
-            <div class="stat-card orange"><div class="stat-label">이번 달</div><div class="stat-value" id="stat-kgm-month">0</div><div class="stat-sub">월 누적</div></div>
-          </div>
-        </div>
-
-        <!-- 인사이트 한 줄 -->
-        <div style="margin-top:10px;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:4px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;flex-wrap:wrap;">
-          <div style="color:var(--text-dim);">
-            이번 달 일평균 <span id="kgm-daily-avg" style="color:#fff;font-family:'JetBrains Mono',monospace;font-weight:800;font-size:13px;">0.0</span>대
-          </div>
-          <div style="color:var(--text-dim);">
-            지난 주 대비 <span id="kgm-week-diff" style="color:#a0a4ac;font-family:'JetBrains Mono',monospace;font-weight:800;font-size:13px;">—</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    </div>
   </div>
 </div>
 
@@ -1029,9 +989,9 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v123-2026-07-28"></script>
+<script type="module" src="app-module.js?v=v124-2026-07-28"></script>
 
-<script defer src="app-pages.js?v=v123-2026-07-28"></script>
+<script defer src="app-pages.js?v=v124-2026-07-28"></script>
 
 <!-- XLSX + JSZip: 보험 미결 탭 첫 진입 시 지연 로드 -->
 <script>
@@ -1051,7 +1011,7 @@
   };
 })();
 </script>
-<script defer src="app-insurance.js?v=v123-2026-07-28"></script>
+<script defer src="app-insurance.js?v=v124-2026-07-28"></script>
 
 
 <div id="page-estimate" class="page">
@@ -2531,7 +2491,7 @@
   </div>
 </div>
 
-<script src="work-codes-data.js?v=v123-2026-07-28"></script>
-<script defer src="app-features.js?v=v123-2026-07-28"></script>
+<script src="work-codes-data.js?v=v124-2026-07-28"></script>
+<script defer src="app-features.js?v=v124-2026-07-28"></script>
 </body>
 </html>
