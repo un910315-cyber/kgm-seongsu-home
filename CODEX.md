@@ -332,3 +332,13 @@ Firebase 규칙 주소:
 - 재활성화 전 롤백 태그: `rollback-before-maintenance-reactivation-20260730`
 - 배포 커밋: `d42cea2` (`긴급 정비 접수 재활성화`)
 - 라이브 확인 완료: 긴급 메뉴·현황판·데이터 경로·A4 접수증 10칸·캐시 `v128` 반영 확인
+
+## 2026-07-30 작업 기록 — 긴급 정비 빠른 현황 버튼
+
+- 요청: 각 차량의 인쇄·수정 버튼 옆에서 현황을 빠르게 변경
+- 추가: `현황 / 입고 / 출고 / 수리중` 버튼, 현재 상태 강조 표시
+- 저장: 클릭 즉시 `maintenanceRecords/{id}/status` 갱신
+- 상태 연결: 입고=`received`, 출고=`released`, 수리중=`working`
+- 캐시 버전: `v129-2026-07-30`
+- 롤백 태그: `rollback-before-maintenance-quick-status-20260730`
+- 배포 커밋과 라이브 확인 결과는 배포 완료 후 기록
