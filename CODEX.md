@@ -310,3 +310,13 @@ Firebase 규칙 주소:
 - 롤백 태그: `rollback-before-maintenance-print-fix-20260730`
 - 배포 커밋: `cc79d69` (`정비 접수증 A4 한 장 인쇄 수정`)
 - 라이브 확인 완료: 요청사항 실제 테두리 10칸, 배경 그라데이션 제거, A4 고정 높이와 캐시 `v126` 반영 확인
+
+## 2026-07-30 작업 기록 — 긴급 정비 접수 기능 종료
+
+- 배경: BOLT 전산 정상화로 비상용 정비 접수 기능 운영 종료
+- 제거: 긴급 정비 접수 메뉴, 현황 화면, 등록·수정·삭제·인쇄 코드, 전용 스타일과 캐시 항목
+- 보존: 기존 `maintenanceRecords` 데이터는 복구 필요 가능성에 대비해 삭제하지 않음
+- 변경 파일: `un/index.html`, `un/styles.css`, `un/app-module.js`, `un/app-pages.js`, `un/app-maintenance.js`(삭제), `un/sw.js`
+- 캐시 버전: `v127-2026-07-30`
+- 롤백 태그: `rollback-before-maintenance-removal-20260730`
+- 배포 커밋과 라이브 확인 결과는 배포 완료 후 기록

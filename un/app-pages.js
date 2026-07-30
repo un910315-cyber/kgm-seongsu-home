@@ -58,7 +58,6 @@
       if (name==='insurance' && window._renderInsurance) window._renderInsurance();
       if (name==='vendors' && window._renderVendors) window._renderVendors();
       if (name==='reservation' && window._renderReservationBoard) window._renderReservationBoard();
-      if (name==='maintenance' && window._renderMaintenanceBoard) window._renderMaintenanceBoard();
       if (name==='blacklist' && window._renderBlacklist) window._renderBlacklist();
       if (name==='sales') { if(window._renderSalesReport) window._renderSalesReport(); if(window._renderAosReport) window._renderAosReport(); }
     } catch(e) {

@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v126-2026-07-30">
+<link rel="stylesheet" href="styles.css?v=v127-2026-07-30">
 </head>
 <body>
 
@@ -86,7 +86,6 @@
 
 <div class="nav-tabs">
   <div class="nav-tab active" onclick="switchPage('dashboard')">대시보드</div>
-  <div class="nav-tab nav-emergency" onclick="switchPage('maintenance')" id="tab-maintenance">긴급 정비 접수</div>
   <div class="nav-group nav-group-open" id="opsNavGroup">
     <div class="nav-tab nav-parent" onclick="toggleOpsNav()">입출고 목록</div>
     <div class="nav-subtabs" id="opsNavSubtabs">
@@ -990,9 +989,9 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script type="module" src="app-module.js?v=v126-2026-07-30"></script>
+<script type="module" src="app-module.js?v=v127-2026-07-30"></script>
 
-<script defer src="app-pages.js?v=v126-2026-07-30"></script>
+<script defer src="app-pages.js?v=v127-2026-07-30"></script>
 
 <!-- XLSX + JSZip: 보험 미결 탭 첫 진입 시 지연 로드 -->
 <script>
@@ -1012,7 +1011,7 @@
   };
 })();
 </script>
-<script defer src="app-insurance.js?v=v126-2026-07-30"></script>
+<script defer src="app-insurance.js?v=v127-2026-07-30"></script>
 
 
 <div id="page-estimate" class="page">
@@ -2167,24 +2166,7 @@
       </div>
     </div>
   </div>
-</div>
-
-
-<!-- 긴급 정비 접수 현황 -->
-<div id="page-maintenance" class="page"><div class="main maint-main">
-  <div class="section-header maint-header"><div><div class="section-title">긴급 정비 접수 현황</div><div class="maint-subtitle">전산 장애 시 정비 접수와 작업 진행상태를 기록하고 접수증을 인쇄합니다.</div></div><button class="btn btn-primary maint-new-btn" onclick="window._openMaintenanceModal()">+ 정비 접수</button></div>
-  <div class="stats-grid maint-stats"><div class="stat-card blue"><div class="stat-label">금일 접수</div><div class="stat-value" id="mt-stat-today">0</div><div class="stat-sub">오늘 등록 차량</div></div><div class="stat-card orange"><div class="stat-label">접수·점검</div><div class="stat-value" id="mt-stat-waiting">0</div><div class="stat-sub">확인 대기 차량</div></div><div class="stat-card red"><div class="stat-label">작업·부품대기</div><div class="stat-value" id="mt-stat-working">0</div><div class="stat-sub">진행 중 차량</div></div><div class="stat-card green"><div class="stat-label">완료</div><div class="stat-value" id="mt-stat-done">0</div><div class="stat-sub">수리 완료 차량</div></div></div>
-  <div class="maint-toolbar"><input id="mt-search" class="form-input" placeholder="차량번호, 차종, 고객명, 전화번호, 요청사항 검색" oninput="window._renderMaintenanceBoard()"><select id="mt-status-filter" class="form-select" onchange="window._renderMaintenanceBoard()"><option value="active">진행 중</option><option value="all">전체 상태</option><option value="received">접수</option><option value="inspection">점검 중</option><option value="working">작업 중</option><option value="parts">부품 대기</option><option value="done">수리 완료</option><option value="released">출고 완료</option></select></div>
-  <div class="maint-table-wrap"><table class="maint-table"><thead><tr><th>상태</th><th>차량</th><th>고객</th><th>접수시간</th><th>주행거리</th><th>요청사항</th><th>관리</th></tr></thead><tbody id="mt-list"></tbody></table><div id="mt-empty" class="empty maint-empty"><div class="empty-icon">🔧</div><div>등록된 정비 접수가 없습니다.</div></div></div>
-</div></div>
-<div class="modal-overlay" id="maintenanceModal"><div class="modal maint-modal"><div class="modal-header"><div class="modal-title" id="maintenanceModalTitle">정비 접수 등록</div><button class="modal-close" onclick="window._closeMaintenanceModal()">×</button></div><div class="modal-body"><div class="form-grid">
-  <div class="form-group"><label class="form-label">차량번호(전체) *</label><input id="mt-car" class="form-input" placeholder="예: 150조 9255" autocomplete="off"></div><div class="form-group"><label class="form-label">차종</label><input id="mt-model" class="form-input" placeholder="예: 토레스"></div>
-  <div class="form-group"><label class="form-label">의뢰자 성명</label><input id="mt-customer" class="form-input" placeholder="고객명"></div><div class="form-group"><label class="form-label">의뢰자 전화번호</label><input id="mt-phone" class="form-input" inputmode="tel" placeholder="010-0000-0000"></div>
-  <div class="form-group"><label class="form-label">접수시간</label><input id="mt-received" type="datetime-local" class="form-input"></div><div class="form-group"><label class="form-label">주행거리</label><input id="mt-mileage" class="form-input" inputmode="numeric" placeholder="예: 45,200 km"></div>
-  <div class="form-group"><label class="form-label">상태</label><select id="mt-status" class="form-select"><option value="received">접수</option><option value="inspection">점검 중</option><option value="working">작업 중</option><option value="parts">부품 대기</option><option value="done">수리 완료</option><option value="released">출고 완료</option></select></div><div class="form-group"><label class="form-label">접수 담당자</label><input id="mt-advisor" class="form-input" placeholder="담당자명"></div>
-  <div class="form-group full"><label class="form-label">요청사항 *</label><textarea id="mt-request" class="form-textarea maint-request-input" placeholder="고객 요청사항과 점검할 내용을 줄바꿈하여 입력하세요."></textarea></div><div class="form-group full"><label class="form-label">내부 메모</label><textarea id="mt-memo" class="form-textarea" placeholder="부품 주문, 고객 통화, 작업 전달사항 등 (접수증에는 인쇄되지 않음)"></textarea></div>
-</div><div class="form-actions maint-form-actions"><button class="btn btn-ghost maint-delete-btn" id="mt-delete-btn" onclick="window._deleteMaintenance()" style="display:none">삭제</button><span class="maint-action-spacer"></span><button class="btn btn-ghost" onclick="window._closeMaintenanceModal()">취소</button><button class="btn btn-primary" id="mt-save-btn" onclick="window._saveMaintenance()">저장</button></div></div></div></div>
-<!-- 예약 및 체크 현황판 (관리자 전용) -->
+</div><!-- 예약 및 체크 현황판 (관리자 전용) -->
 <div id="page-reservation" class="page">
   <div class="main">
     <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -2506,8 +2488,7 @@
   </div>
 </div>
 
-<script src="work-codes-data.js?v=v126-2026-07-30"></script>
-<script defer src="app-maintenance.js?v=v126-2026-07-30"></script>
-<script defer src="app-features.js?v=v126-2026-07-30"></script>
+<script src="work-codes-data.js?v=v127-2026-07-30"></script>
+<script defer src="app-features.js?v=v127-2026-07-30"></script>
 </body>
 </html>
