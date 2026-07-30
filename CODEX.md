@@ -319,4 +319,5 @@ Firebase 규칙 주소:
 - 변경 파일: `un/index.html`, `un/styles.css`, `un/app-module.js`, `un/app-pages.js`, `un/app-maintenance.js`(삭제), `un/sw.js`
 - 캐시 버전: `v127-2026-07-30`
 - 롤백 태그: `rollback-before-maintenance-removal-20260730`
-- 배포 커밋과 라이브 확인 결과는 배포 완료 후 기록
+- 배포 커밋: `886888e` (`긴급 정비 접수 기능 종료`)
+- 라이브 확인 완료: 긴급 메뉴·현황·스크립트 제거, 캐시 `v127` 반영, 예약 현황판·견적도우미 유지 확인
