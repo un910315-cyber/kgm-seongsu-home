@@ -294,4 +294,6 @@ Firebase 규칙 주소:
 - 변경 파일: `un/index.html`, `un/styles.css`, `un/app-module.js`, `un/app-pages.js`, `un/app-maintenance.js`, `un/sw.js`
 - 캐시 버전: `v125-2026-07-30`
 - 롤백 태그: `rollback-before-emergency-maintenance-20260730`
-- Firebase 규칙 반영 후 운영 배포·라이브 확인 예정
+- Firebase 규칙 백업: `firebase-rules-backups/realtime-before-maintenance-20260730.json`
+- Firebase 규칙 게시 완료: `maintenanceRecords` 로그인 사용자 읽기·쓰기 허용
+- 운영 배포·라이브 확인 예정

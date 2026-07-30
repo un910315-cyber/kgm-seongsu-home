@@ -1,0 +1,84 @@
+{
+  "rules": {
+    "allowedEmails": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('allowedEmails').child(auth.token.email.replace('.', ',')).val() == 'admin'"
+    },
+    "records": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "blacklist": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "leaveEmployees": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "leaveUsage": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "leaveRequests": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "annualLeaveNotices": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "notices": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "board": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "companyEvents": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "kgmDailyCount": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "salesDaily": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "monthlyDeposit": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "monthlyTarget": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "workCodes": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "aosClaims": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "insuranceContacts": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "vendorContacts": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "reservationChecks": {
+      ".read": "auth != null && root.child('allowedEmails').child(auth.token.email.replace('.', ',')).val() == 'admin'",
+      ".write": "auth != null && root.child('allowedEmails').child(auth.token.email.replace('.', ',')).val() == 'admin'"
+    },
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}
