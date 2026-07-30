@@ -283,3 +283,15 @@ Firebase 규칙 주소:
 - 캐시 버전: `v124-2026-07-28`
 - 롤백 태그: `rollback-before-dashboard-kgm-removal-20260728`
 - 배포 커밋: `e4f0579` — 대시보드 정비차량 현황 제거`r`n- 라이브에서 캐시 `v124`·정비차량 카드 제거·현황목록·매출 보고·예약 기능 유지 확인 완료
+## 2026-07-30 작업 기록 — 긴급 정비 접수 페이지
+
+- 배경: BOLT 전산 장애로 당일 정비 접수가 어려운 상황에 대비
+- 신규 메뉴: `긴급 정비 접수` — 승인된 admin/staff/viewer 모두 접근
+- Firebase 예정 경로: `maintenanceRecords` (`auth != null` 읽기·쓰기 규칙 필요)
+- 기능: 정비 접수 등록·수정·삭제, 상태관리, 검색/필터, 금일·진행 통계
+- 접수 필드: 차량번호, 차종, 의뢰자, 전화번호, 접수시간, 주행거리, 상태, 담당자, 요청사항, 내부메모
+- 인쇄: 첨부 사진을 기준으로 한 A4 세로 정비 접수증(요청사항 줄 양식)
+- 변경 파일: `un/index.html`, `un/styles.css`, `un/app-module.js`, `un/app-pages.js`, `un/app-maintenance.js`, `un/sw.js`
+- 캐시 버전: `v125-2026-07-30`
+- 롤백 태그: `rollback-before-emergency-maintenance-20260730`
+- Firebase 규칙 반영 후 운영 배포·라이브 확인 예정
