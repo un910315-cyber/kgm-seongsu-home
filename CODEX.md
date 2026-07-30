@@ -296,4 +296,7 @@ Firebase 규칙 주소:
 - 롤백 태그: `rollback-before-emergency-maintenance-20260730`
 - Firebase 규칙 백업: `firebase-rules-backups/realtime-before-maintenance-20260730.json`
 - Firebase 규칙 게시 완료: `maintenanceRecords` 로그인 사용자 읽기·쓰기 허용
-- 운영 배포·라이브 확인 예정
+- 기능 커밋: `4288fbd` — 긴급 정비 접수 현황 및 인쇄 추가
+- 규칙·백업 기록 커밋: `c969261`
+- 운영 배포 및 라이브 확인 완료: 캐시 `v125`, 메뉴·현황·접수 모달·Firebase 연결 확인
+- 기존 예약 현황판·견적도우미 유지 확인
