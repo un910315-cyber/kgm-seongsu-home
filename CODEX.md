@@ -308,4 +308,5 @@ Firebase 규칙 주소:
 - 변경 파일: `un/app-maintenance.js`, `un/index.html`, `un/sw.js`, `CODEX.md`
 - 캐시 버전: `v126-2026-07-30`
 - 롤백 태그: `rollback-before-maintenance-print-fix-20260730`
-- 배포 커밋과 라이브 확인 결과는 배포 완료 후 기록
+- 배포 커밋: `cc79d69` (`정비 접수증 A4 한 장 인쇄 수정`)
+- 라이브 확인 완료: 요청사항 실제 테두리 10칸, 배경 그라데이션 제거, A4 고정 높이와 캐시 `v126` 반영 확인
