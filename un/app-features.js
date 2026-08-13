@@ -1863,7 +1863,10 @@ if ('serviceWorker' in navigator) {
   // 이미 standalone(설치된 상태로 켬)이면 안내 자체 안 보임
   var isStandalone = window.matchMedia('(display-mode: standalone)').matches
     || window.navigator.standalone === true; // iOS
-  if (isStandalone) return;
+  if (isStandalone) {
+    if (btnHeader) btnHeader.style.display = 'none';
+    return;
+  }
 
   // iOS Safari 감지 (beforeinstallprompt 미지원 → 안내 문구만)
   var ua = navigator.userAgent;
@@ -1883,7 +1886,10 @@ if ('serviceWorker' in navigator) {
   });
 
   function triggerInstall() {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      alert('설치창이 아직 준비되지 않았습니다. Chrome 또는 Edge 주소창 오른쪽의 앱 설치 아이콘을 누르거나, 브라우저 메뉴에서 앱 설치를 선택해주세요.');
+      return;
+    }
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then(function (choice) {
       console.log('PWA 설치 결과:', choice.outcome);
@@ -1899,6 +1905,6 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('appinstalled', function () {
     deferredPrompt = null;
     if (banner) banner.classList.remove('show');
-    if (btnHeader) btnHeader.classList.remove('show');
+    if (btnHeader) btnHeader.style.display = 'none';
   });
 })();
