@@ -352,4 +352,5 @@ Firebase 규칙 주소:
 - 설치 완료 또는 standalone 실행 시 버튼 숨김
 - 캐시 버전: `v130-2026-08-13`
 - 롤백 태그: `rollback-before-windows-pwa-install-button-20260813`
-- 배포 커밋과 라이브 확인 결과는 배포 완료 후 기록
+- 배포 커밋: `42db501` (`윈도우 앱 설치 버튼 복구`)
+- 라이브 확인 완료: 우측 하단 앱 설치 버튼, 설치 안내 fallback, standalone 숨김, 캐시 `v130` 반영 확인
