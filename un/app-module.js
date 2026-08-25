@@ -914,12 +914,13 @@
         : sec.items;
       totalItems += sec.items.length;
       shownItems += items.length;
-      if (!items.length) return '';
+      if (!items.length && (!window._wcTableEditMode || q)) return '';
       const sc = sideClass(sec.name);
-const editMode = !!window._wcTableEditMode;
+      const sectionId = encodeURIComponent(sec._wcSectionId || sec.name || '');
+      const editMode = !!window._wcTableEditMode;
       const rowsHtml = items.map(it => {
         const key = encodeURIComponent(it._wcKey || '');
-        const section = encodeURIComponent(sec.name || '');
+        const section = sectionId;
         const actions = editMode ? '<div class="wc-table-item-actions">'
           + '<button title="위로" onclick="window._wcMoveTableItem(\'' + section + '\',\'' + key + '\',-1)">↑</button>'
           + '<button title="아래로" onclick="window._wcMoveTableItem(\'' + section + '\',\'' + key + '\',1)">↓</button>'
@@ -930,9 +931,10 @@ const editMode = !!window._wcTableEditMode;
           + '<span class="wc-item-code">' + highlight(it.code) + '</span>'
           + '</div>';
       }).join('');
-      const add = editMode ? '<button class="wc-table-add" onclick="window._wcAddTableItem(\'' + encodeURIComponent(sec.name || '') + '\')">+ 소항목 추가</button>' : '';
+      const rename = editMode ? '<button class="wc-table-rename" onclick="window._wcRenameTableSection(\'' + sectionId + '\')">이름변경</button>' : '';
+      const add = editMode ? '<button class="wc-table-add" onclick="window._wcAddTableItem(\'' + sectionId + '\')">+ 소항목 추가</button>' : '';
       return '<div class="wc-card ' + sc + '">'
-        + '<div class="wc-card-head"><span>' + esc(sec.name) + '</span><div class="wc-card-head-tools"><em>' + items.length + '</em>' + add + '</div></div>'
+        + '<div class="wc-card-head"><span>' + esc(sec.name) + '</span><div class="wc-card-head-tools"><em>' + items.length + '</em>' + rename + add + '</div></div>'
         + '<div class="wc-card-items">' + rowsHtml + '</div>'
         + '</div>';
     }).filter(Boolean).join('');
