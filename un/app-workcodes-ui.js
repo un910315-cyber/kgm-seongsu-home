@@ -3,7 +3,7 @@
 'use strict';
 var sections=[],selected=new Set(),config={renames:{},hidden:{},order:[],favorites:{},hiddenItems:{},notes:{}},dbMod=null,dbRef=null;
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
-function keyItem(it){return String(it.code||'')+'|'+String(it.name||'');}
+function keyItem(it){return encodeURIComponent(String(it.code||'')+'|'+String(it.name||''));}
 function parse(rows){
  var out=[],curB=null,curJ=null;
  function codeOf(row,cols){for(var i=0;i<cols.length;i++){var v=String((row&&row[cols[i]])||'').trim();if(v&&/\d{3,}/.test(v))return v;}return '';}
