@@ -6071,3 +6071,6 @@ body:has(#page-dashboard.active) #page-dashboard .daily-sales-card .dash-sales-g
     min-height: 38px;
   }
 }
+/* v136: 작업코드 세부내용 간편 편집 */
+.wc-result-tools{display:flex;align-items:center;justify-content:space-between;gap:10px}.wc-result-tools .wc-result-guide{flex:1}.wc-quick-add{flex:0 0 auto;white-space:nowrap}.wc-detail-editor{max-width:560px;width:92vw}.wc-detail-editor .modal-body{display:grid;gap:14px}.wc-detail-editor .form-group{margin:0}.wc-detail-editor .form-input,.wc-detail-editor .form-select{width:100%;font-size:16px;padding:13px 14px}.wc-detail-actions{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:8px;margin-top:4px}.wc-edit-item{font-weight:800;background:rgba(59,130,246,.1)}
+@media(max-width:700px){.wc-result-tools{align-items:stretch;flex-direction:column}.wc-quick-add{width:100%;min-height:42px}.wc-detail-editor{width:calc(100vw - 20px)}.wc-detail-actions{grid-template-columns:1fr 1fr}.wc-detail-actions span{display:none}.wc-detail-actions .btn{width:100%}.wc-detail-actions #wcDetailResetBtn{grid-column:1/-1}.wc-result-item .wc-edit-item{min-width:58px;background:rgba(59,130,246,.15)}}
