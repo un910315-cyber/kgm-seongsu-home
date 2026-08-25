@@ -367,4 +367,6 @@ Firebase 규칙 주소:
 - 변경 파일: `un/app-workcodes-ui.js`(신규), `un/index.html`, `un/styles.css`, `un/sw.js`, `CODEX.md`
 - 캐시 버전: `v131-2026-08-25`
 - 롤백 태그: `rollback-before-workcode-main-multiselect-20260825`
-- 배포 커밋과 라이브 확인 결과는 배포 완료 후 기록
+- 기능 배포 커밋: `7fba57b` (`작업코드 메인과 복수 항목 선택 추가`)
+- 저장 키 보강 커밋: `89d657f` (슬래시 포함 코드의 Firebase 설정 저장 안전성 보강)
+- 라이브 확인 완료: 큰 항목 15개 생성, 작업코드·차량 모형 2개 탭, 복수 선택·통합 팝업·설정 기능 및 캐시 `v131` 반영 확인
