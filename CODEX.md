@@ -393,4 +393,5 @@ Firebase 규칙 주소:
 - 설정 저장: `workCodes/uiConfig`의 `customCategories`, `extraItems`, `resultOrder`
 - 캐시 버전: `v133-2026-08-25`
 - 롤백 태그: `rollback-before-workcode-category-detail-editor-20260825`
-- 배포 커밋과 라이브 확인 결과는 배포 완료 후 기록
+- 배포 커밋: `ca6353c` (`작업코드 항목과 세부내용 편집 추가`)
+- 라이브 확인 완료: 3개 탭·기존 15개 항목 유지, 새 큰 항목 추가·세부 작업 관리·순서 변경 UI 및 캐시 `v133` 반영 확인
