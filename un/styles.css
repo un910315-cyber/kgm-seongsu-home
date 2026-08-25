@@ -5950,3 +5950,124 @@ body:has(#page-dashboard.active) #page-dashboard .daily-sales-card .dash-sales-g
 /* 작업코드 큰 항목·세부내용 편집 */
 .wc-result-guide{font-size:12px;color:#c4b5fd;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.22);border-radius:8px;padding:8px 11px}.wc-order-buttons{display:flex;flex-direction:column;gap:4px}.wc-order-buttons button{width:30px;height:27px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:#c4b5fd;font-size:15px;font-weight:900;cursor:pointer}.wc-order-buttons button:hover{border-color:#8b5cf6;background:rgba(139,92,246,.18)}.wc-edit-item,.wc-delete-item{border:1px solid var(--border);background:transparent;border-radius:7px;padding:9px 10px;font-size:12px;cursor:pointer}.wc-edit-item{color:#93c5fd;border-color:rgba(59,130,246,.28)}.wc-delete-item{color:#fca5a5;border-color:rgba(239,68,68,.28)}.wc-settings-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.wc-settings-top .wc-settings-help{margin:0}.wc-add-detail-btn{color:#93c5fd!important;border-color:rgba(59,130,246,.32)!important}.wc-delete-category{color:#fca5a5!important;border-color:rgba(239,68,68,.3)!important}.wc-settings-modal{max-width:900px}.wc-settings-modal .modal-body{max-height:75vh;overflow:auto}
 @media(max-width:700px){.wc-order-buttons{flex-direction:row;order:1}.wc-fav{order:2}.wc-result-main{order:3}.wc-result-code{order:4}.wc-note,.wc-edit-item,.wc-delete-item,.wc-hide-item{order:5}.wc-settings-top{align-items:flex-start;flex-direction:column}.wc-settings-top .btn{width:100%}}
+
+/* v135: 현황 목록 모바일 전체 열 카드 표시 */
+@media (max-width: 700px) {
+  #page-status .table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  #page-status table {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+  }
+
+  #page-status thead {
+    display: none;
+  }
+
+  #page-status tbody {
+    display: grid;
+    width: 100%;
+    gap: 12px;
+  }
+
+  #page-status tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, .16);
+    border-radius: 12px;
+    background: linear-gradient(155deg, rgba(23, 31, 48, .9), rgba(11, 17, 29, .98));
+  }
+
+  #page-status tbody td {
+    display: flex;
+    min-width: 0;
+    min-height: 66px;
+    padding: 10px 11px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 6px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    border: 0;
+    border-right: 1px solid rgba(148, 163, 184, .08);
+    border-bottom: 1px solid rgba(148, 163, 184, .08);
+  }
+
+  #page-status tbody td::before {
+    display: block;
+    color: #7f8da7;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  #page-status tbody td:nth-child(1)::before { content: "차량번호"; }
+  #page-status tbody td:nth-child(2)::before { content: "차종"; }
+  #page-status tbody td:nth-child(3)::before { content: "연락처"; }
+  #page-status tbody td:nth-child(4)::before { content: "위치"; }
+  #page-status tbody td:nth-child(5)::before { content: "상태"; }
+  #page-status tbody td:nth-child(6)::before { content: "대물보험"; }
+  #page-status tbody td:nth-child(7)::before { content: "자차보험"; }
+  #page-status tbody td:nth-child(8)::before { content: "수리내용"; }
+  #page-status tbody td:nth-child(9)::before { content: "렌트카"; }
+  #page-status tbody td:nth-child(10)::before { content: "입고일"; }
+  #page-status tbody td:nth-child(11)::before { content: "출고예정"; }
+  #page-status tbody td:nth-child(12)::before { content: "관리"; }
+
+  #page-status tbody td:nth-child(8),
+  #page-status tbody td:nth-child(12),
+  #page-status tbody td.empty {
+    grid-column: 1 / -1;
+  }
+
+  #page-status tbody td:nth-child(4),
+  #page-status tbody td:nth-child(5) {
+    min-width: 0;
+  }
+
+  #page-status tbody td:nth-child(4) > span,
+  #page-status tbody td:nth-child(5) > span,
+  #page-status .ops-chip {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  #page-status .car-num {
+    width: fit-content;
+    max-width: 100%;
+    font-size: 14px;
+    line-height: 1.35;
+    white-space: normal;
+  }
+
+  #page-status tbody td:last-child {
+    border-bottom: 0;
+  }
+
+  #page-status tbody td:nth-child(even) {
+    border-right: 0;
+  }
+
+  #page-status tbody td.empty::before {
+    display: none;
+  }
+
+  #page-status tbody td:nth-child(12) .btn {
+    width: 100%;
+    min-height: 38px;
+  }
+}
