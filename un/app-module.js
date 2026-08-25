@@ -892,7 +892,8 @@
       if (statusEl) statusEl.textContent = '';
       return;
     }
-    const sections = _parseWorkCodeSections(rows);
+    let sections = _parseWorkCodeSections(rows);
+    if (typeof window._wcPrepareTableSections === 'function') sections = window._wcPrepareTableSections(sections);
     const highlight = (s) => {
       const txt = String(s == null ? '' : s);
       if (!q) return esc(txt);
@@ -915,14 +916,23 @@
       shownItems += items.length;
       if (!items.length) return '';
       const sc = sideClass(sec.name);
-      const rowsHtml = items.map(it =>
-        '<div class="wc-item">'
-        + '<span class="wc-item-name">' + highlight(it.name) + '</span>'
-        + '<span class="wc-item-code">' + highlight(it.code) + '</span>'
-        + '</div>'
-      ).join('');
+const editMode = !!window._wcTableEditMode;
+      const rowsHtml = items.map(it => {
+        const key = encodeURIComponent(it._wcKey || '');
+        const section = encodeURIComponent(sec.name || '');
+        const actions = editMode ? '<div class="wc-table-item-actions">'
+          + '<button title="위로" onclick="window._wcMoveTableItem(\'' + section + '\',\'' + key + '\',-1)">↑</button>'
+          + '<button title="아래로" onclick="window._wcMoveTableItem(\'' + section + '\',\'' + key + '\',1)">↓</button>'
+          + '<button onclick="window._wcEditTableItem(\'' + section + '\',\'' + key + '\')">수정</button>'
+          + '<button class="delete" onclick="window._wcDeleteTableItem(\'' + section + '\',\'' + key + '\')">삭제</button></div>' : '';
+        return '<div class="wc-item">' + actions
+          + '<span class="wc-item-name">' + highlight(it.name) + '</span>'
+          + '<span class="wc-item-code">' + highlight(it.code) + '</span>'
+          + '</div>';
+      }).join('');
+      const add = editMode ? '<button class="wc-table-add" onclick="window._wcAddTableItem(\'' + encodeURIComponent(sec.name || '') + '\')">+ 소항목 추가</button>' : '';
       return '<div class="wc-card ' + sc + '">'
-        + '<div class="wc-card-head">' + esc(sec.name) + ' <em>' + items.length + '</em></div>'
+        + '<div class="wc-card-head"><span>' + esc(sec.name) + '</span><div class="wc-card-head-tools"><em>' + items.length + '</em>' + add + '</div></div>'
         + '<div class="wc-card-items">' + rowsHtml + '</div>'
         + '</div>';
     }).filter(Boolean).join('');
@@ -932,6 +942,8 @@
         + (q ? (shownItems + ' / ' + totalItems + '개 일치') : (totalItems + '개 항목'));
     }
   }
+
+  window._renderWorkCodeTable = _renderWorkCodeTable;
 
   window._openWorkCodeRef = function() {
     document.getElementById('workCodeRefModal').classList.add('open');
