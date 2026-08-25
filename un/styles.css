@@ -6092,3 +6092,6 @@ body:has(#page-dashboard.active) #page-dashboard .daily-sales-card .dash-sales-g
 @media(max-width:700px){.wc-result-priority-head{padding:9px 10px;font-size:14px}.wc-result-section-head{padding:6px 8px 2px}.wc-result-section-head strong{font-size:13px}}
 /* v142: 선택 코드 목록 하단까지 채움 */
 #wcResultsModal .wc-results-modal .modal-body{height:auto;max-height:none!important;overflow:hidden}#wcResultsModal .wc-result-list{height:auto;max-height:none;overflow-y:auto;overflow-x:hidden}
+/* v143: 작업코드 노란 박스 내부 맞춤 */
+.wc-results-modal:not(.editing) .wc-result-item{grid-template-columns:auto minmax(0,1fr) minmax(126px,45%)}.wc-results-modal:not(.editing) .wc-result-code{justify-self:end;width:fit-content;max-width:100%;min-width:126px;box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;word-break:normal}
+@media(max-width:700px){.wc-results-modal:not(.editing) .wc-result-item{grid-template-columns:auto minmax(0,1fr) minmax(100px,44vw)}.wc-results-modal:not(.editing) .wc-result-code{min-width:100px;max-width:100%}}
