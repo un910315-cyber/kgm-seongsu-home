@@ -331,12 +331,12 @@
         const badge = document.createElement('div');
         badge.id = 'user-badge';
         badge.className='date-badge';
-        badge.style.cssText='cursor:pointer;display:flex;align-items:center;gap:6px;';
+        badge.style.cssText='display:flex;align-items:center;gap:6px;';
         badge.innerHTML='<img src="'+(user.photoURL||'')+'" style="width:20px;height:20px;border-radius:50%;border:1px solid rgba(139,92,246,.3)">'
           +'<span style="font-family:Inter,sans-serif;font-size:11px;">'+(window._userName||'').split(' ')[0]+'</span>'
           +'<span style="font-size:9px;color:var(--accent);font-weight:700;text-transform:uppercase;">'+role+'</span>';
-        badge.title='클릭하면 로그아웃';
-        badge.onclick=async function(){if(await window._confirm('로그아웃 하시겠습니까?','로그아웃','취소'))authSignOut();};
+        badge.title='로그인한 사용자';
+        // 사용자 이름·사진은 정보만 표시하며 로그아웃 동작을 연결하지 않는다.
         headerRight.appendChild(badge);
       }
       // 사이드바 하단 로그아웃 버튼 표시 (버튼은 index.html에 정적으로 존재)
