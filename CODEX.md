@@ -578,3 +578,14 @@ Firebase 규칙 주소:
 - 검증: 실제 HTML/CSS와 테스트 행으로 Edge 390·430·1280px에서 네 목록의 행/셀 표시·글자크기·간격·제목행·가로스크롤·최소폭 동일 확인. diff 및 sw.js 문법 검사 통과
 - 배포: 3f205a7 / 캐시 v148-2026-09-07 / 롤백 rollback-before-status-match-lists-20260907 (7f0a19d)
 - 라이브 CSS 공통 목록 규칙·카드 규칙 제거·HTML 및 SW v148 반영 확인
+
+## 2026-09-07 로그아웃 오조작 방지
+
+- 업무 메뉴의 직접 노출 로그아웃 버튼을 접힌 계정 설정(details) 내부로 이동
+- 계정 설정 열기 → 로그아웃 선택 → 기존 확인창 확인 순서로 실행. 로그아웃 선택 시 계정 설정은 다시 닫힘
+- 사용자 이름·사진 배지의 로그아웃 클릭 핸들러 제거, 로그인 사용자 정보 표시만 유지
+- 기존 logout-btn ID를 details에 유지해 인증 시 표시·로그아웃 시 숨김 처리 유지
+- 변경: un/index.html, un/styles.css, un/app-module.js, un/sw.js. Firebase 규칙·데이터 변경 없음
+- 검증: 로컬 Edge 390/1280px에서 기본 숨김·펼치기·취소 시 signOut 미호출·확인 시 1회 호출을 stub으로 확인. app-module/sw 문법 및 diff 검사 통과
+- 배포 88d9e52 / 캐시 v149-2026-09-07 / 롤백 rollback-before-logout-account-menu-20260907 (3e95ed8)
+- 라이브 HTML 계정 설정, JS 배지 핸들러 제거, SW v149 반영 확인
