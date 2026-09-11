@@ -2555,7 +2555,7 @@
         <td>${insBadge(r.insDaemul,'대물')}</td>
         <td>${insBadge(r.insJacha,'자차')}</td>
         <td>${repairCell(r.repair)}</td>
-        <td style="color:var(--green);font-weight:700;">${fmtCost(r.cost)}</td>
+        <td style="color:#fb923c;font-weight:600;">${esc(r.rent)||'-'}</td>
         <td>${fmt(r.inDate)}</td>
         <td>${esc(r.km)||'-'}</td>
         <td>
