@@ -589,3 +589,13 @@ Firebase 규칙 주소:
 - 검증: 로컬 Edge 390/1280px에서 기본 숨김·펼치기·취소 시 signOut 미호출·확인 시 1회 호출을 stub으로 확인. app-module/sw 문법 및 diff 검사 통과
 - 배포 88d9e52 / 캐시 v149-2026-09-07 / 롤백 rollback-before-logout-account-menu-20260907 (3e95ed8)
 - 라이브 HTML 계정 설정, JS 배지 핸들러 제거, SW v149 반영 확인
+
+## 2026-09-11 금일 출고 예정 렌트카 표시
+
+- 요청: 금일 출고 예정의 수리비용을 빼고 같은 자리에 이용 중인 렌트카 표시
+- page-complete의 8번째 제목을 렌트카로 변경, renderComplete의 r.cost 대신 기존 r.rent를 HTML escape하여 표시. 미입력은 -
+- 기존 수리비용 데이터·다른 목록·수정 폼·권한 변경 없음. Firebase 변경 없음
+- 변경 파일: un/index.html, un/app-module.js, un/sw.js
+- 백업: 074a683 / 원격 롤백 rollback-before-complete-rental-column-20260911
+- 배포: dc9e09a / 캐시 v150-2026-09-11
+- 검증: 렌트카 입력·저장 필드 연결 및 변경 범위 확인, app-module.js/sw.js 문법과 diff 검사 통과. 라이브 제목·비용 열 제거·JS 전체 로컬 일치·캐시 버전 확인
