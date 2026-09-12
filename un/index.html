@@ -16,8 +16,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v152-2026-09-12">
-<link rel="stylesheet" href="design-refresh.css?v=v152-2026-09-12" media="screen">
+<link rel="stylesheet" href="styles.css?v=v153-2026-09-12">
+<link rel="stylesheet" href="design-refresh.css?v=v153-2026-09-12" media="screen">
 </head>
 <body>
 
@@ -87,7 +87,7 @@
 
 <div class="nav-tabs">
   <div class="nav-tab active" onclick="switchPage('dashboard')">대시보드</div>
-  <div class="nav-tab nav-emergency" onclick="switchPage('maintenance')" id="tab-maintenance">긴급 정비 접수</div>
+  <div class="nav-tab nav-emergency" onclick="switchPage('maintenance')" id="tab-maintenance" style="display:none">긴급 정비 접수</div>
   <div class="nav-group nav-group-open" id="opsNavGroup">
     <div class="nav-tab nav-parent" onclick="toggleOpsNav()">입출고 목록</div>
     <div class="nav-subtabs" id="opsNavSubtabs">
@@ -997,10 +997,10 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script src="app-safety.js?v=v152-2026-09-12"></script>
-<script type="module" src="app-module.js?v=v152-2026-09-12"></script>
+<script src="app-safety.js?v=v153-2026-09-12"></script>
+<script type="module" src="app-module.js?v=v153-2026-09-12"></script>
 
-<script defer src="app-pages.js?v=v152-2026-09-12"></script>
+<script defer src="app-pages.js?v=v153-2026-09-12"></script>
 
 <!-- XLSX + JSZip: 보험 미결 탭 첫 진입 시 지연 로드 -->
 <script>
@@ -2517,6 +2517,6 @@
 <script src="work-codes-data.js?v=v133-2026-08-25"></script>
 <script defer src="app-maintenance.js?v=v133-2026-08-25"></script>
 <script defer src="app-features.js?v=v133-2026-08-25"></script>
-<script defer src="app-workcodes-ui.js?v=v152-2026-09-12"></script>
+<script defer src="app-workcodes-ui.js?v=v153-2026-09-12"></script>
 </body>
 </html>

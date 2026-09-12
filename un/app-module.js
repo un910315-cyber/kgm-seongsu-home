@@ -228,9 +228,9 @@
 
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
-    admin: ['dashboard','maintenance','list','status','complete','out','migyeol','leave','board','estimate','insurance','vendors','sales','reservation','usermgmt'],
-    staff: ['maintenance','status','complete','leave','board','estimate','insurance','vendors'],
-    viewer: ['maintenance','status','complete','leave','board','vendors']
+    admin: ['dashboard','list','status','complete','out','migyeol','leave','board','estimate','insurance','vendors','sales','reservation','usermgmt'],
+    staff: ['status','complete','leave','board','estimate','insurance','vendors'],
+    viewer: ['status','complete','leave','board','vendors']
   };
   window._requireRole=function(...roles){if(roles.includes(window._userRole)&&window._userEmail)return true;showNotif('접근 권한이 없습니다.',true);return false;};
   window._canAccessPage=function(name){return (ROLE_MENUS[window._userRole]||[]).includes(name)||(name==='blacklist'&&window._userRole==='admin');};
