@@ -5,7 +5,7 @@ const {chromium}=require('C:/Users/pc/.cache/codex-runtimes/codex-primary-runtim
 const b=await chromium.launch({channel:'msedge',headless:true}),p=await b.newPage();
 await p.route('**/*',route=>route.abort());
 let html=fs.readFileSync('un/index.html','utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<link\b[^>]*>/gi,'');
-await p.setContent(html);await p.evaluate(css=>{const style=document.createElement('style');style.textContent=css;document.head.appendChild(style);},fs.readFileSync('un/styles.css','utf8'));
+await p.setContent(html);await p.evaluate(css=>{const style=document.createElement('style');style.textContent=css;document.head.appendChild(style);},fs.readFileSync('un/styles.css','utf8')+'\n'+fs.readFileSync('un/design-refresh.css','utf8'));
 await p.evaluate(()=>{for(const id of ['loadingScreen','loginScreen']){const el=document.getElementById(id);if(el)el.remove();}});
 for(const width of [390,844,1024,1366]){
  await p.setViewportSize({width,height:900});
