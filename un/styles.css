@@ -5298,12 +5298,12 @@ body:has(.page.active) .sidebar-links a:hover {
   }
 }
 
-/* Final production lock: keep the manual sidebar fixed after every page click. */
-@media (min-width: 761px) {
+/* Desktop sidebar: up to 900px uses shared mobile navigation. */
+@media (min-width: 901px) {
   body,
   body[data-page],
   body:has(.page.active) {
-    min-width: 1180px !important;
+    min-width: 0 !important;
   }
 
   body .header,

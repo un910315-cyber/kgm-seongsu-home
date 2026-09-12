@@ -2,7 +2,7 @@
 // Firebase 초기화 + 인증 + 거래·연차·게시판·블랙리스트 등 메인 로직
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, onValue, push, update, remove, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref, onValue, push, update, remove, set, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getFirestore, collection, doc, setDoc, getDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject, listAll } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -232,6 +232,8 @@
     staff: ['maintenance','status','complete','leave','board','estimate','insurance','vendors'],
     viewer: ['maintenance','status','complete','leave','board','vendors']
   };
+  window._requireRole=function(...roles){if(roles.includes(window._userRole)&&window._userEmail)return true;showNotif('접근 권한이 없습니다.',true);return false;};
+  window._canAccessPage=function(name){return (ROLE_MENUS[window._userRole]||[]).includes(name)||(name==='blacklist'&&window._userRole==='admin');};
   // 'blacklist' 페이지는 ROLE_MENUS에 포함하지 않음 — 출고완료 페이지의 작은 버튼으로만 진입 (admin 전용 가드)
 
   // (이전에 여기에도 authGoogleLogin 정의가 있었는데 아래쪽 두 번째 정의가
@@ -287,6 +289,11 @@
         return;
       }
       const userData = userDoc.data();
+      if(userData._deleted || !['admin','staff','viewer'].includes(userData.role||'viewer')){
+        stopRealtimeListeners();window._userRole=null;window._userEmail=null;
+        loginScreen.style.display='flex';document.getElementById('loginDenied').style.display='block';
+        document.getElementById('googleLoginBtn').style.display='flex';return;
+      }
       const role = userData.role || 'viewer';
       window._userRole = role;
       window._userEmail = user.email;
@@ -643,6 +650,9 @@
   }
 
   let records = {};
+  let deletedRecords = {};
+  let editingBaseline = null;
+  let editingOriginal = null;
   let blacklistMap = {};
   let kgmDailyMap = {};
   let salesDailyMap = {};  // { 'YYYY-MM-DD': { parts:N, function:N } }
@@ -737,7 +747,9 @@
 
   // 실시간 데이터 수신
   authReadyOnValue(recordsRef, (snapshot) => {
-    records = snapshot.val() || {};
+    const allRecords = snapshot.val() || {};
+    records = Object.fromEntries(Object.entries(allRecords).filter(([id,r])=>!r._deletedAt));
+    deletedRecords = Object.fromEntries(Object.entries(allRecords).filter(([id,r])=>r._deletedAt));
     document.getElementById('loadingScreen').style.display = 'none';
     refreshAll();
     if (typeof window._refreshBlacklistAlerts === 'function') window._refreshBlacklistAlerts();
@@ -1020,8 +1032,7 @@
   const SALES_CATS = ['parts', 'function'];
   const SALES_LABELS = { parts: '부품', function: '기능' };
   function _todayStr() {
-    const d = new Date();
-    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    return window.KgmSafety.date();
   }
   function _thisMonthStr() {
     const d = new Date();
@@ -1835,7 +1846,7 @@
   };
 
   // ── KGM 일일 카운트 저장 — 입력값 → 오늘 자리에 덮어쓰기 ──
-  function kgmTodayStr() { return new Date().toISOString().split('T')[0]; }
+  function kgmTodayStr() { return window.KgmSafety.date(); }
   window._kgmDailySave = async function() {
     const inp = document.getElementById('kgm-today-input');
     if (!inp) return;
@@ -1971,7 +1982,7 @@
   window.saveStatus = async function(val) {
     const id = document.getElementById('statusPickerId').value;
     const updateData = { status: val, updatedAt: new Date().toISOString() };
-    if (val === '출고' || val === '미수리 출고') updateData.outDate = new Date().toISOString().split('T')[0];
+    if (val === '출고' || val === '미수리 출고') updateData.outDate = window.KgmSafety.date();
     try {
       await update(ref(db, `records/${id}`), updateData);
       showNotif(`상태가 "${val}"(으)로 변경되었습니다 `);
@@ -2092,7 +2103,7 @@
     }
     const list = getList();
     const active = list.filter(r => r.status !== '출고' && r.status !== '미수리 출고');
-    const today = new Date().toISOString().split('T')[0];
+    const today = window.KgmSafety.date();
     document.getElementById('stat-total').textContent = active.length;
     document.getElementById('stat-wait').textContent = list.filter(r=>r.status==='수리대기').length;
     document.getElementById('stat-repair').textContent = list.filter(r=>r.status==='수리중').length;
@@ -2410,7 +2421,7 @@
   function renderDashboardOps(activeList, allList) {
     const active = Array.isArray(activeList) ? activeList : [];
     const all = Array.isArray(allList) ? allList : active;
-    const today = new Date().toISOString().split('T')[0];
+    const today = window.KgmSafety.date();
     const wait = all.filter(r => r.status === '수리대기').length;
     const repair = all.filter(r => r.status === '수리중').length;
     const done = all.filter(r => r.status === '수리완료' || r.status === '금일 출고예정').length;
@@ -2465,6 +2476,7 @@
 
   // ---- LIST ----
   function renderList() {
+    const trashBtn=document.getElementById('recordTrashBtn');if(trashBtn)trashBtn.style.display=window._userRole==='admin'?'':'none';
     const q = (document.getElementById('searchInput')?.value||'').toLowerCase();
     const fs = document.getElementById('filterStatus')?.value||'';
     let data = getList().filter(r => {
@@ -2572,6 +2584,7 @@
   // ---- MODAL ----
   window.openModal = function() { _openModal(null); };
   window._openModal = function(id) {
+    if(!window._requireRole('admin','staff','viewer'))return;
     editingId = id || null;
     document.getElementById('modalTitle').textContent = id ? '차량 정보 수정' : '차량 등록';
     if (id && records[id]) {
@@ -2603,6 +2616,8 @@
       // 입고일 = 오늘 (한국 시간 기준 — UTC 쓰면 새벽에 어제로 잡힘)
       document.getElementById('f-indate').value = _todayStr();
     }
+    editingBaseline = id ? collectFormData() : null;
+    editingOriginal = id ? JSON.parse(JSON.stringify(records[id]||{})) : null;
     document.getElementById('formModal').classList.add('open');
     // 블랙 경고 평가 (수정 모드면 기존 차량번호로 즉시, 신규면 비워둠)
     setTimeout(function() { if (window._checkBlacklistWarning) window._checkBlacklistWarning(); }, 0);
@@ -2655,7 +2670,7 @@
       status,
       inDate,
       outDate: (status === '출고' || status === '미수리 출고')
-        ? (document.getElementById('f-outdate').value || new Date().toISOString().split('T')[0])
+        ? (document.getElementById('f-outdate').value || window.KgmSafety.date())
         : document.getElementById('f-outdate').value||'',
       repair: document.getElementById('f-repair').value.trim(),
       cost: parseInt(document.getElementById('f-cost').value)||0,
@@ -2675,16 +2690,59 @@
     };
   }
 
+  async function saveRecordChanges(id, changes, baseline) {
+    const original=JSON.parse(JSON.stringify(editingOriginal||{}));
+    await get(ref(db,'records/'+id));
+    var result = await runTransaction(ref(db,'records/'+id), function(current){
+      if(!current || current._deletedAt)return;
+      try {
+        var delta=window.KgmSafety.diff(baseline,changes).map(function(c){c.before=original[c.path[0]]==null?null:original[c.path[0]];return c;});
+        var merged=window.KgmSafety.merge(current,delta);merged.updatedAt=new Date().toISOString();return merged;
+      }
+      catch(e){return;}
+    },{applyLocally:false});
+    if(!result.committed)throw Error('다른 사용자가 같은 항목을 변경했거나 차량이 삭제되었습니다. 다시 열어 확인해주세요.');
+  }
+  window._openRecordTrash = function(){
+    if(!window._requireRole('admin'))return;
+    var modal=document.getElementById('recordTrashModal');
+    if(!modal){
+      modal=document.createElement('div');modal.id='recordTrashModal';modal.className='modal-overlay';
+      modal.innerHTML='<div class="modal"><div class="modal-header"><div class="modal-title">차량 휴지통</div><button class="modal-close" onclick="this.closest(\'.modal-overlay\').classList.remove(\'open\')">×</button></div><div class="modal-body" id="recordTrashBody"></div></div>';
+      document.body.appendChild(modal);
+    }
+    document.getElementById('recordTrashBody').innerHTML=Object.entries(deletedRecords).map(function(pair){
+      var id=pair[0],r=pair[1];
+      return '<div style="padding:12px;border-bottom:1px solid var(--border)"><strong>'+esc(r.carNum)+'</strong> · '+esc(r.carModel||'')+'<br><small>'+esc(r._deletedAt||'')+'</small><button class="btn btn-ghost" data-id="'+esc(id)+'">복원</button></div>';
+    }).join('')||'삭제된 차량이 없습니다.';
+    document.querySelectorAll('#recordTrashBody button').forEach(function(b){b.onclick=async function(){b.disabled=true;try{await window._restoreRecord(b.dataset.id);}finally{b.disabled=false;}};});
+    modal.classList.add('open');
+  };
+  window._restoreRecord=async function(id){
+    if(!window._requireRole('admin'))return;
+    if(!await window._confirm('차량과 사진을 목록으로 복원할까요?','복원','취소'))return;
+    try{
+      var result=await runTransaction(ref(db,'records/'+id),function(r){if(!r||!r._deletedAt)return;delete r._deletedAt;delete r._deletedBy;r.updatedAt=new Date().toISOString();return r;},{applyLocally:false});
+      if(!result.committed)throw Error('이미 복원되었거나 차량이 없습니다.');
+      showNotif('차량과 사진을 복원했습니다.');window._openRecordTrash();
+    }catch(e){showNotif('복원 실패: '+e.message,true);}
+  };
+
   window.saveRecord = async function() {
+    if(!window._requireRole('admin','staff','viewer'))return;
     const data = collectFormData();
     if (!data) return;
 
     const btn = document.getElementById('saveBtn');
+    if(btn.disabled)return;
     btn.disabled = true; btn.textContent = '저장 중...';
 
     try {
       if (editingId) {
-        await update(ref(db, `records/${editingId}`), data);
+        const base = {...editingBaseline};
+        delete base.updatedAt;
+        const next = {...data};delete next.updatedAt;
+        await saveRecordChanges(editingId,next,base);
         showNotif(`${data.carNum} 정보가 수정되었습니다 `);
       } else {
         data.createdAt = new Date().toISOString();
@@ -2699,27 +2757,15 @@
   };
 
   window._delete = async function(id, carNum, name) {
-    var rec = records[id];
-    var subtitle = name || (rec && rec.carModel) || '';
-    if (!(await window._confirm(`${carNum}${subtitle ? ' (' + subtitle + ')' : ''} 차량을 삭제하시겠습니까?`,'삭제',''))) return;
-    // Storage 사진도 best-effort로 정리 (실패해도 DB 삭제는 진행)
-    try {
-      var rec = records[id];
-      var stages = (rec && rec.photos) ? Object.keys(rec.photos) : [];
-      for (var i = 0; i < stages.length; i++) {
-        var arr = rec.photos[stages[i]] || [];
-        for (var j = 0; j < arr.length; j++) {
-          if (arr[j] && arr[j].path) {
-            try { await window._deleteObject(window._sRef(window._storage, arr[j].path)); }
-            catch(e) { console.warn('storage cleanup failed:', arr[j].path, e); }
-          }
-        }
-      }
-    } catch(e) { console.warn('photo cleanup error (proceeding):', e); }
-    try {
-      await remove(ref(db, `records/${id}`));
-      showNotif('삭제되었습니다');
-    } catch(e) { showNotif('삭제 실패', true); }
+    if(!window._requireRole('admin'))return;
+    if(!await window._confirm((carNum||'차량')+'을 휴지통으로 이동할까요? 사진도 보관되며 복원할 수 있습니다.','휴지통으로 이동','취소'))return;
+    try{
+      var result=await runTransaction(ref(db,'records/'+id),function(r){
+        if(!r||r._deletedAt)return;r._deletedAt=new Date().toISOString();r._deletedBy=window._userEmail;return r;
+      },{applyLocally:false});
+      if(!result.committed)throw Error('이미 삭제되었거나 차량이 없습니다.');
+      showNotif('휴지통으로 이동했습니다.');
+    }catch(e){showNotif('삭제 실패: '+e.message,true);}
   };
 
   window._markOut = async function(id, carNum, name) {
@@ -2729,7 +2775,7 @@
     try {
       await update(ref(db, `records/${id}`), {
         status: '출고',
-        outDate: new Date().toISOString().split('T')[0],
+        outDate: window.KgmSafety.date(),
         updatedAt: new Date().toISOString()
       });
       showNotif(`${carNum} 출고 처리 완료! `);
@@ -2773,7 +2819,7 @@
       // 동시 출고 처리
       await update(ref(db, 'records/' + t.id), {
         status: '출고',
-        outDate: new Date().toISOString().split('T')[0],
+        outDate: window.KgmSafety.date(),
         updatedAt: new Date().toISOString()
       });
       document.getElementById('blacklistRegModal').classList.remove('open');
@@ -3260,7 +3306,7 @@
     const missing = list.filter(r => r.status === '출고' && !r.outDate);
     if (!missing.length) { showNotif('보정할 차량이 없어요 '); return; }
     if (!(await window._confirm(`출고일이 없는 차량 ${missing.length}대를 오늘 날짜로 보정할까요?`,'보정',''))) return;
-    const today = new Date().toISOString().split('T')[0];
+    const today = window.KgmSafety.date();
     try {
       for (const r of missing) {
         await update(ref(db, `records/${r.id}`), { outDate: today });
@@ -3441,8 +3487,8 @@
   authReadyOnValue(leaveUseRef, (snap) => { leaveUsage = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} });
 
   // 총 사용 시간 (시간 단위로 통합 계산, 1일=8시간)
-  function getLeaveUsedHours(empId) {
-    return Object.values(leaveUsage).filter(u => u.empId === empId).reduce((sum, u) => {
+  function getLeaveUsedHours(empId, year) {
+    return Object.values(leaveUsage).filter(u => u.empId === empId && window.KgmSafety.leaveYear(u,year)).reduce((sum, u) => {
       if (u.type === '\uc5f0\ucc28') return sum + 8;
       if (u.type === '\uc624\uc804\ubc18\ucc28' || u.type === '\uc624\ud6c4\ubc18\ucc28') return sum + 4;
       if (u.type === '\uc870\ud1f4' || u.type === '\uc678\ucd9c') return sum + (parseInt(u.hours) || 0);
@@ -3490,13 +3536,13 @@
     return '\uc2e0\uaddc';
   }
   function getHalfDayCount(empId) {
-    return Object.values(leaveUsage).filter(u => u.empId === empId && (u.type === '\uc624\uc804\ubc18\ucc28' || u.type === '\uc624\ud6c4\ubc18\ucc28')).length;
+    return Object.values(leaveUsage).filter(u => u.empId === empId && window.KgmSafety.leaveYear(u) && (u.type === '\uc624\uc804\ubc18\ucc28' || u.type === '\uc624\ud6c4\ubc18\ucc28')).length;
   }
   function getEtcCount(empId) {
-    return Object.values(leaveUsage).filter(u => u.empId === empId && (u.type === '\uc870\ud1f4' || u.type === '\uc678\ucd9c')).length;
+    return Object.values(leaveUsage).filter(u => u.empId === empId && window.KgmSafety.leaveYear(u) && (u.type === '\uc870\ud1f4' || u.type === '\uc678\ucd9c')).length;
   }
   function getYearLeaveCount(empId) {
-    return Object.values(leaveUsage).filter(u => u.empId === empId && u.type === '\uc5f0\ucc28').length;
+    return Object.values(leaveUsage).filter(u => u.empId === empId && window.KgmSafety.leaveYear(u) && u.type === '\uc5f0\ucc28').length;
   }
 
   function renderLeave() {
@@ -3611,7 +3657,7 @@
   };
   function renderReservationBoard(){
     if(window._userRole!=='admin') return;
-    var q=((document.getElementById('rv-search')||{}).value||'').trim().toLowerCase(), tf=((document.getElementById('rv-type-filter')||{}).value||'all'), sf=((document.getElementById('rv-status-filter')||{}).value||'active'), today=new Date().toISOString().split('T')[0];
+    var q=((document.getElementById('rv-search')||{}).value||'').trim().toLowerCase(), tf=((document.getElementById('rv-type-filter')||{}).value||'all'), sf=((document.getElementById('rv-status-filter')||{}).value||'active'), today=window.KgmSafety.date();
     var all=Object.entries(reservationChecks).map(function(e){return Object.assign({id:e[0]},e[1]);});
     var nums=[all.filter(i=>i.type==='reservation'&&i.status!=='done').length,all.filter(i=>i.type==='check'&&i.status!=='done').length,all.filter(i=>i.dueDate===today&&i.status!=='done').length,all.filter(i=>i.status==='done').length];
     ['rv-stat-res','rv-stat-check','rv-stat-today','rv-stat-done'].forEach(function(id,n){var el=document.getElementById(id);if(el)el.textContent=nums[n];});
@@ -3621,7 +3667,7 @@
     box.innerHTML=list.map(function(i){var done=i.status==='done',late=!done&&i.dueDate&&i.dueDate<today,c=i.type==='reservation'?'#60a5fa':'#f59e0b',date=i.dueDate?(Number(i.dueDate.slice(5,7))+'/'+Number(i.dueDate.slice(8,10))+(i.dueTime?' '+i.dueTime:'')):'날짜 미정';return '<article style="background:var(--surface);border:1px solid '+(late?'rgba(232,68,42,.55)':'var(--border)')+';border-left:4px solid '+c+';border-radius:12px;padding:16px;opacity:'+(done?'.65':'1')+'"><div style="display:flex;justify-content:space-between;gap:12px"><div style="min-width:0"><div style="color:'+c+';font-size:11px;font-weight:800;margin-bottom:6px">'+(i.type==='reservation'?'차량 예약':'체크 업무')+' · '+(done?'완료':i.status==='confirmed'?'확정':'대기')+(late?' · <span style="color:var(--red)">기한 지남</span>':'')+'</div><div style="font-size:16px;font-weight:800;word-break:break-word;'+(done?'text-decoration:line-through':'')+'">'+esc(i.title||'')+'</div></div><strong style="white-space:nowrap;color:'+(late?'var(--red)':'var(--text)')+'">'+date+'</strong></div>'+(i.carNum||i.customer||i.phone?'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'+(i.carNum?'<b style="color:var(--accent)">차량 '+esc(i.carNum)+'</b>':'')+(i.customer?'<span>고객 '+esc(i.customer)+'</span>':'')+(i.phone?'<a href="tel:'+esc(i.phone.replace(/[^0-9+]/g,''))+'" style="color:var(--blue)">'+esc(i.phone)+'</a>':'')+'</div>':'')+(i.memo?'<div style="white-space:pre-wrap;word-break:break-word;background:var(--surface2);padding:10px;border-radius:8px;color:var(--text-dim);font-size:13px;margin-top:10px">'+esc(i.memo)+'</div>':'')+'<div style="display:flex;justify-content:flex-end;gap:6px;margin-top:12px"><button class="btn btn-sm" style="color:var(--green)" onclick="window._toggleReservation(\''+esc(i.id)+'\')">'+(done?'다시 열기':'완료')+'</button><button class="btn btn-ghost btn-sm" onclick="window._editReservation(\''+esc(i.id)+'\')">수정</button><button class="btn btn-sm" style="color:var(--red)" onclick="window._deleteReservation(\''+esc(i.id)+'\')">삭제</button></div></article>';}).join('');
   }
   window._renderReservationBoard=renderReservationBoard;
-  window._openReservationModal=function(){if(window._userRole!=='admin')return;editingReservationId=null;document.getElementById('reservationModalTitle').textContent='새 항목 등록';['rv-title','rv-time','rv-car','rv-customer','rv-phone','rv-memo'].forEach(id=>document.getElementById(id).value='');document.getElementById('rv-type').value='reservation';document.getElementById('rv-status').value='waiting';document.getElementById('rv-date').value=new Date().toISOString().split('T')[0];document.getElementById('reservationModal').classList.add('open');};
+  window._openReservationModal=function(){if(window._userRole!=='admin')return;editingReservationId=null;document.getElementById('reservationModalTitle').textContent='새 항목 등록';['rv-title','rv-time','rv-car','rv-customer','rv-phone','rv-memo'].forEach(id=>document.getElementById(id).value='');document.getElementById('rv-type').value='reservation';document.getElementById('rv-status').value='waiting';document.getElementById('rv-date').value=window.KgmSafety.date();document.getElementById('reservationModal').classList.add('open');};
   window._editReservation=function(id){if(window._userRole!=='admin')return;var i=reservationChecks[id];if(!i)return;editingReservationId=id;document.getElementById('reservationModalTitle').textContent='항목 수정';[['rv-type','type'],['rv-status','status'],['rv-title','title'],['rv-date','dueDate'],['rv-time','dueTime'],['rv-car','carNum'],['rv-customer','customer'],['rv-phone','phone'],['rv-memo','memo']].forEach(x=>document.getElementById(x[0]).value=i[x[1]]||'');document.getElementById('reservationModal').classList.add('open');};
   window._saveReservation=async function(){if(window._userRole!=='admin')return;var title=document.getElementById('rv-title').value.trim();if(!title){showNotif('내용을 입력해주세요',true);return;}var d={type:document.getElementById('rv-type').value,status:document.getElementById('rv-status').value,title:title,dueDate:document.getElementById('rv-date').value,dueTime:document.getElementById('rv-time').value,carNum:document.getElementById('rv-car').value.trim(),customer:document.getElementById('rv-customer').value.trim(),phone:document.getElementById('rv-phone').value.trim(),memo:document.getElementById('rv-memo').value.trim(),author:window._userName||'',authorEmail:window._userEmail||'',updatedAt:new Date().toISOString()},btn=document.getElementById('rv-save-btn');btn.disabled=true;try{if(editingReservationId)await update(ref(db,'reservationChecks/'+editingReservationId),d);else{d.createdAt=new Date().toISOString();await push(reservationRef,d);}document.getElementById('reservationModal').classList.remove('open');showNotif('저장되었습니다');}catch(e){showNotif('저장 실패: '+e.message,true);}btn.disabled=false;};
   window._toggleReservation=async function(id){if(window._userRole!=='admin')return;var i=reservationChecks[id];if(i)try{await update(ref(db,'reservationChecks/'+id),{status:i.status==='done'?'waiting':'done',updatedAt:new Date().toISOString()});}catch(e){showNotif('상태 변경 실패: '+e.message,true);}};
@@ -3942,7 +3988,7 @@
     if (window._userRole !== 'admin') return;
     editingEventId = null;
     document.getElementById('eventModalTitle').textContent = '\uc77c\uc815 \ucd94\uac00';
-    var defaultDate = (typeof date === 'string' && date) ? date : (new Date().toISOString().split('T')[0]);
+    var defaultDate = (typeof date === 'string' && date) ? date : (window.KgmSafety.date());
     document.getElementById('ev-date').value = defaultDate;
     document.getElementById('ev-title').value = '';
     document.getElementById('ev-desc').value = '';
@@ -4503,7 +4549,15 @@
     document.getElementById('le-total').value = emp.hireDate ? calcTotalLeave(emp.hireDate) : (emp.totalLeave || 15);
     document.getElementById('leaveEmpModal').classList.add('open');
   };
+  function buildLeaveAccess(employees){
+    var result={};
+    Object.entries(employees).forEach(function(pair){
+      if(pair[1].email)result[_aeKey(pair[1].email)]=pair[0];
+    });
+    return result;
+  }
   window._saveLeaveEmp = async function() {
+    if(!window._requireRole('admin'))return;
     var name = document.getElementById('le-name').value.trim();
     var email = document.getElementById('le-email').value.trim();
     var team = document.getElementById('le-team').value.trim();
@@ -4517,8 +4571,15 @@
     btn.disabled = true; btn.textContent = '\uc800\uc7a5 \uc911...';
     try {
       var data = { name: name, email: email, team: team, position: position, displayTeam: displayTeam, totalLeave: total, hireDate: hireDate, updatedAt: new Date().toISOString() };
-      if (editingLeaveEmpId) { await update(ref(db, 'leaveEmployees/' + editingLeaveEmpId), data); showNotif(name + ' \uc815\ubcf4\uac00 \uc218\uc815\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
-      else { data.createdAt = new Date().toISOString(); await push(leaveEmpRef, data); showNotif(name + ' \uc9c1\uc6d0\uc774 \ucd94\uac00\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
+      var id=editingLeaveEmpId||push(leaveEmpRef).key;
+      if(!editingLeaveEmpId)data.createdAt=new Date().toISOString();
+      var duplicate=Object.entries(leaveEmployees).some(([key,emp])=>key!==id&&email&&_aeKey(emp.email)===_aeKey(email));
+      if(duplicate)throw Error('같은 이메일의 직원이 이미 있습니다.');
+      var paths={};paths['leaveEmployees/'+id]={...(leaveEmployees[id]||{}),...data};
+      var oldEmail=(leaveEmployees[id]||{}).email;
+      if(oldEmail&&_aeKey(oldEmail)!==_aeKey(email))paths['leaveAccess/'+_aeKey(oldEmail)]=null;
+      if(email)paths['leaveAccess/'+_aeKey(email)]=id;
+      await update(ref(db),paths);showNotif(name+' 직원 정보를 저장했습니다.');
       document.getElementById('leaveEmpModal').classList.remove('open');
     } catch(e) { showNotif('\uc800\uc7a5 \uc2e4\ud328: ' + e.message, true); }
     btn.disabled = false; btn.textContent = '\uc800\uc7a5';
@@ -4621,26 +4682,37 @@
   }
   // \uc2e0\uccad\uac74(req)\uc5d0 \ud574\ub2f9\ud558\ub294 \uc0ac\uc6a9\ub0b4\uc5ed\uc744 leaveUsage\uc5d0 \uc0dd\uc131. \uc5f0\ucc28 \ub2e4\uc77c\uc774\uba74 \ud3c9\uc77c\ub9c8\ub2e4 1\uac74\uc529 \uac19\uc740 fromRequestId\ub85c \ubb36\uc74c.
   // \ubc18\ud658: \uc0dd\uc131\ub41c \uccab usage \ud0a4 (finalUsageId \uc6a9)
-  async function createLeaveUsageForRequest(req, requestId, extraUsageFields) {
-    extraUsageFields = extraUsageFields || {};
-    var nowStr = new Date().toISOString();
-    var dates;
-    if (req.type === '\uc5f0\ucc28' && req.endDate && req.endDate !== req.date) {
-      dates = eachWeekdayInRange(req.date, req.endDate);
+  function canActOnLeave(req){
+    var me=getMyEmpRecord();
+    if(!req||!canApproveStage(req.status,me))return false;
+    if(req.status==='pending_manager'){
+      var employee=leaveEmployees[req.empId];
+      return !!(me&&employee&&me.team===employee.team);
     }
-    if (!dates || !dates.length) dates = [req.date];
-    var firstKey = null;
-    for (var i = 0; i < dates.length; i++) {
-      var usageData = Object.assign({
-        empId: req.empId, type: req.type, date: dates[i],
-        reason: req.reason || '', createdAt: nowStr, fromRequestId: requestId
-      }, extraUsageFields);
-      if (req.hours) usageData.hours = req.hours;
-      var uref = await push(leaveUseRef, usageData);
-      if (!firstKey) firstKey = uref.key;
-    }
-    return firstKey;
+    return true;
   }
+  function leaveUsageUpdates(req,id){
+    var dates=req.type==='연차'&&req.endDate&&req.endDate!==req.date?eachWeekdayInRange(req.date,req.endDate):[req.date];
+    if(!dates.length)throw Error('사용 날짜가 없습니다.');
+    var updates={},first=null;
+    dates.forEach(function(date){
+      var key=id+'_'+date;
+      if(!first)first=key;
+      var row={empId:req.empId,type:req.type,date:date,reason:req.reason||'',createdAt:new Date().toISOString(),fromRequestId:id};
+      if(req.hours)row.hours=req.hours;
+      if(req.submittedOnBehalf)row.registeredOnBehalfBy=req.onBehalfBy;
+      updates['leaveUsage/'+key]=row;
+    });
+    return {updates:updates,first:first};
+  }
+  async function commitNewApprovedRequest(data){
+    var id=push(leaveRequestsRef).key,usage=leaveUsageUpdates(data,id);
+    data.finalUsageId=usage.first;
+    usage.updates['leaveRequests/'+id]=data;
+    await update(ref(db),usage.updates);
+    return id;
+  }
+  const leaveApprovalBusy=new Set();
   // \uc2e0\uccad \ubaa8\ub2ec \uc720\ud615 \ubcc0\uacbd: \uc2dc\uac04 \uc120\ud0dd(\uc870\ud1f4/\uc678\ucd9c)\u00b7\uc885\ub8cc\uc77c(\uc5f0\ucc28)\u00b7\ub77c\ubca8 \ud1a0\uae00
   window._onMrTypeChange = function() {
     var type = (document.getElementById('mr-type') || {}).value;
@@ -4658,7 +4730,7 @@
     var myEmp = getMyEmpRecord();
     if (!myEmp) { showNotif('\ubcf8\uc778 \uc9c1\uc6d0 \uc815\ubcf4\uac00 \ub4f1\ub85d\ub418\uc9c0 \uc54a\uc544 \uc2e0\uccad\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4. \uad00\ub9ac\uc790\uc5d0\uac8c \ubb38\uc758\ud574\uc8fc\uc138\uc694.', true); return; }
     document.getElementById('mr-type').value = '\uc5f0\ucc28';
-    document.getElementById('mr-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('mr-date').value = window.KgmSafety.date();
     document.getElementById('mr-end-date').value = '';
     document.getElementById('mr-reason').value = '';
     document.getElementById('mr-hours').value = '1';
@@ -4702,9 +4774,7 @@
       if (initStatus === 'approved') {
         data.approvedAt = nowStr; data.approvedBy = window._userEmail || '';
         data.directorApprovedAt = nowStr; data.directorApprovedBy = window._userEmail || '';
-        var newRef = await push(leaveRequestsRef, data);
-        var firstUsageKey = await createLeaveUsageForRequest(data, newRef.key);
-        await update(ref(db, 'leaveRequests/' + newRef.key), { finalUsageId: firstUsageKey });
+        await commitNewApprovedRequest(data);
         showNotif(rangeDays ? ('\uc2e0\uccad\uc774 \uc989\uc2dc \uc2b9\uc778\ub418\uc5c8\uc2b5\ub2c8\ub2e4 (\ud3c9\uc77c ' + rangeDays.length + '\uc77c)') : '\uc2e0\uccad\uc774 \uc989\uc2dc \uc2b9\uc778\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
       } else {
         await push(leaveRequestsRef, data);
@@ -4729,7 +4799,7 @@
         sel.appendChild(opt);
       });
     document.getElementById('pr-type').value = '\uc5f0\ucc28';
-    document.getElementById('pr-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('pr-date').value = window.KgmSafety.date();
     document.getElementById('pr-reason').value = '';
     document.getElementById('pr-hours').value = '1';
     document.getElementById('pr-hours-group').style.display = 'none';
@@ -4773,48 +4843,57 @@
         approvedAt: nowStr, approvedBy: adminEmail
       };
       if (hours) data.hours = hours;
-      var newRef = await push(leaveRequestsRef, data);
-      var firstUsageKey = await createLeaveUsageForRequest(data, newRef.key, { registeredOnBehalfBy: adminEmail });
-      await update(ref(db, 'leaveRequests/' + newRef.key), { finalUsageId: firstUsageKey });
+      await commitNewApprovedRequest(data);
       showNotif(emp.name + ' \ub2d8\uc758 ' + type + ' \uc2e0\uccad\uc744 \ub300\uc2e0 \ub4f1\ub85d\u00b7\uc2b9\uc778\ud588\uc2b5\ub2c8\ub2e4');
       document.getElementById('proxyRequestModal').classList.remove('open');
     } catch(e) { showNotif('\ub4f1\ub85d \uc2e4\ud328: ' + e.message, true); }
     btn.disabled = false; btn.textContent = '\ub4f1\ub85d';
   };
   window._cancelMyRequest = async function(id) {
-    var req = leaveRequests[id]; if (!req) return;
-    if (req.status !== 'pending_manager' && req.status !== 'pending_admin' && req.status !== 'pending_director') {
-      showNotif('\uacb0\uc7ac\uac00 \uc644\ub8cc\ub41c \uc2e0\uccad\uc740 \ucde8\uc18c\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4', true);
-      return;
-    }
-    if (!(await window._confirm('\uc774 \uc2e0\uccad\uc744 \ucde8\uc18c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?','\uc2e0\uccad \ucde8\uc18c',''))) return;
-    try {
-      await update(ref(db, 'leaveRequests/' + id), { status: 'canceled', canceledAt: new Date().toISOString(), canceledBy: window._userEmail || '' });
-      showNotif('\uc2e0\uccad\uc774 \ucde8\uc18c\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
-    } catch(e) { showNotif('\ucde8\uc18c \uc2e4\ud328: ' + e.message, true); }
+    var me=getMyEmpRecord(),req=leaveRequests[id];
+    if(!me||!req||req.empId!==me.id){showNotif('본인 신청만 취소할 수 있습니다.',true);return;}
+    if(!await window._confirm('이 신청을 취소하시겠습니까?','신청 취소','취소'))return;
+    try{
+      var result=await runTransaction(ref(db,'leaveRequests/'+id),function(current){
+        if(!current||current.empId!==me.id||!String(current.status).startsWith('pending_')||current._approvalLock)return;
+        current.status='canceled';current.canceledAt=new Date().toISOString();current.canceledBy=window._userEmail;return current;
+      },{applyLocally:false});
+      if(!result.committed)throw Error('결재 중이거나 이미 처리된 신청입니다.');
+      showNotif('신청이 취소되었습니다.');
+    }catch(e){showNotif(e.message,true);}
   };
   window._approveRequest = async function(id) {
-    var req = leaveRequests[id]; if (!req) return;
-    var stage = req.status;
-    var nextStatus = '';
-    var nowStr = new Date().toISOString();
-    var updates = {};
-    if (stage === 'pending_manager') { nextStatus = 'pending_admin'; updates.managerApprovedAt = nowStr; updates.managerApprovedBy = window._userEmail || ''; }
-    else if (stage === 'pending_admin') { nextStatus = 'pending_director'; updates.adminApprovedAt = nowStr; updates.adminApprovedBy = window._userEmail || ''; }
-    else if (stage === 'pending_director') { nextStatus = 'approved'; updates.directorApprovedAt = nowStr; updates.directorApprovedBy = window._userEmail || ''; updates.approvedAt = nowStr; updates.approvedBy = window._userEmail || ''; }
-    else { showNotif('\uacb0\uc7ac\ud560 \uc218 \uc5c6\ub294 \uc0c1\ud0dc\uc785\ub2c8\ub2e4', true); return; }
-    updates.status = nextStatus;
-    try {
-      await update(ref(db, 'leaveRequests/' + id), updates);
-      if (nextStatus === 'approved') {
-        var firstUsageKey = await createLeaveUsageForRequest(req, id);
-        await update(ref(db, 'leaveRequests/' + id), { finalUsageId: firstUsageKey });
-        var isRange = (req.type === '\uc5f0\ucc28' && req.endDate && req.endDate !== req.date);
-        showNotif('\ucd5c\uc885 \uc2b9\uc778 \uc644\ub8cc, \uc0ac\uc6a9 \ub0b4\uc5ed\uc5d0 \uc790\ub3d9 \ub4f1\ub85d\ub418\uc5c8\uc2b5\ub2c8\ub2e4' + (isRange ? ' (\ud3c9\uc77c ' + eachWeekdayInRange(req.date, req.endDate).length + '\uc77c)' : ''));
-      } else {
-        showNotif('\uc2b9\uc778 \uc644\ub8cc \u2192 ' + statusLabel(nextStatus));
+    if(leaveApprovalBusy.has(id))return;
+    var req=leaveRequests[id];
+    if(!canActOnLeave(req)){showNotif('현재 결재 순서의 승인 권한이 없습니다.',true);return;}
+    leaveApprovalBusy.add(id);
+    var token=window._userEmail+'_'+Date.now()+'_'+Math.random().toString(36).slice(2),locked=false;
+    try{
+      var lockedResult=await runTransaction(ref(db,'leaveRequests/'+id),function(current){
+        if(!current||current.status!==req.status||!canActOnLeave(current))return;
+        if(current._approvalLock&&current._approvalLock.until>Date.now())return;
+        current._approvalLock={token:token,by:window._userEmail,until:Date.now()+120000};return current;
+      },{applyLocally:false});
+      if(!lockedResult.committed)throw Error('다른 결재자가 처리 중이거나 결재 상태가 바뀌었습니다.');
+      locked=true;req=lockedResult.snapshot.val();
+      var stage=req.status,nowStr=new Date().toISOString(),fields={_approvalLock:null},updates={};
+      if(stage==='pending_manager'){fields.status='pending_admin';fields.managerApprovedAt=nowStr;fields.managerApprovedBy=window._userEmail;}
+      else if(stage==='pending_admin'){fields.status='pending_director';fields.adminApprovedAt=nowStr;fields.adminApprovedBy=window._userEmail;}
+      else {
+        fields.status='approved';fields.directorApprovedAt=nowStr;fields.directorApprovedBy=window._userEmail;fields.approvedAt=nowStr;fields.approvedBy=window._userEmail;
+        var usage=leaveUsageUpdates(req,id);updates=usage.updates;fields.finalUsageId=usage.first;
       }
-    } catch(e) { showNotif('\uc2b9\uc778 \uc2e4\ud328: ' + e.message, true); }
+      Object.keys(fields).forEach(function(k){updates['leaveRequests/'+id+'/'+k]=fields[k];});
+      await update(ref(db),updates);
+      locked=false;showNotif(fields.status==='approved'?'최종 승인 및 사용 내역 등록이 완료되었습니다.':'승인 완료 → '+statusLabel(fields.status));
+    }catch(e){showNotif('승인 실패: '+e.message,true);}
+    finally{
+      if(locked){try{await runTransaction(ref(db,'leaveRequests/'+id),function(current){
+        if(!current||!current._approvalLock||current._approvalLock.token!==token)return;
+        delete current._approvalLock;return current;
+      },{applyLocally:false});}catch(_){}}
+      leaveApprovalBusy.delete(id);
+    }
   };
   window._acknowledgeRequest = async function(id) {
     if (window._userRole !== 'admin') return;
@@ -5079,7 +5158,7 @@
     document.getElementById('ni-usage-end').value = yr + '-12-31';
     // 제출기한 기본값: 오늘 + 10일 (법정 사용촉진 기준). 필요 시 발행 시 직접 수정
     var dl = new Date(); dl.setDate(dl.getDate() + 10);
-    document.getElementById('ni-submit-deadline').value = dl.toISOString().split('T')[0];
+    document.getElementById('ni-submit-deadline').value = window.KgmSafety.date(dl);
     document.getElementById('issueNoticeModal').classList.add('open');
   };
   window._onIssueEmpSelect = function() {
@@ -5389,12 +5468,17 @@
 
   window._confirmReject = async function() {
     if (!editingRejectId) return;
+    if(!canActOnLeave(leaveRequests[editingRejectId])){showNotif('반려 권한이 없습니다.',true);return;}
     var reason = document.getElementById('reject-reason').value.trim();
     if (!reason) { showNotif('\ubc18\ub824 \uc0ac\uc720\ub97c \uc785\ub825\ud574\uc8fc\uc138\uc694', true); return; }
     var btn = document.getElementById('rejectConfirmBtn');
     btn.disabled = true; btn.textContent = '\ucc98\ub9ac \uc911...';
     try {
-      await update(ref(db, 'leaveRequests/' + editingRejectId), { status: 'rejected', rejectedAt: new Date().toISOString(), rejectedBy: window._userEmail || '', rejectedReason: reason, rejectedAtStage: editingRejectStage });
+      var outcome=await runTransaction(ref(db,'leaveRequests/'+editingRejectId),function(current){
+        if(!current||current.status!==editingRejectStage||!canActOnLeave(current)||current._approvalLock)return;
+        return {...current,status:'rejected',rejectedAt:new Date().toISOString(),rejectedBy:window._userEmail,rejectedReason:reason,rejectedAtStage:editingRejectStage};
+      },{applyLocally:false});
+      if(!outcome.committed)throw Error('다른 결재자가 처리 중이거나 상태가 바뀌었습니다.');
       document.getElementById('rejectModal').classList.remove('open');
       showNotif('\ubc18\ub824 \ucc98\ub9ac\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
     } catch(e) { showNotif('\ubc18\ub824 \uc2e4\ud328: ' + e.message, true); }
@@ -5480,9 +5564,12 @@
   window._renderApprovalQueue = renderApprovalQueue;
 
   window._deleteLeaveEmp = async function(id, name) {
+    if(!window._requireRole('admin'))return;
     if (!(await window._confirm(name + ' \uc9c1\uc6d0\uc744 \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?\n\ud574\ub2f9 \uc9c1\uc6d0\uc758 \uc5f0\ucc28 \uc0ac\uc6a9 \ub0b4\uc5ed\ub3c4 \ubaa8\ub450 \uc0ad\uc81c\ub429\ub2c8\ub2e4.','\uc0ad\uc81c',''))) return;
     try {
-      await remove(ref(db, 'leaveEmployees/' + id));
+      var changes={};changes['leaveEmployees/'+id]=null;
+      if(leaveEmployees[id]&&leaveEmployees[id].email)changes['leaveAccess/'+_aeKey(leaveEmployees[id].email)]=null;
+      await update(ref(db),changes);
       var toDelete = Object.entries(leaveUsage).filter(function(e){return e[1].empId===id;});
       for (var d of toDelete) { await remove(ref(db, 'leaveUsage/' + d[0])); }
       showNotif(name + ' \uc9c1\uc6d0\uc774 \uc0ad\uc81c\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
@@ -5491,13 +5578,14 @@
   window._openLeaveUseModal = function() {
     document.getElementById('lu-emp').value = '';
     document.getElementById('lu-type').value = '\uc5f0\ucc28';
-    document.getElementById('lu-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('lu-date').value = window.KgmSafety.date();
     document.getElementById('lu-reason').value = '';
     document.getElementById('lu-hours').value = '1';
     document.getElementById('lu-hours-group').style.display = 'none';
     document.getElementById('leaveUseModal').classList.add('open');
   };
   window._saveLeaveUse = async function() {
+    if(!window._requireRole('admin'))return;
     var empId = document.getElementById('lu-emp').value;
     var type = document.getElementById('lu-type').value;
     var date = document.getElementById('lu-date').value;
@@ -5525,12 +5613,14 @@
     btn.disabled = false; btn.textContent = '\ub4f1\ub85d';
   };
   window._deleteLeaveUse = async function(id) {
+    if(!window._requireRole('admin'))return;
     if (!(await window._confirm('\uc774 \uc0ac\uc6a9 \ub0b4\uc5ed\uc744 \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?','\uc0ad\uc81c',''))) return;
     try { await remove(ref(db, 'leaveUsage/' + id)); showNotif('\uc0ad\uc81c\ub418\uc5c8\uc2b5\ub2c8\ub2e4'); }
     catch(e) { showNotif('\uc0ad\uc81c \uc2e4\ud328: ' + e.message, true); }
   };
   // \ub2e4\uc77c \uc5f0\ucc28(\uac19\uc740 \uc2e0\uccad\uac74) \uc0ac\uc6a9\ub0b4\uc5ed\uc744 \ud55c \ubc88\uc5d0 \uc0ad\uc81c
   window._deleteLeaveUseGroup = async function(idsCsv) {
+    if(!window._requireRole('admin'))return;
     var ids = (idsCsv || '').split(',').filter(function(x){ return x; });
     if (!ids.length) return;
     if (!(await window._confirm('\uc774 \uae30\uac04(' + ids.length + '\uc77c)\uc758 \uc0ac\uc6a9 \ub0b4\uc5ed\uc744 \ubaa8\ub450 \uc0ad\uc81c\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?','\uc0ad\uc81c',''))) return;

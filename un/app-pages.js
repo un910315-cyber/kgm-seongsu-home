@@ -29,6 +29,7 @@
 
   // PAGE SWITCH
   function switchPage(name) {
+    if(!window._canAccessPage || !window._canAccessPage(name)){if(window.showNotif)window.showNotif('접근 권한이 없습니다.',true);return;}
     if (name === 'reservation' && window._userRole !== 'admin') { console.warn('예약 현황판 접근 차단'); return; }
     document.body.setAttribute('data-page', name);
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
