@@ -250,6 +250,39 @@
     if (await window._confirm('로그아웃 하시겠습니까?','로그아웃','취소')) window.authSignOut();
   };
 
+  // 매월 교육 안내: 사용자·월별로 이 브라우저에서만 다시 보지 않기 저장
+  var trainingReminderShownFor = '';
+  function trainingReminderMonth() {
+    return window.KgmSafety.date().slice(0, 7);
+  }
+  function trainingReminderKey() {
+    return 'kgmTrainingReminderDismissed:' + String(window._userEmail || '').toLowerCase();
+  }
+  window._closeTrainingReminder = function(dismissForMonth) {
+    var modal = document.getElementById('trainingReminderModal');
+    if (dismissForMonth) {
+      try { localStorage.setItem(trainingReminderKey(), trainingReminderMonth()); } catch(_) {}
+    }
+    if (modal) modal.classList.remove('open');
+  };
+  window._maybeShowMonthlyTrainingReminder = function(attempt) {
+    if (!window._userEmail) return;
+    var month = trainingReminderMonth();
+    var shownKey = String(window._userEmail).toLowerCase() + '|' + month;
+    if (trainingReminderShownFor === shownKey) return;
+    try { if (localStorage.getItem(trainingReminderKey()) === month) return; } catch(_) {}
+    var modal = document.getElementById('trainingReminderModal');
+    if (!modal) return;
+    var anotherModal = document.querySelector('.modal-overlay.open:not(#trainingReminderModal)');
+    if (anotherModal && (attempt || 0) < 12) {
+      setTimeout(function(){ window._maybeShowMonthlyTrainingReminder((attempt || 0) + 1); }, 1000);
+      return;
+    }
+    if (anotherModal) return;
+    trainingReminderShownFor = shownKey;
+    modal.classList.add('open');
+  };
+
   // 인증 상태 감시
   function _authDiag(){}  // no-op (진단 종료)
   try { sessionStorage.removeItem('_authDiagLog'); } catch(_) {}
@@ -361,6 +394,7 @@
       // 공지사항 admin 버튼 가시화 + 중요 공지 팝업 트리거
       try { if (window._renderBoardNotices) window._renderBoardNotices(); } catch(_) {}
       setTimeout(function(){ try { if (window._maybeShowImportantBoardNotice) window._maybeShowImportantBoardNotice(); } catch(_) {} }, 600);
+      setTimeout(function(){ try { window._maybeShowMonthlyTrainingReminder(0); } catch(_) {} }, 900);
 
     } catch(e){
       document.getElementById('loginError').textContent='권한 확인 실패: '+e.message;

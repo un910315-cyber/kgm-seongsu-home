@@ -16,8 +16,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v157-2026-09-28">
-<link rel="stylesheet" href="design-refresh.css?v=v157-2026-09-28" media="screen">
+<link rel="stylesheet" href="styles.css?v=v158-2026-09-28">
+<link rel="stylesheet" href="design-refresh.css?v=v158-2026-09-28" media="screen">
 </head>
 <body>
 
@@ -964,11 +964,30 @@
   </div>
 </div>
 
-<!-- FIREBASE SDK -->
-<script src="app-safety.js?v=v157-2026-09-28"></script>
-<script type="module" src="app-module.js?v=v157-2026-09-28"></script>
+<!-- 매월 교육 안내 -->
+<div class="modal-overlay" id="trainingReminderModal" role="dialog" aria-modal="true" aria-labelledby="trainingReminderTitle">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <div class="modal-title" id="trainingReminderTitle">월간 교육 안내</div>
+      <button class="modal-close" type="button" aria-label="닫기" onclick="window._closeTrainingReminder(false)">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:17px;font-weight:800;color:var(--text);margin-bottom:10px;">이번 달 온라인 교육을 확인해주세요.</div>
+      <div style="font-size:13px;line-height:1.7;color:var(--text-body);margin-bottom:18px;">KGM 교육 사이트에 접속하여 해당 월의 교육을 수강해야 합니다.</div>
+      <a class="btn btn-primary" href="https://ssangyong.step.or.kr/main.do" target="_blank" rel="noopener noreferrer" style="display:flex;justify-content:center;text-decoration:none;margin-bottom:18px;">교육 사이트 열기</a>
+      <div class="form-actions" style="margin-top:0;">
+        <button class="btn btn-ghost" type="button" onclick="window._closeTrainingReminder(true)">이번 달 다시 보지 않기</button>
+        <button class="btn btn-primary" type="button" onclick="window._closeTrainingReminder(false)">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-<script defer src="app-pages.js?v=v157-2026-09-28"></script>
+<!-- FIREBASE SDK -->
+<script src="app-safety.js?v=v158-2026-09-28"></script>
+<script type="module" src="app-module.js?v=v158-2026-09-28"></script>
+
+<script defer src="app-pages.js?v=v158-2026-09-28"></script>
 
 <!-- XLSX + JSZip: 보험 미결 탭 첫 진입 시 지연 로드 -->
 <script>
@@ -2486,6 +2505,6 @@
 <script src="work-codes-data.js?v=v133-2026-08-25"></script>
 <script defer src="app-maintenance.js?v=v133-2026-08-25"></script>
 <script defer src="app-features.js?v=v133-2026-08-25"></script>
-<script defer src="app-workcodes-ui.js?v=v157-2026-09-28"></script>
+<script defer src="app-workcodes-ui.js?v=v158-2026-09-28"></script>
 </body>
 </html>
