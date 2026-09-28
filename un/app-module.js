@@ -5030,6 +5030,31 @@
     setTimeout(function(){ try { w.print(); } catch(e){} }, 300);
   };
 
+  function getApprovedRequestsForBatchPrint() {
+    return Object.entries(leaveRequests).map(function(e){return Object.assign({},e[1],{id:e[0]});})
+      .filter(function(r){return r.status==='approved'&&!r.adminAcknowledged;})
+      .sort(function(a,b){return new Date(a.createdAt)-new Date(b.createdAt);});
+  }
+  window._printApprovedRequests = function() {
+    if(window._userRole!=='admin'){showNotif('관리자만 일괄 인쇄할 수 있습니다.',true);return;}
+    var requests=getApprovedRequestsForBatchPrint();
+    if(!requests.length){showNotif('인쇄할 승인완료 신청서가 없습니다.',true);return;}
+    var forms=requests.map(function(req){return '<section class="request-sheet">'+buildRequestFormHTML(req)+'</section>';}).join('');
+    var html='<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>승인완료 신청서 일괄 인쇄</title>'
+      +'<style>@page{size:A4;margin:18mm 16mm;}*{box-sizing:border-box;}body{margin:0;background:#fff;color:#000;}'
+      +'.request-sheet{break-after:page;page-break-after:always;overflow-wrap:anywhere;}.request-sheet:last-child{break-after:auto;page-break-after:auto;}'
+      +'.leave-form{width:100%;}.leave-form table{table-layout:fixed;}'
+      +'.print-tools{padding:16px;background:#eee;font:14px sans-serif;}.print-tools button{padding:8px 18px;margin-right:12px;}'
+      +'@media print{.print-tools{display:none;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body>'
+      +'<div class="print-tools"><button onclick="window.print()">다시 인쇄</button>승인완료 '+requests.length+'건 · 출력 확인 후 원래 화면에서 인쇄완료 확인을 눌러주세요.</div>'
+      +forms+'</body></html>';
+    var w=window.open('','_blank','width=820,height=1100');
+    if(!w){showNotif('팝업을 허용한 뒤 일괄 인쇄를 다시 눌러주세요.',true);return;}
+    w.document.write(html);w.document.close();
+    var ready=w.document.fonts?w.document.fonts.ready:Promise.resolve();
+    ready.then(function(){setTimeout(function(){if(w.closed)return;try{w.focus();w.print();}catch(e){showNotif('인쇄 창의 다시 인쇄 버튼을 눌러주세요.',true);}},300);});
+  };
+
   function renderOrgChart() {
     var container = document.getElementById('orgChartContainer');
     if (!container) return;
@@ -5514,6 +5539,8 @@
     var section = document.getElementById('approval-section');
     var tbody = document.getElementById('approval-tbody');
     var empty = document.getElementById('approval-empty');
+    var batchBtn=document.getElementById('printApprovedRequestsBtn');
+    if(batchBtn){var count=getApprovedRequestsForBatchPrint().length;batchBtn.style.display=window._userRole==='admin'?'':'none';batchBtn.disabled=!count;batchBtn.textContent='승인완료 일괄 인쇄 ('+count+'건)';}
     if (!tbody || !section) return;
     var myEmp = getMyEmpRecord();
     var isAdmin = window._userRole === 'admin';
