@@ -3271,6 +3271,8 @@
         ${detailRow(' 렌트카', esc(r.rent)||'-')}
         ${detailRow(' 대물보험', esc(r.insDaemul)||'-')}
         ${detailRow(' 자차보험', esc(r.insJacha)||'-')}
+        ${detailRow(' 대물 접수번호', '<span style="overflow-wrap:anywhere;word-break:break-word;">'+(esc(r.daemulReceipt)||'-')+'</span>')}
+        ${detailRow(' 자차 접수번호', '<span style="overflow-wrap:anywhere;word-break:break-word;">'+(esc(r.jachaReceipt)||'-')+'</span>')}
       </div>
       <div style="margin-top:16px;padding:14px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);">
         <div style="font-size:11px;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;"> 수리내용</div>
