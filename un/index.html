@@ -16,8 +16,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v159-2026-09-30">
-<link rel="stylesheet" href="design-refresh.css?v=v159-2026-09-30" media="screen">
+<link rel="stylesheet" href="styles.css?v=v160-2026-09-30">
+<link rel="stylesheet" href="design-refresh.css?v=v160-2026-09-30" media="screen">
 </head>
 <body>
 
@@ -265,7 +265,37 @@
     </div>
     </div>
 
-    <!-- 대시보드 AOS 요약 제거: 원본 데이터와 매출 보고 기능은 유지 -->
+    <!-- AOS 미수금 분류 요약: 최근 입금 차트 없이 건수·금액만 표시 -->
+    <div class="dash-aos-strip" id="dashAosStrip" style="display:none;">
+      <div class="das-inner summary-only">
+        <div class="das-left">
+          <div class="das-summary-head">
+            <div>
+              <div class="das-total-label">AOS 미수금 총계</div>
+              <div class="das-total-amt" id="das-total">₩0</div>
+            </div>
+            <span class="das-summary-note">최신 업로드 기준</span>
+          </div>
+          <div class="das-cats">
+            <div class="das-cat" data-c="kgm">
+              <span class="das-cat-name">KGM</span>
+              <strong class="das-cat-amt" id="das-kgm-amt">₩0</strong>
+              <em class="das-cat-cnt" id="das-kgm-cnt">0건</em>
+            </div>
+            <div class="das-cat" data-c="other">
+              <span class="das-cat-name">타사차</span>
+              <strong class="das-cat-amt" id="das-other-amt">₩0</strong>
+              <em class="das-cat-cnt" id="das-other-cnt">0건</em>
+            </div>
+            <div class="das-cat" data-c="open">
+              <span class="das-cat-name">오픈링크</span>
+              <strong class="das-cat-amt" id="das-open-amt">₩0</strong>
+              <em class="das-cat-cnt" id="das-open-cnt">0건</em>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </div>
 </div>
@@ -984,10 +1014,10 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script src="app-safety.js?v=v159-2026-09-30"></script>
-<script type="module" src="app-module.js?v=v159-2026-09-30"></script>
+<script src="app-safety.js?v=v160-2026-09-30"></script>
+<script type="module" src="app-module.js?v=v160-2026-09-30"></script>
 
-<script defer src="app-pages.js?v=v159-2026-09-30"></script>
+<script defer src="app-pages.js?v=v160-2026-09-30"></script>
 
 <!-- XLSX + JSZip: 보험 미결 탭 첫 진입 시 지연 로드 -->
 <script>
@@ -2505,6 +2535,6 @@
 <script src="work-codes-data.js?v=v133-2026-08-25"></script>
 <script defer src="app-maintenance.js?v=v133-2026-08-25"></script>
 <script defer src="app-features.js?v=v133-2026-08-25"></script>
-<script defer src="app-workcodes-ui.js?v=v159-2026-09-30"></script>
+<script defer src="app-workcodes-ui.js?v=v160-2026-09-30"></script>
 </body>
 </html>

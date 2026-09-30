@@ -5811,6 +5811,10 @@ body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sal
   align-items: stretch;
 }
 .das-left { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.das-inner.summary-only { grid-template-columns: 1fr; }
+.das-summary-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; }
+.das-summary-note { color:var(--text-dim); font-size:11px; font-weight:600; white-space:nowrap; }
+.das-inner.summary-only .das-cats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .das-total-label {
   font-size: 10px; color: var(--text-dim); font-weight: 700;
   letter-spacing: 1px; text-transform: uppercase;
@@ -5892,6 +5896,7 @@ body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card .cum-sal
 
 @media (max-width: 900px) {
   .das-inner { grid-template-columns: 1fr; gap: 16px; padding: 14px 16px; }
+  .das-inner.summary-only .das-cats { grid-template-columns: 1fr; }
   .das-right { border-left: 0; padding-left: 0; border-top: 1px solid rgba(255,255,255,.07); padding-top: 14px; }
   .das-total-amt { font-size: 26px; }
   .das-chart { min-height: 70px; }
