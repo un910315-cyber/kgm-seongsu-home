@@ -1699,7 +1699,8 @@
     if (!dates.length) { stripEl.style.display = 'none'; return; }
     stripEl.style.display = '';
 
-    const latest = (aosClaimsData[dates[dates.length - 1]] || {}).claims || {};
+    const latestDate = dates[dates.length - 1];
+    const latest = (aosClaimsData[latestDate] || {}).claims || {};
     // 미수 = 지급금액 없음 + 청구일자 있음 + 자차/대물 dedup (같은 차 자차 있으면 대물 제외)
     let owed = Object.values(latest).filter(c =>
       (Number(c.payAmount) || 0) <= 0 && String(c.claimDate || '').trim() !== '');
@@ -1717,6 +1718,7 @@
     });
 
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('das-summary-note', '최신 업로드 기준 ' + latestDate.replace(/-/g, '.'));
     set('das-total', _wonCompact(total));
     set('das-other-amt', _wonCompact(otherAmt)); set('das-other-cnt', otherCnt + '건');
     set('das-kgm-amt',   _wonCompact(kgmAmt));   set('das-kgm-cnt',   kgmCnt + '건');
