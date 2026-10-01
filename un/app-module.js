@@ -3525,13 +3525,10 @@
   authReadyOnValue(leaveUseRef, (snap) => { leaveUsage = snap.val() || {}; try { renderLeave(); } catch(e) { console.error(e); } try { if(window._renderCalendar) window._renderCalendar(); } catch(e) {} });
 
   // 총 사용 시간 (시간 단위로 통합 계산, 1일=8시간)
-  function getLeaveUsedHours(empId, year) {
-    return Object.values(leaveUsage).filter(u => u.empId === empId && window.KgmSafety.leaveYear(u,year)).reduce((sum, u) => {
-      if (u.type === '\uc5f0\ucc28') return sum + 8;
-      if (u.type === '\uc624\uc804\ubc18\ucc28' || u.type === '\uc624\ud6c4\ubc18\ucc28') return sum + 4;
-      if (u.type === '\uc870\ud1f4' || u.type === '\uc678\ucd9c') return sum + (parseInt(u.hours) || 0);
-      return sum;
-    }, 0);
+  function getLeavePeriod(empId, asOf) { return window.KgmLeave.period(leaveEmployees[empId] || {}, asOf); }
+  function getLeaveUsedHours(empId, asOf) {
+    var period = getLeavePeriod(empId, asOf);
+    return window.KgmLeave.stats(Object.values(leaveUsage).filter(function(u){return u.empId===empId && window.KgmLeave.inPeriod(u,period);})).hours;
   }
   // 시간을 "X일 반차" 또는 "X일 Y시간" 형태로 변환
   function formatDayHour(hours) {
@@ -3545,20 +3542,7 @@
     return '0\uc77c';
   }
   // 입사일 기반 연차 자동 계산 (index.html 인라인 change 핸들러에서도 사용 → window 노출)
-  function calcTotalLeave(hireDate) {
-    if (!hireDate) return 15;
-    var hire = new Date(hireDate);
-    var now = new Date();
-    var diffMs = now - hire;
-    var diffMonths = (now.getFullYear() - hire.getFullYear()) * 12 + (now.getMonth() - hire.getMonth());
-    if (now.getDate() < hire.getDate()) diffMonths--;
-    if (diffMonths < 0) return 0;
-    if (diffMonths < 12) return diffMonths; // 1년 미만: 매월 1개
-    // 1년 이상: 15일 기본 + 3년차부터 매 2년마다 +1일 (최대 25일)
-    var years = Math.floor(diffMonths / 12);
-    var extra = years >= 3 ? Math.floor((years - 1) / 2) : 0;
-    return Math.min(15 + extra, 25);
-  }
+  function calcTotalLeave(hireDate, asOf) { return window.KgmLeave.period({hireDate:hireDate}, asOf).total; }
   window.calcTotalLeave = calcTotalLeave;
   function formatHireInfo(hireDate) {
     if (!hireDate) return '-';
@@ -3574,16 +3558,40 @@
     return '\uc2e0\uaddc';
   }
   function getHalfDayCount(empId) {
-    return Object.values(leaveUsage).filter(u => u.empId === empId && window.KgmSafety.leaveYear(u) && (u.type === '\uc624\uc804\ubc18\ucc28' || u.type === '\uc624\ud6c4\ubc18\ucc28')).length;
+    return Object.values(leaveUsage).filter(u => u.empId === empId && window.KgmLeave.inPeriod(u,getLeavePeriod(empId)) && (u.type === '\uc624\uc804\ubc18\ucc28' || u.type === '\uc624\ud6c4\ubc18\ucc28')).length;
   }
   function getEtcCount(empId) {
-    return Object.values(leaveUsage).filter(u => u.empId === empId && window.KgmSafety.leaveYear(u) && (u.type === '\uc870\ud1f4' || u.type === '\uc678\ucd9c')).length;
+    return Object.values(leaveUsage).filter(u => u.empId === empId && window.KgmLeave.inPeriod(u,getLeavePeriod(empId)) && (u.type === '\uc870\ud1f4' || u.type === '\uc678\ucd9c')).length;
   }
   function getYearLeaveCount(empId) {
-    return Object.values(leaveUsage).filter(u => u.empId === empId && window.KgmSafety.leaveYear(u) && u.type === '\uc5f0\ucc28').length;
+    return Object.values(leaveUsage).filter(u => u.empId === empId && window.KgmLeave.inPeriod(u,getLeavePeriod(empId)) && u.type === '\uc5f0\ucc28').length;
   }
 
+  function renderLeaveAnnualReport() {
+    var host = document.getElementById('leave-annual-report');
+    if (!host) return;
+    var admin = window._userRole === 'admin';
+    host.hidden = !admin;
+    if (!admin) { document.getElementById('leave-annual-summary').innerHTML=''; document.getElementById('leave-annual-detail').innerHTML=''; return; }
+    var all = Object.values(leaveUsage);
+    var yearSel = document.getElementById('leaveReportYear');
+    var selected = yearSel.value || window.KgmLeave.today().slice(0,4);
+    var years = Array.from(new Set([window.KgmLeave.today().slice(0,4), selected].concat(all.map(function(u){return (u.date||'').slice(0,4);}).filter(function(y){return /^\d{4}$/.test(y);})))) .sort().reverse();
+    yearSel.innerHTML=years.map(function(y){return '<option value="'+y+'">'+y+'년</option>';}).join(''); yearSel.value=selected;
+    var empSel=document.getElementById('leaveReportEmp'), chosen=empSel.value;
+    var ids=Array.from(new Set(Object.keys(leaveEmployees).concat(all.map(function(u){return u.empId;}).filter(Boolean))));
+    function name(id){return leaveEmployees[id]?leaveEmployees[id].name:'퇴사/삭제된 직원 ('+id+')';}
+    ids.sort(function(a,b){return name(a).localeCompare(name(b),'ko');});
+    empSel.innerHTML='<option value="">전체 직원</option>'+ids.map(function(id){return '<option value="'+esc(id)+'">'+esc(name(id))+'</option>';}).join(''); empSel.value=chosen;
+    var rows=all.filter(function(u){return (u.date||'').slice(0,4)===selected&&(!chosen||u.empId===chosen);});
+    document.getElementById('leave-annual-summary').innerHTML=ids.filter(function(id){return !chosen||id===chosen;}).map(function(id){var s=window.KgmLeave.stats(rows.filter(function(u){return u.empId===id;}));return '<tr><td>'+esc(name(id))+'</td><td>'+selected+'년</td><td>'+s.annual+'회</td><td>'+s.half+'회</td><td>'+s.etc+'회</td><td>'+formatDayHour(s.hours)+'</td></tr>';}).join('');
+    rows.sort(function(a,b){return b.date.localeCompare(a.date);});
+    document.getElementById('leave-annual-detail').innerHTML=rows.map(function(u){return '<tr><td>'+esc(name(u.empId))+'</td><td>'+esc(u.date)+'</td><td>'+esc(u.type)+'</td><td>'+formatDayHour(window.KgmLeave.hours(u))+'</td><td>'+esc(u.reason||'-')+'</td></tr>';}).join('')||'<tr><td colspan="5">선택한 연도의 사용 내역이 없습니다.</td></tr>';
+  }
+  window._renderLeaveAnnualReport=renderLeaveAnnualReport;
+
   function renderLeave() {
+    renderLeaveAnnualReport();
     var isAdmin = window._userRole === 'admin';
     var myEmail = (window._userEmail || '').toLowerCase();
     var myName = window._userName || '';
@@ -3618,9 +3626,11 @@
         var etcCount = getEtcCount(emp.id);
         var remainColor = remainHours <= 24 ? 'var(--red)' : 'var(--green)';
         var hireDateStr = emp.hireDate ? emp.hireDate : '-';
+        var balancePeriod = getLeavePeriod(emp.id);
+        var periodLabel = balancePeriod.missingHire ? '입사일 미등록 · 임시 올해 기준' : balancePeriod.start + ' ~ ' + balancePeriod.end;
         var tenureStr = emp.hireDate ? formatHireInfo(emp.hireDate) : '-';
         var manageCell = isAdmin ? ('<td><div style="display:flex;gap:5px;"><button class="btn btn-ghost btn-sm" onclick="window._editLeaveEmp(\''+esc(emp.id)+'\')">\uc218\uc815</button><button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._deleteLeaveEmp(\''+esc(emp.id)+'\',\''+esc(emp.name)+'\')">\uc0ad\uc81c</button></div></td>') : '';
-        return '<tr><td><strong>'+esc(emp.name)+'</strong></td><td style="font-size:12px;">'+esc(hireDateStr)+'</td><td style="font-size:12px;">'+tenureStr+'</td><td>'+autoTotal+'\uc77c</td><td style="color:var(--accent);font-weight:600;">'+formatDayHour(usedHours)+'</td><td style="color:'+remainColor+';font-weight:700;">'+formatDayHour(Math.max(0,remainHours))+'</td><td>'+yearCount+'\ud68c</td><td>'+halfCount+'\ud68c</td><td>'+etcCount+'\ud68c</td>'+manageCell+'</tr>';
+        return '<tr><td><strong>'+esc(emp.name)+'</strong></td><td style="font-size:12px;">'+esc(hireDateStr)+'</td><td style="font-size:12px;">'+tenureStr+'</td><td style="font-size:11px;">'+esc(periodLabel)+'</td><td>'+autoTotal+'\uc77c</td><td style="color:var(--accent);font-weight:600;">'+formatDayHour(usedHours)+'</td><td style="color:'+remainColor+';font-weight:700;">'+formatDayHour(Math.max(0,remainHours))+'</td><td>'+yearCount+'\ud68c</td><td>'+halfCount+'\ud68c</td><td>'+etcCount+'\ud68c</td>'+manageCell+'</tr>';
       }).join('');
     }
     var filterSel = document.getElementById('leaveFilterEmp');
@@ -4855,8 +4865,8 @@
     var emp = leaveEmployees[empId];
     if (!emp) { showNotif('\uc9c1\uc6d0 \uc815\ubcf4\ub97c \ucc3e\uc744 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4', true); return; }
     var addHours = (type === '\uc5f0\ucc28') ? 8 : (type === '\uc624\uc804\ubc18\ucc28' || type === '\uc624\ud6c4\ubc18\ucc28') ? 4 : (hours || 0);
-    var usedHours = getLeaveUsedHours(empId);
-    var autoTotal = (emp.hireDate) ? calcTotalLeave(emp.hireDate) : (emp.totalLeave || 15);
+    var usedHours = getLeaveUsedHours(empId, date);
+    var autoTotal = (emp.hireDate) ? calcTotalLeave(emp.hireDate, date) : (emp.totalLeave || 15);
     var totalHours = autoTotal * 8;
     if (addHours > 0 && (usedHours + addHours) > totalHours) {
       var remain = Math.max(0, totalHours - usedHours);
@@ -5234,17 +5244,18 @@
     document.getElementById('ni-accruedate').value = emp.hireDate || '';
     var total = emp.hireDate && typeof calcTotalLeave==='function' ? calcTotalLeave(emp.hireDate) : (emp.totalLeave||15);
     var usedHours = (typeof getLeaveUsedHours==='function') ? getLeaveUsedHours(empId) : 0;
-    var usedDays = +(usedHours/8).toFixed(1);
-    var remainDays = +((total - usedDays)).toFixed(1);
+    var usedDays = usedHours/8;
+    var remainDays = Math.max(0, total - usedDays);
     document.getElementById('ni-total').value = total;
     document.getElementById('ni-used').value = usedDays;
     document.getElementById('ni-remain').value = remainDays;
-    if (emp.hireDate) {
-      var hd = new Date(emp.hireDate);
-      var now = new Date();
-      var months = (now.getFullYear()-hd.getFullYear())*12 + (now.getMonth()-hd.getMonth());
-      document.getElementById('ni-under1y').checked = months < 12;
-    }
+    var period = getLeavePeriod(empId);
+    document.getElementById('ni-under1y').checked = period.under1;
+    document.getElementById('ni-accruedate').value = period.under1 ? '' : period.start;
+    document.getElementById('ni-accrue-start').value = period.accrualStart || period.start;
+    document.getElementById('ni-accrue-end').value = period.accrualEnd || period.end;
+    document.getElementById('ni-usage-start').value = period.start;
+    document.getElementById('ni-usage-end').value = period.end;
   };
   window._submitIssueNotice = async function() {
     var empId = document.getElementById('ni-emp').value;
@@ -5659,8 +5670,8 @@
     if (!empId) { showNotif('\uc9c1\uc6d0\uc744 \uc120\ud0dd\ud574\uc8fc\uc138\uc694', true); return; }
     if (!date) { showNotif('\uc0ac\uc6a9\uc77c\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694', true); return; }
     var emp = leaveEmployees[empId];
-    var usedHours = getLeaveUsedHours(empId);
-    var autoTotal = (emp && emp.hireDate) ? calcTotalLeave(emp.hireDate) : (emp ? emp.totalLeave || 15 : 15);
+    var usedHours = getLeaveUsedHours(empId, date);
+    var autoTotal = (emp && emp.hireDate) ? calcTotalLeave(emp.hireDate, date) : (emp ? emp.totalLeave || 15 : 15);
     var totalHours = autoTotal * 8;
     var addHours = (type === '\uc5f0\ucc28') ? 8 : (type === '\uc624\uc804\ubc18\ucc28' || type === '\uc624\ud6c4\ubc18\ucc28') ? 4 : hours;
     if ((usedHours + addHours) > totalHours) {
