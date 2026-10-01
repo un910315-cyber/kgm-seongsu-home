@@ -3571,8 +3571,8 @@
     var host = document.getElementById('leave-annual-report');
     if (!host) return;
     var admin = window._userRole === 'admin';
-    host.hidden = !admin;
-    if (!admin) { document.getElementById('leave-annual-summary').innerHTML=''; document.getElementById('leave-annual-detail').innerHTML=''; return; }
+    host.hidden = false;
+    if (!admin) { document.getElementById('leave-annual-summary').innerHTML=''; return; }
     var all = Object.values(leaveUsage);
     var yearSel = document.getElementById('leaveReportYear');
     var selected = yearSel.value || window.KgmLeave.today().slice(0,4);
@@ -3585,8 +3585,7 @@
     empSel.innerHTML='<option value="">전체 직원</option>'+ids.map(function(id){return '<option value="'+esc(id)+'">'+esc(name(id))+'</option>';}).join(''); empSel.value=chosen;
     var rows=all.filter(function(u){return (u.date||'').slice(0,4)===selected&&(!chosen||u.empId===chosen);});
     document.getElementById('leave-annual-summary').innerHTML=ids.filter(function(id){return !chosen||id===chosen;}).map(function(id){var s=window.KgmLeave.stats(rows.filter(function(u){return u.empId===id;}));return '<tr><td>'+esc(name(id))+'</td><td>'+selected+'년</td><td>'+s.annual+'회</td><td>'+s.half+'회</td><td>'+s.etc+'회</td><td>'+formatDayHour(s.hours)+'</td></tr>';}).join('');
-    rows.sort(function(a,b){return b.date.localeCompare(a.date);});
-    document.getElementById('leave-annual-detail').innerHTML=rows.map(function(u){return '<tr><td>'+esc(name(u.empId))+'</td><td>'+esc(u.date)+'</td><td>'+esc(u.type)+'</td><td>'+formatDayHour(window.KgmLeave.hours(u))+'</td><td>'+esc(u.reason||'-')+'</td></tr>';}).join('')||'<tr><td colspan="5">선택한 연도의 사용 내역이 없습니다.</td></tr>';
+
   }
   window._renderLeaveAnnualReport=renderLeaveAnnualReport;
 
@@ -3633,20 +3632,18 @@
         return '<tr><td><strong>'+esc(emp.name)+'</strong></td><td style="font-size:12px;">'+esc(hireDateStr)+'</td><td style="font-size:12px;">'+tenureStr+'</td><td style="font-size:11px;">'+esc(periodLabel)+'</td><td>'+autoTotal+'\uc77c</td><td style="color:var(--accent);font-weight:600;">'+formatDayHour(usedHours)+'</td><td style="color:'+remainColor+';font-weight:700;">'+formatDayHour(Math.max(0,remainHours))+'</td><td>'+yearCount+'\ud68c</td><td>'+halfCount+'\ud68c</td><td>'+etcCount+'\ud68c</td>'+manageCell+'</tr>';
       }).join('');
     }
-    var filterSel = document.getElementById('leaveFilterEmp');
     var useSel = document.getElementById('lu-emp');
-    if (filterSel) { var pv=filterSel.value; filterSel.innerHTML='<option value="">\uc804\uccb4 \uc9c1\uc6d0</option>'+empList.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join(''); if(pv) filterSel.value=pv; }
-    if (useSel) { var pv2=useSel.value; useSel.innerHTML='<option value="">\uc9c1\uc6d0 \uc120\ud0dd</option>'+allEmpList.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join(''); if(pv2) useSel.value=pv2; }
-    var filterEmp = filterSel ? filterSel.value : '';
-    var filterMonth = (document.getElementById('leaveFilterMonth')||{}).value || '';
-    var useList = Object.entries(leaveUsage).map(function(e){return {id:e[0],empId:e[1].empId,type:e[1].type,date:e[1].date,reason:e[1].reason,createdAt:e[1].createdAt,fromRequestId:e[1].fromRequestId};});
+    if (useSel) { var pv2=useSel.value; useSel.innerHTML='<option value="">직원 선택</option>'+allEmpList.map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join(''); if(pv2) useSel.value=pv2; }
+    var filterEmp = isAdmin ? document.getElementById('leaveReportEmp').value : '';
+    var filterYear = isAdmin ? document.getElementById('leaveReportYear').value : '';
+    var useList = Object.entries(leaveUsage).map(function(e){return {id:e[0],empId:e[1].empId,type:e[1].type,date:e[1].date,reason:e[1].reason,createdAt:e[1].createdAt,hours:e[1].hours,fromRequestId:e[1].fromRequestId};});
     if (!isAdmin) {
       var myEmpIds = empList.map(function(e){return e.id;});
       useList = useList.filter(function(u){return myEmpIds.indexOf(u.empId)!==-1;});
     } else if (filterEmp) {
       useList = useList.filter(function(u){return u.empId===filterEmp;});
     }
-    if (filterMonth) useList = useList.filter(function(u){return (u.date||'').startsWith(filterMonth);});
+    if (filterYear) useList = useList.filter(function(u){return (u.date||'').slice(0,4)===filterYear;});
     useList.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
     // 같은 신청건(fromRequestId)끼리 묶어 기간 1행으로 표시 (연차 연속 사용)
     var _gmap = {}, _grouped = [];

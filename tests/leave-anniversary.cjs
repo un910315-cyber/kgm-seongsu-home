@@ -26,17 +26,26 @@ console.log('PASS anniversary reset, first year, year boundary, long service, le
 const {chromium}=require('C:/Users/pc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const b=await chromium.launch({channel:'msedge',headless:true}),page=await b.newPage();
 const html=fs.readFileSync(root+'un/index.html','utf8');
-await page.setContent(html.slice(html.indexOf('    <!-- 연차 사용촉진 통지서 -->'),html.indexOf('    <!-- 사용 내역 -->')));
+await page.setContent(html.slice(html.indexOf('    <!-- 연차 사용촉진 통지서 -->'),html.indexOf('<!-- 직원 추가/수정 모달 -->')));
 await page.evaluate(css=>{const e=document.createElement('style');e.textContent=css;document.head.appendChild(e);},fs.readFileSync(root+'un/styles.css','utf8')+fs.readFileSync(root+'un/design-refresh.css','utf8'));
 await page.addScriptTag({content:fs.readFileSync(root+'un/leave-calculation.js','utf8')});
-await page.evaluate(({calc,report,rows})=>{window._userRole='admin';window.leaveEmployees={a:{name:'직원 A',hireDate:'2025-09-01'},b:{name:'직원 B',hireDate:'2024-01-01'}};window.leaveUsage=rows;window.esc=s=>String(s).replaceAll('<','&lt;');(0,eval)(calc+report);window._renderLeaveAnnualReport();}, {calc,report:source.slice(source.indexOf('  function renderLeaveAnnualReport('),source.indexOf('  function renderLeave()')),rows});
-await page.locator('#leave-annual-report summary').click();
+await page.evaluate(({logic,rows})=>{window._userRole='admin';window.leaveEmployees={a:{name:'직원 A',email:'a@test',hireDate:'2025-09-01'},b:{name:'직원 B',email:'b@test',hireDate:'2024-01-01'}};window.leaveUsage=Object.fromEntries(rows.map((r,i)=>[String(i),r]));window.esc=s=>String(s).replaceAll('<','&lt;');(0,eval)(logic);window._renderLeave();},{logic:source.slice(source.indexOf('  function getLeavePeriod('),source.indexOf('  window._renderLeave = renderLeave;'))+'\nwindow._renderLeave=renderLeave;',rows});
+assert.equal(await page.locator('#leave-use-tbody').count(),1);
+assert.equal(await page.locator('#leave-annual-detail').count(),0);
 await page.selectOption('#leaveReportYear','2026');
 assert.match(await page.locator('#leave-annual-summary').innerText(),/직원 A\s+2026년\s+2회\s+1회/);
-assert.equal(await page.locator('#leave-annual-detail tr').count(),3);
-await page.selectOption('#leaveReportYear','2027');assert.equal(await page.locator('#leave-annual-detail tr').count(),2);
-await page.selectOption('#leaveReportEmp','b');assert.match(await page.locator('#leave-annual-detail').innerText(),/없습니다/);
-for(const width of [390,1366]){await page.setViewportSize({width,height:1000});assert.equal(await page.locator('#leave-annual-report').isVisible(),true);}
-await page.evaluate(()=>{window._userRole='staff';window._renderLeaveAnnualReport();});assert.equal(await page.locator('#leave-annual-report').isVisible(),false);assert.equal(await page.locator('#leave-annual-detail').innerText(),'');
-await b.close();console.log('PASS annual summary/detail, year/employee filters, no-use employee, mobile/desktop visibility, nonadmin clearing');
+assert.equal(await page.locator('#leave-use-tbody tr').count(),3);
+assert.equal(await page.locator('#leave-use-tbody button').count(),3);
+await page.selectOption('#leaveReportYear','2027');assert.equal(await page.locator('#leave-use-tbody tr').count(),2);
+await page.selectOption('#leaveReportEmp','b');assert.equal(await page.locator('#leave-use-empty').isVisible(),true);
+await page.selectOption('#leaveReportEmp','a');
+for(const width of [390,1366]){await page.setViewportSize({width,height:1000});assert.equal(await page.locator('#leave-use-tbody').isVisible(),true);}
+await page.evaluate(()=>{window._userRole='staff';window._userEmail='b@test';window._renderLeave();});
+assert.equal(await page.locator('#leaveReportYear').isVisible(),false);
+assert.equal(await page.locator('#leave-annual-summary').innerText(),'');
+assert.equal(await page.locator('#leave-use-tbody tr').count(),0);
+await page.evaluate(()=>{window._userEmail='a@test';window._renderLeave();});
+assert.equal(await page.locator('#leave-use-tbody tr').count(),5);
+assert.equal(await page.locator('#leave-use-tbody button').count(),0);
+await b.close();console.log('PASS unified single list, year/employee filters, summary, admin delete buttons, nonadmin own records only, mobile/desktop');
 })().catch(e=>{console.error(e);process.exit(1)});
