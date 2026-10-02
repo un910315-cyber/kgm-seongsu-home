@@ -5992,3 +5992,9 @@ body:has(#page-dashboard.active) #page-dashboard .daily-sales-card .dash-sales-g
 .account-settings summary{cursor:pointer;color:var(--text-dim);font-size:12px;padding:12px 10px;min-height:44px;box-sizing:border-box;}
 .account-settings-panel{padding:8px 6px;}
 .account-settings-panel button{width:100%;min-height:44px;padding:10px 12px;border:1px solid rgba(232,68,42,.3);border-radius:8px;background:rgba(232,68,42,.08);color:#e8442a;font-size:12px;cursor:pointer;}
+
+/* Hyundai partner vehicles in the status list. */
+body #dashboard-tbody tr.hyundai-partner-row > td { background:rgba(245,158,11,.12) !important; }
+body #dashboard-tbody tr.hyundai-partner-row:hover > td { background:rgba(245,158,11,.20) !important; }
+body #dashboard-tbody tr.hyundai-partner-row > td:first-child { box-shadow:inset 4px 0 #f59e0b; }
+body #dashboard-tbody .hyundai-partner-badge { display:block;width:max-content;margin-top:5px;padding:3px 8px;border-radius:5px;background:#f59e0b;color:#172033;font-size:11px;font-weight:800;line-height:1.4;white-space:nowrap; }

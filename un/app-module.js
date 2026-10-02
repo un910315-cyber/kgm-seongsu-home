@@ -2260,8 +2260,8 @@
     if (!show.length) { tbody.innerHTML = `<tr><td colspan="12" class="empty" style="padding:30px">${(dq||dLoc||dSt) ? '검색 결과가 없습니다' : '입고 차량이 없습니다'}</td></tr>`; _renderPager('dashboard-pager','dashboard',1,1,0,'renderDashboard'); return; }
     const pg = _paginate('dashboard', show, dq + '|' + dLoc + '|' + dSt);
     tbody.innerHTML = pg.pageData.map(r => `
-      <tr>
-        <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span></td>
+      <tr class="${r.carType === '현대해상' ? 'hyundai-partner-row' : ''}">
+        <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span>${r.carType === '현대해상' ? '<span class="hyundai-partner-badge">현대해상</span>' : ''}</td>
         <td>${esc(r.carModel)||'-'}</td>
         <td>${phoneCell(r.phone)}</td>
         <td>${locationQuickCell(r.id, r.location, r.status)}</td>
