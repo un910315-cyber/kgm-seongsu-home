@@ -3062,7 +3062,7 @@
 
     const kgm = periodData.filter(r => r.carType === 'KGM');
     const domestic = periodData.filter(r => r.carType === '국산차');
-    const foreign = periodData.filter(r => r.carType === '외산차');
+    const foreign = periodData.filter(r => (r.carType === '외산차' || r.carType === '현대해상'));
     const uncat = periodData.filter(r => !r.carType);
     const outDone = periodOut;
 
@@ -3076,7 +3076,7 @@
     if (summary) summary.innerHTML = `
       <div class="stat-card orange"><div class="stat-label">KGM</div><div class="stat-value" style="color:var(--accent);">${kgm.length}</div><div class="stat-sub">${periodData.length ? Math.round(kgm.length/periodData.length*100) : 0}% 비율</div></div>
       <div class="stat-card blue"><div class="stat-label">국산차</div><div class="stat-value" style="color:var(--blue);">${domestic.length}</div><div class="stat-sub">타사 국산</div></div>
-      <div class="stat-card red"><div class="stat-label">외산차</div><div class="stat-value" style="color:var(--red);">${foreign.length}</div><div class="stat-sub">수입차</div></div>
+      <div class="stat-card red"><div class="stat-label">외산차</div><div class="stat-value" style="color:var(--red);">${foreign.length}</div><div class="stat-sub">현대해상 ${foreign.filter(r => r.carType === '현대해상').length}대 포함</div></div>
       <div class="stat-card green"><div class="stat-label">${periodName} 입고</div><div class="stat-value" style="color:var(--green);">${periodData.length}</div><div class="stat-sub">출고완료 ${outDone.length}대</div></div>
     `;
 
@@ -3090,7 +3090,7 @@
           monthBuckets[mi].total++;
           if(r.carType==='KGM') monthBuckets[mi].mKgm++;
           else if(r.carType==='국산차') monthBuckets[mi].mDom++;
-          else if(r.carType==='외산차') monthBuckets[mi].mFor++;
+          else if((r.carType==='외산차' || r.carType==='현대해상')) monthBuckets[mi].mFor++;
           else monthBuckets[mi].mUn++;
         }
       }
@@ -3236,7 +3236,7 @@
       if (tmData.length > 0) {
         const tmKgm = tmData.filter(r => r.carType === 'KGM').length;
         const tmDom = tmData.filter(r => r.carType === '국산차').length;
-        const tmFor = tmData.filter(r => r.carType === '외산차').length;
+        const tmFor = tmData.filter(r => (r.carType === '외산차' || r.carType === '현대해상')).length;
         const tmTot = tmData.length;
         const pct = (n) => Math.round(n / tmTot * 100);
         const kP = pct(tmKgm), dP = pct(tmDom), fP = pct(tmFor);
@@ -3287,6 +3287,7 @@
       'KGM': `<span style="background:rgba(245,166,35,0.15);color:var(--accent);padding:3px 12px;border-radius:20px;font-weight:700;font-size:13px;border:1px solid rgba(245,166,35,0.3);">KGM</span>`,
       '국산차': `<span style="background:rgba(75,156,255,0.15);color:var(--blue);padding:3px 12px;border-radius:20px;font-weight:700;font-size:13px;border:1px solid rgba(75,156,255,0.3);">국산차</span>`,
       '외산차': `<span style="background:rgba(232,68,42,0.15);color:var(--red);padding:3px 12px;border-radius:20px;font-weight:700;font-size:13px;border:1px solid rgba(232,68,42,0.3);">외산차</span>`,
+      '현대해상': `<span style="background:rgba(232,68,42,0.15);color:var(--red);padding:3px 12px;border-radius:20px;font-weight:700;font-size:13px;border:1px solid rgba(232,68,42,0.3);">현대해상</span>`,
     }[r.carType] || '-' : '-';
 
     document.getElementById('detailContent').innerHTML = `
