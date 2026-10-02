@@ -3062,7 +3062,8 @@
 
     const kgm = periodData.filter(r => r.carType === 'KGM');
     const domestic = periodData.filter(r => r.carType === '국산차');
-    const foreign = periodData.filter(r => (r.carType === '외산차' || r.carType === '현대해상'));
+    const foreign = periodData.filter(r => r.carType === '외산차');
+    const hyundai = periodData.filter(r => r.carType === '현대해상');
     const uncat = periodData.filter(r => !r.carType);
     const outDone = periodOut;
 
@@ -3076,12 +3077,13 @@
     if (summary) summary.innerHTML = `
       <div class="stat-card orange"><div class="stat-label">KGM</div><div class="stat-value" style="color:var(--accent);">${kgm.length}</div><div class="stat-sub">${periodData.length ? Math.round(kgm.length/periodData.length*100) : 0}% 비율</div></div>
       <div class="stat-card blue"><div class="stat-label">국산차</div><div class="stat-value" style="color:var(--blue);">${domestic.length}</div><div class="stat-sub">타사 국산</div></div>
-      <div class="stat-card red"><div class="stat-label">외산차</div><div class="stat-value" style="color:var(--red);">${foreign.length}</div><div class="stat-sub">현대해상 ${foreign.filter(r => r.carType === '현대해상').length}대 포함</div></div>
+      <div class="stat-card red"><div class="stat-label">외산차</div><div class="stat-value" style="color:var(--red);">${foreign.length}</div><div class="stat-sub">현대해상 제외</div></div>
+      <div class="stat-card red"><div class="stat-label">현대해상</div><div class="stat-value" style="color:#f59e0b;">${hyundai.length}</div><div class="stat-sub">협력업체 · 외산차</div></div>
       <div class="stat-card green"><div class="stat-label">${periodName} 입고</div><div class="stat-value" style="color:var(--green);">${periodData.length}</div><div class="stat-sub">출고완료 ${outDone.length}대</div></div>
     `;
 
     // 월별 데이터 수집 (한 번 순회로 O(N) 최적화)
-    const monthBuckets = Array.from({length:12},()=>({mKgm:0,mDom:0,mFor:0,mUn:0,mOut:0,total:0}));
+    const monthBuckets = Array.from({length:12},()=>({mKgm:0,mDom:0,mFor:0,mHy:0,mUn:0,mOut:0,total:0}));
     list.forEach(r => {
       const inM = (r.inDate||'').slice(0,7);
       if(inM.startsWith(year)) {
@@ -3090,7 +3092,8 @@
           monthBuckets[mi].total++;
           if(r.carType==='KGM') monthBuckets[mi].mKgm++;
           else if(r.carType==='국산차') monthBuckets[mi].mDom++;
-          else if((r.carType==='외산차' || r.carType==='현대해상')) monthBuckets[mi].mFor++;
+          else if(r.carType==='외산차') monthBuckets[mi].mFor++;
+          else if(r.carType==='현대해상') monthBuckets[mi].mHy++;
           else monthBuckets[mi].mUn++;
         }
       }
@@ -3103,14 +3106,14 @@
       }
     });
     const monthlyData = [];
-    let tKgm=0,tDom=0,tFor=0,tUn=0,tTotal=0,tOut=0,maxMonth=0;
+    let tKgm=0,tDom=0,tFor=0,tHy=0,tUn=0,tTotal=0,tOut=0,maxMonth=0;
     for (let m = 1; m <= 12; m++) {
       const b = monthBuckets[m-1];
       const mm = String(m).padStart(2,'0');
       const pfx = `${year}-${mm}`;
-      tKgm+=b.mKgm;tDom+=b.mDom;tFor+=b.mFor;tUn+=b.mUn;tTotal+=b.total;tOut+=b.mOut;
+      tKgm+=b.mKgm;tDom+=b.mDom;tFor+=b.mFor;tHy+=b.mHy;tUn+=b.mUn;tTotal+=b.total;tOut+=b.mOut;
       if(b.total>maxMonth)maxMonth=b.total;
-      monthlyData.push({m,mKgm:b.mKgm,mDom:b.mDom,mFor:b.mFor,mUn:b.mUn,mOut:b.mOut,total:b.total,prefix:pfx});
+      monthlyData.push({m,mKgm:b.mKgm,mDom:b.mDom,mFor:b.mFor,mHy:b.mHy,mUn:b.mUn,mOut:b.mOut,total:b.total,prefix:pfx});
     }
 
     // 월별 리본 차트 — 총량 흐름 + 차종 비중 스트립
@@ -3148,14 +3151,15 @@
         const kgmW = w * d.mKgm / d.total;
         const domW = w * d.mDom / d.total;
         const forW = w * d.mFor / d.total;
-        const unW = Math.max(0, w - kgmW - domW - forW);
+        const hyW = w * d.mHy / d.total;
+        const unW = Math.max(0, w - kgmW - domW - forW - hyW);
         let xx = x;
         const seg = (ww, color) => {
           const out = ww > 0 ? `<rect x="${xx.toFixed(1)}" y="${y}" width="${Math.max(1, ww).toFixed(1)}" height="5" rx="2" fill="${color}"/>` : '';
           xx += ww;
           return out;
         };
-        return seg(kgmW, '#8b5cf6') + seg(domW, '#3b82f6') + seg(forW, '#f43f5e') + seg(unW, '#475569');
+        return seg(kgmW, '#8b5cf6') + seg(domW, '#3b82f6') + seg(forW, '#f43f5e') + seg(hyW, '#f59e0b') + seg(unW, '#475569');
       }).join('');
       chart.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="monthly-ribbon-svg">`
         + `<defs><linearGradient id="monthlyRibbonArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8b5cf6" stop-opacity=".34"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity=".015"/></linearGradient><filter id="monthlyRibbonGlow"><feGaussianBlur stdDeviation="2.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`
@@ -3179,6 +3183,7 @@
         <td><span style="color:var(--accent);font-weight:700;">${d.mKgm || '-'}</span></td>
         <td><span style="color:var(--blue);">${d.mDom || '-'}</span></td>
         <td><span style="color:var(--red);">${d.mFor || '-'}</span></td>
+        <td><span style="color:#f59e0b;">${d.mHy || '-'}</span></td>
         <td style="color:var(--text-dim);">${d.mUn || '-'}</td>
         <td><span style="font-weight:800;font-size:14px;">${d.total || '-'}</span></td>
         <td><span style="color:var(--green);font-weight:600;">${d.mOut || '-'}</span></td>
@@ -3196,6 +3201,7 @@
         <td style="font-weight:900;color:var(--accent);font-size:15px;">${tKgm}</td>
         <td style="font-weight:700;color:var(--blue);font-size:14px;">${tDom}</td>
         <td style="font-weight:700;color:var(--red);font-size:14px;">${tFor}</td>
+        <td style="font-weight:700;color:#f59e0b;font-size:14px;">${tHy}</td>
         <td style="color:var(--text-dim);font-weight:600;">${tUn}</td>
         <td style="font-weight:900;font-size:16px;">${tTotal}</td>
         <td style="font-weight:700;color:var(--green);font-size:14px;">${tOut}</td>
@@ -3209,18 +3215,21 @@
       const kgmPct = Math.round(kgm.length/periodData.length*100);
       const domPct = Math.round(domestic.length/periodData.length*100);
       const forPct = Math.round(foreign.length/periodData.length*100);
-      const unPct = 100 - kgmPct - domPct - forPct;
+      const hyPct = Math.round(hyundai.length/periodData.length*100);
+      const unPct = Math.max(0, 100 - kgmPct - domPct - forPct - hyPct);
       bar.innerHTML = `
         <div style="display:flex;border-radius:8px;overflow:hidden;height:36px;margin-bottom:12px;">
           ${kgmPct ? `<div style="width:${kgmPct}%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#000;">KGM ${kgmPct}%</div>` : ''}
           ${domPct ? `<div style="width:${domPct}%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#000;">국산 ${domPct}%</div>` : ''}
           ${forPct ? `<div style="width:${forPct}%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;">외산 ${forPct}%</div>` : ''}
+          ${hyPct ? `<div style="width:${hyPct}%;background:#f59e0b;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;">현대해상 ${hyPct}%</div>` : ''}
           ${unPct > 0 ? `<div style="width:${unPct}%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-dim);">미분류</div>` : ''}
         </div>
         <div style="display:flex;gap:16px;flex-wrap:wrap;">
           <span style="font-size:12px;color:var(--accent);">■ KGM ${kgm.length}대</span>
           <span style="font-size:12px;color:var(--blue);">■ 국산차 ${domestic.length}대</span>
           <span style="font-size:12px;color:var(--red);">■ 외산차 ${foreign.length}대</span>
+          <span style="font-size:12px;color:#f59e0b;">■ 현대해상 ${hyundai.length}대</span>
           ${uncat.length ? `<span style="font-size:12px;color:var(--text-dim);">■ 미분류 ${uncat.length}대</span>` : ''}
         </div>`;
     } else if (bar) {
@@ -3236,11 +3245,12 @@
       if (tmData.length > 0) {
         const tmKgm = tmData.filter(r => r.carType === 'KGM').length;
         const tmDom = tmData.filter(r => r.carType === '국산차').length;
-        const tmFor = tmData.filter(r => (r.carType === '외산차' || r.carType === '현대해상')).length;
+        const tmFor = tmData.filter(r => r.carType === '외산차').length;
+        const tmHy = tmData.filter(r => r.carType === '현대해상').length;
         const tmTot = tmData.length;
         const pct = (n) => Math.round(n / tmTot * 100);
-        const kP = pct(tmKgm), dP = pct(tmDom), fP = pct(tmFor);
-        const uP = Math.max(0, 100 - kP - dP - fP);
+        const kP = pct(tmKgm), dP = pct(tmDom), fP = pct(tmFor), hP = pct(tmHy);
+        const uP = Math.max(0, 100 - kP - dP - fP - hP);
         const moLabel = (now.getMonth() + 1) + '월';
         tmBar.innerHTML = `
           <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;font-weight:600;letter-spacing:.3px;">이번 달(${moLabel}) 차량 구분 · 총 ${tmTot}대</div>
@@ -3248,6 +3258,7 @@
             ${kP ? `<div style="width:${kP}%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#000;">KGM ${tmKgm} (${kP}%)</div>` : ''}
             ${dP ? `<div style="width:${dP}%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#000;">국산 ${tmDom} (${dP}%)</div>` : ''}
             ${fP ? `<div style="width:${fP}%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">외산 ${tmFor} (${fP}%)</div>` : ''}
+            ${hP ? `<div style="width:${hP}%;background:#f59e0b;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">현대해상 ${tmHy} (${hP}%)</div>` : ''}
             ${uP > 0 ? `<div style="width:${uP}%;background:var(--border);"></div>` : ''}
           </div>`;
       } else {

@@ -16,8 +16,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v165-2026-10-02">
-<link rel="stylesheet" href="design-refresh.css?v=v165-2026-10-02" media="screen">
+<link rel="stylesheet" href="styles.css?v=v166-2026-10-02">
+<link rel="stylesheet" href="design-refresh.css?v=v166-2026-10-02" media="screen">
 </head>
 <body>
 
@@ -205,10 +205,11 @@
       </div>
       <div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:4px;padding:14px;margin-bottom:18px;">
         <div id="stats-chart" style="display:flex;align-items:flex-end;gap:6px;height:200px;"></div>
-        <div style="display:flex;gap:14px;margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05);">
+        <div style="display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05);">
           <span style="font-size:11px;color:var(--accent);">■ KGM</span>
           <span style="font-size:11px;color:var(--blue);">■ 국산</span>
           <span style="font-size:11px;color:var(--red);">■ 외산</span>
+          <span style="font-size:11px;color:#f59e0b;">■ 현대해상</span>
         </div>
         <div id="thisMonthRatioBar" style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.05);"></div>
       </div>
@@ -236,6 +237,7 @@
               <th style="color:var(--accent);">KGM</th>
               <th style="color:var(--blue);">국산차</th>
               <th style="color:var(--red);">외산차</th>
+              <th style="color:#f59e0b;">현대해상</th>
               <th>미분류</th>
               <th style="color:var(--text);font-weight:800;">입고 합계</th>
               <th style="color:var(--green);">출고 완료</th>
@@ -1015,11 +1017,11 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script src="app-safety.js?v=v165-2026-10-02"></script>
-<script src="leave-calculation.js?v=v165-2026-10-02"></script>
-<script type="module" src="app-module.js?v=v165-2026-10-02"></script>
+<script src="app-safety.js?v=v166-2026-10-02"></script>
+<script src="leave-calculation.js?v=v166-2026-10-02"></script>
+<script type="module" src="app-module.js?v=v166-2026-10-02"></script>
 
-<script defer src="app-pages.js?v=v165-2026-10-02"></script>
+<script defer src="app-pages.js?v=v166-2026-10-02"></script>
 
 <!-- XLSX + JSZip: 보험 미결 탭 첫 진입 시 지연 로드 -->
 <script>
@@ -2542,6 +2544,6 @@
 <script src="work-codes-data.js?v=v133-2026-08-25"></script>
 <script defer src="app-maintenance.js?v=v133-2026-08-25"></script>
 <script defer src="app-features.js?v=v133-2026-08-25"></script>
-<script defer src="app-workcodes-ui.js?v=v165-2026-10-02"></script>
+<script defer src="app-workcodes-ui.js?v=v166-2026-10-02"></script>
 </body>
 </html>
