@@ -5998,3 +5998,5 @@ body :is(#dashboard-tbody,#list-tbody,#complete-tbody) tr.hyundai-partner-row > 
 body :is(#dashboard-tbody,#list-tbody,#complete-tbody) tr.hyundai-partner-row:hover > td { background:rgba(245,158,11,.20) !important; }
 body :is(#dashboard-tbody,#list-tbody,#complete-tbody) tr.hyundai-partner-row > td:first-child { box-shadow:inset 4px 0 #f59e0b; }
 body :is(#dashboard-tbody,#list-tbody,#complete-tbody) .hyundai-partner-badge { display:block;width:max-content;margin-top:5px;padding:3px 8px;border-radius:5px;background:#f59e0b;color:#172033;font-size:11px;font-weight:800;line-height:1.4;white-space:nowrap; }
+
+.badge-total-loss { background:rgba(239,68,68,.16);color:#f87171;border:1px solid #ef4444;font-weight:800; }

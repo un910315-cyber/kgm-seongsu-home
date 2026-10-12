@@ -1938,7 +1938,7 @@
 
   // ---- HELPERS ----
   function statusBadge(s) {
-    const map = { '입고': 'badge-in', '수리대기': 'badge-wait', '수리중': 'badge-repair', '금일 출고예정': 'badge-pickup-today', '수리완료': 'badge-done', '출고': 'badge-out', '미수리 출고': 'badge-out-norepair' };
+    const map = { '입고': 'badge-in', '수리대기': 'badge-wait', '수리중': 'badge-repair', '금일 출고예정': 'badge-pickup-today', '수리완료': 'badge-done', '출고': 'badge-out', '미수리 출고': 'badge-out-norepair', '전손처리': 'badge-total-loss' };
     return `<span class="badge ${map[s]||''}"><span class="bdot"></span>${s}</span>`;
   }
   function locationBadge(loc, status) {
@@ -1984,7 +1984,7 @@
   // 상태별 색
   const STATUS_CHIP_COLORS = {
     '입고': '#fb923c', '수리대기': '#fbbf24', '수리중': '#3b82f6',
-    '금일 출고예정': '#8b5cf6', '수리완료': '#10b981', '출고': '#64748b', '미수리출고': '#ef4444'
+    '금일 출고예정': '#8b5cf6', '수리완료': '#10b981', '출고': '#64748b', '미수리출고': '#ef4444', '전손처리': '#ef4444'
   };
   function _chipStyle(c) {
     return `--chip-color:${c};background:linear-gradient(135deg,${c}2e,${c}10);border-color:${c}66;color:${c};`;

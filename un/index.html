@@ -16,8 +16,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v168-2026-10-02">
-<link rel="stylesheet" href="design-refresh.css?v=v168-2026-10-02" media="screen">
+<link rel="stylesheet" href="styles.css?v=v169-2026-10-12">
+<link rel="stylesheet" href="design-refresh.css?v=v169-2026-10-12" media="screen">
 </head>
 <body>
 
@@ -308,6 +308,7 @@
     <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
       <div class="section-title"> 현황 목록</div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="openModal()">+ 차량 등록</button>
         <button id="dashOutToggleBtn" class="dash-out-toggle-btn" onclick="window._toggleDashOutSide()" title="이번주/다음주 출고 예정 사이드바 열기/닫기"> 출고일정</button>
         <button id="dashResToggleBtn" class="dash-out-toggle-btn" onclick="window._toggleDashResSide()" title="예약차 사이드바 열기/닫기"> 예약차</button>
         <input class="form-input" id="dashSearchInput" type="text" placeholder="차량번호 / 고객명 / 연락처 검색" oninput="renderDashboard()" style="width:260px;padding:8px 12px;font-size:13px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);">
@@ -330,6 +331,7 @@
           <option value="수리중">수리중</option>
           <option value="금일 출고예정">금일 출고예정</option>
           <option value="수리완료">수리완료</option>
+          <option value="전손처리">전손처리</option>
         </select>
       </div>
     </div>
@@ -356,6 +358,7 @@
         <option value="수리중">수리중</option>
         <option value="금일 출고예정">금일 출고예정</option>
         <option value="수리완료">수리완료</option>
+          <option value="전손처리">전손처리</option>
         <option value="출고">출고</option>
       </select>
       <button class="btn btn-primary" onclick="openModal()">+ 차량 등록</button>
@@ -736,6 +739,7 @@
             <option value="수리중">수리중</option>
             <option value="금일 출고예정">금일 출고예정</option>
             <option value="수리완료">수리완료</option>
+          <option value="전손처리">전손처리</option>
             <option value="출고">출고</option>
           </select>
         </div>
@@ -900,6 +904,8 @@
           style="padding:14px;border-radius:10px;border:2px solid rgba(45,206,137,0.3);background:rgba(45,206,137,0.1);color:var(--green);font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:left;">
            수리완료 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">출고 대기 중</span>
         </button>
+        <button class="status-pick-btn" data-val="전손처리" onclick="saveStatus('전손처리')"
+          style="padding:14px;border-radius:10px;border:2px solid #ef4444;background:rgba(239,68,68,0.16);color:#f87171;font-size:15px;font-weight:700;cursor:pointer;text-align:left;">전손처리</button>
         <button class="status-pick-btn" data-val="출고" onclick="saveStatus('출고')"
           style="padding:14px;border-radius:10px;border:2px solid rgba(124,130,150,0.3);background:rgba(124,130,150,0.1);color:var(--text-dim);font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;text-align:left;">
            출고 &nbsp;<span style="font-size:12px;font-weight:400;opacity:0.7;">오늘 날짜 자동 입력</span>
@@ -1017,11 +1023,11 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script src="app-safety.js?v=v168-2026-10-02"></script>
-<script src="leave-calculation.js?v=v168-2026-10-02"></script>
-<script type="module" src="app-module.js?v=v168-2026-10-02"></script>
+<script src="app-safety.js?v=v169-2026-10-12"></script>
+<script src="leave-calculation.js?v=v169-2026-10-12"></script>
+<script type="module" src="app-module.js?v=v169-2026-10-12"></script>
 
-<script defer src="app-pages.js?v=v168-2026-10-02"></script>
+<script defer src="app-pages.js?v=v169-2026-10-12"></script>
 
 <!-- XLSX + JSZip: 보험 미결 탭 첫 진입 시 지연 로드 -->
 <script>
@@ -2544,6 +2550,6 @@
 <script src="work-codes-data.js?v=v133-2026-08-25"></script>
 <script defer src="app-maintenance.js?v=v133-2026-08-25"></script>
 <script defer src="app-features.js?v=v133-2026-08-25"></script>
-<script defer src="app-workcodes-ui.js?v=v168-2026-10-02"></script>
+<script defer src="app-workcodes-ui.js?v=v169-2026-10-12"></script>
 </body>
 </html>
