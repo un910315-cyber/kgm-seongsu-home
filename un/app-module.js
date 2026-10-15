@@ -228,8 +228,8 @@
 
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
-    admin: ['dashboard','list','status','complete','out','migyeol','leave','board','estimate','insurance','vendors','sales','reservation','usermgmt'],
-    staff: ['status','complete','leave','board','estimate','insurance','vendors'],
+    admin: ['dashboard','list','status','complete','out','migyeol','leave','board','estimate','insurance','vendors','sales','reservation','usermgmt','repairguide'],
+    staff: ['status','complete','leave','board','estimate','insurance','vendors','repairguide'],
     viewer: ['status','complete','leave','board','vendors']
   };
   window._requireRole=function(...roles){if(roles.includes(window._userRole)&&window._userEmail)return true;showNotif('접근 권한이 없습니다.',true);return false;};
@@ -1908,6 +1908,14 @@
     return Object.entries(records).map(([id, val]) => ({ id, ...val }));
   }
 
+  // Isolated guide bridge: existing admissions/auth are reused without a new listener.
+  window.KgmRepairBridge={
+    config:window.KGM_REPAIR_CONFIG||{enabled:false,apiBase:''},selection:null,
+    get role(){return window._userRole;},
+    getToken:async function(){if(!auth.currentUser||!['admin','staff'].includes(window._userRole))throw new Error('직원 로그인이 필요합니다.');return auth.currentUser.getIdToken();},
+    getRecords:function(){if(!['admin','staff'].includes(window._userRole))return [];return getList().map(function(r){return {id:r.id,carNum:r.carNum,carModel:r.carModel,name:r.name,phone:r.phone,inDate:r.inDate,outDate:r.outDate,status:r.status};});}
+  };
+
   function recordTimeValue(r) {
     const t = new Date(r.createdAt || '').getTime();
     return Number.isFinite(t) ? t : 0;
@@ -2272,7 +2280,7 @@
         <td>${r.rent ? `<span style="background:rgba(251,146,60,0.12);color:#fb923c;padding:2px 8px;border-radius:5px;font-size:12px;font-weight:600;"> ${esc(r.rent)}</span>` : '-'}</td>
         <td>${fmt(r.inDate)}</td>
         <td>${fmt(r.outDate)}</td>
-        <td><button class="btn btn-ghost btn-sm" onclick="window._openModal('${esc(r.id)}')">수정</button></td>
+        <td><button class="btn btn-ghost btn-sm" onclick="window._openModal('${esc(r.id)}')">수정</button>${window._repairGuideButton?window._repairGuideButton(r.id):''}</td>
       </tr>`).join('');
     _renderPager('dashboard-pager', 'dashboard', pg.page, pg.totalPages, pg.total, 'renderDashboard');
   }
@@ -2541,6 +2549,7 @@
         <td>
           <div style="display:flex;gap:5px;">
             <button class="btn btn-ghost btn-sm" onclick="window._openModal('${esc(r.id)}')">수정</button>
+            ${window._repairGuideButton?window._repairGuideButton(r.id):''}
             <button class="btn btn-sm" style="background:rgba(232,68,42,0.15);color:var(--red);border:1px solid rgba(232,68,42,0.3);" onclick="window._delete('${esc(r.id)}','${esc(r.carNum)}','${esc(r.name)}')">삭제</button>
           </div>
         </td>
