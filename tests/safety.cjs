@@ -12,7 +12,7 @@ async function approvalScenario({fail=false,double=false,role='director'}={}){
  getMyEmpRecord:()=>({id:'boss',position:role==='director'?'대표':'일반'}),
  canApproveStage:(stage,me)=>stage==='pending_director'&&me.position==='대표',
  leaveEmployees:{employee:{team:'A'}},leaveRequests:structuredClone(data.leaveRequests),
- eachWeekdayInRange:()=>['2026-09-11','2026-09-14'],
+ eachWeekdayInRange:(start,end)=>start===end?[start]:['2026-09-11','2026-09-14'],
  ref:(_,path='')=>path,db:{},statusLabel:s=>s,showNotif:t=>notices.push(t),
  runTransaction:async(path,fn)=>{let v=fn(structuredClone(read(data,path)));if(v===undefined)return {committed:false,snapshot:snap(read(data,path))};write(data,path,v);return {committed:true,snapshot:snap(v)};},
  update:async(_,patch)=>{if(failOnce){failOnce=false;throw Error('network');}let next=structuredClone(data);for(const [k,v]of Object.entries(patch))write(next,k,v);data=next;}

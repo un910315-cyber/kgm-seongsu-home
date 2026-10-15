@@ -3570,13 +3570,13 @@
     return '\uc2e0\uaddc';
   }
   function getHalfDayCount(empId) {
-    return Object.values(leaveUsage).filter(u => u.empId === empId && window.KgmLeave.inPeriod(u,getLeavePeriod(empId)) && (u.type === '\uc624\uc804\ubc18\ucc28' || u.type === '\uc624\ud6c4\ubc18\ucc28')).length;
+    return Object.values(leaveUsage).filter(u => u.empId === empId && window.KgmLeave.inPeriod(u,getLeavePeriod(empId)) && window.KgmLeave.isChargeableDate(u.date) && (u.type === '\uc624\uc804\ubc18\ucc28' || u.type === '\uc624\ud6c4\ubc18\ucc28')).length;
   }
   function getEtcCount(empId) {
-    return Object.values(leaveUsage).filter(u => u.empId === empId && window.KgmLeave.inPeriod(u,getLeavePeriod(empId)) && (u.type === '\uc870\ud1f4' || u.type === '\uc678\ucd9c')).length;
+    return Object.values(leaveUsage).filter(u => u.empId === empId && window.KgmLeave.inPeriod(u,getLeavePeriod(empId)) && window.KgmLeave.isChargeableDate(u.date) && (u.type === '\uc870\ud1f4' || u.type === '\uc678\ucd9c')).length;
   }
   function getYearLeaveCount(empId) {
-    return Object.values(leaveUsage).filter(u => u.empId === empId && window.KgmLeave.inPeriod(u,getLeavePeriod(empId)) && u.type === '\uc5f0\ucc28').length;
+    return Object.values(leaveUsage).filter(u => u.empId === empId && window.KgmLeave.inPeriod(u,getLeavePeriod(empId)) && window.KgmLeave.isChargeableDate(u.date) && u.type === '\uc5f0\ucc28').length;
   }
 
   function renderLeaveAnnualReport() {
@@ -4715,8 +4715,9 @@
     return false;
   }
 
-  // \uc2dc\uc791~\uc885\ub8cc \uc0ac\uc774\uc758 \ud3c9\uc77c(\uc6d4~\uae08) \ub0a0\uc9dc \ubb38\uc790\uc5f4 \ubc30\uc5f4 \ubc18\ud658 (\uc8fc\ub9d0 \uc81c\uc678)
+  // \uc2dc\uc791~\uc885\ub8cc \uc0ac\uc774\uc758 \uc5f0\ucc28 \ucc28\uac10\uc77c \ubc18\ud658 (\uc8fc\ub9d0\u00b7\uacf5\ud734\uc77c \uc81c\uc678)
   function eachWeekdayInRange(start, end) {
+    if (window.KgmLeave && window.KgmLeave.businessDates) return window.KgmLeave.businessDates(start, end);
     var out = [];
     if (!start || !end) return out;
     var s = new Date(start + 'T00:00:00');
@@ -4749,8 +4750,8 @@
     return true;
   }
   function leaveUsageUpdates(req,id){
-    var dates=req.type==='연차'&&req.endDate&&req.endDate!==req.date?eachWeekdayInRange(req.date,req.endDate):[req.date];
-    if(!dates.length)throw Error('사용 날짜가 없습니다.');
+    var dates=req.type==='연차'?eachWeekdayInRange(req.date,req.endDate||req.date):eachWeekdayInRange(req.date,req.date);
+    if(!dates.length)throw Error('선택한 날짜는 주말 또는 공휴일이라 연차에서 차감할 수 없습니다.');
     var updates={},first=null;
     dates.forEach(function(date){
       var key=id+'_'+date;
@@ -4815,10 +4816,15 @@
     if (!date) { showNotif('\uc0ac\uc6a9\uc77c\uc744 \uc120\ud0dd\ud574\uc8fc\uc138\uc694', true); return; }
     // \uc5f0\ucc28 \uc5f0\uc18d \uc2e0\uccad: \uc885\ub8cc\uc77c \uac80\uc99d
     var rangeDays = null;
-    if (endDate && endDate !== date) {
-      if (endDate < date) { showNotif('\uc885\ub8cc\uc77c\uc774 \uc2dc\uc791\uc77c\ubcf4\ub2e4 \ube60\ub985\ub2c8\ub2e4', true); return; }
-      rangeDays = eachWeekdayInRange(date, endDate);
-      if (!rangeDays.length) { showNotif('\uc120\ud0dd\ud55c \uae30\uac04\uc5d0 \ud3c9\uc77c\uc774 \uc5c6\uc2b5\ub2c8\ub2e4 (\uc8fc\ub9d0\ub9cc \uc120\ud0dd\ub428)', true); return; }
+    if (type === '\uc5f0\ucc28') {
+      if (endDate && endDate < date) { showNotif('\uc885\ub8cc\uc77c\uc774 \uc2dc\uc791\uc77c\ubcf4\ub2e4 \ube60\ub985\ub2c8\ub2e4', true); return; }
+      try { rangeDays = eachWeekdayInRange(date, endDate || date); }
+      catch(e) { showNotif(e.message, true); return; }
+      if (!rangeDays.length) { showNotif('\uc120\ud0dd\ud55c \uae30\uac04\uc5d0 \ucc28\uac10\ud560 \uadfc\ubb34\uc77c\uc774 \uc5c6\uc2b5\ub2c8\ub2e4 (\uc8fc\ub9d0\u00b7\uacf5\ud734\uc77c)', true); return; }
+      if (!endDate || endDate === date) rangeDays = null;
+    } else {
+      try { if (!eachWeekdayInRange(date,date).length) { showNotif('\uc8fc\ub9d0 \ub610\ub294 \uacf5\ud734\uc77c\uc5d0\ub294 \uc2e0\uccad\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4', true); return; } }
+      catch(e) { showNotif(e.message, true); return; }
     }
     var btn = document.getElementById('myReqSaveBtn');
     btn.disabled = true; btn.textContent = '\uc81c\ucd9c \uc911...';
@@ -4832,10 +4838,10 @@
         data.approvedAt = nowStr; data.approvedBy = window._userEmail || '';
         data.directorApprovedAt = nowStr; data.directorApprovedBy = window._userEmail || '';
         await commitNewApprovedRequest(data);
-        showNotif(rangeDays ? ('\uc2e0\uccad\uc774 \uc989\uc2dc \uc2b9\uc778\ub418\uc5c8\uc2b5\ub2c8\ub2e4 (\ud3c9\uc77c ' + rangeDays.length + '\uc77c)') : '\uc2e0\uccad\uc774 \uc989\uc2dc \uc2b9\uc778\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
+        showNotif(rangeDays ? ('\uc2e0\uccad\uc774 \uc989\uc2dc \uc2b9\uc778\ub418\uc5c8\uc2b5\ub2c8\ub2e4 (\uc8fc\ub9d0\u00b7\uacf5\ud734\uc77c \uc81c\uc678 ' + rangeDays.length + '\uc77c)') : '\uc2e0\uccad\uc774 \uc989\uc2dc \uc2b9\uc778\ub418\uc5c8\uc2b5\ub2c8\ub2e4');
       } else {
         await push(leaveRequestsRef, data);
-        showNotif('\uc2e0\uccad\uc774 \uc81c\ucd9c\ub418\uc5c8\uc2b5\ub2c8\ub2e4' + (rangeDays ? ' \u00b7 \ud3c9\uc77c ' + rangeDays.length + '\uc77c' : '') + ' (' + statusLabel(initStatus) + ')');
+        showNotif('\uc2e0\uccad\uc774 \uc81c\ucd9c\ub418\uc5c8\uc2b5\ub2c8\ub2e4' + (rangeDays ? ' \u00b7 \uc8fc\ub9d0\u00b7\uacf5\ud734\uc77c \uc81c\uc678 ' + rangeDays.length + '\uc77c' : '') + ' (' + statusLabel(initStatus) + ')');
       }
       document.getElementById('myRequestModal').classList.remove('open');
     } catch(e) { showNotif('\uc81c\ucd9c \uc2e4\ud328: ' + e.message, true); }
@@ -5678,6 +5684,8 @@
     var hours = (type === '\uc870\ud1f4' || type === '\uc678\ucd9c') ? parseInt(document.getElementById('lu-hours').value) || 1 : 0;
     if (!empId) { showNotif('\uc9c1\uc6d0\uc744 \uc120\ud0dd\ud574\uc8fc\uc138\uc694', true); return; }
     if (!date) { showNotif('\uc0ac\uc6a9\uc77c\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694', true); return; }
+    try { if (!eachWeekdayInRange(date,date).length) { showNotif('\uc8fc\ub9d0 \ub610\ub294 \uacf5\ud734\uc77c\uc740 \uc0ac\uc6a9 \ub0b4\uc5ed\uc73c\ub85c \ub4f1\ub85d\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4', true); return; } }
+    catch(e) { showNotif(e.message, true); return; }
     var emp = leaveEmployees[empId];
     var usedHours = getLeaveUsedHours(empId, date);
     var autoTotal = (emp && emp.hireDate) ? calcTotalLeave(emp.hireDate, date) : (emp ? emp.totalLeave || 15 : 15);
