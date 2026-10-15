@@ -16,6 +16,17 @@
     }
     target.querySelectorAll('[data-file]').forEach(b=>b.onclick=()=>onFile(s.files.find(f=>f.id===b.dataset.file)));
   }
-  function showFile(file,url){if(parent!==window)parent.postMessage({type:'kgm-repair-focus'},location.origin);const dialog=document.createElement('dialog');const close=document.createElement('button');close.className='rg-close';close.textContent='닫기';dialog.append(close);if(file.type==='application/pdf'){const frame=document.createElement('iframe');frame.className='rg-document';frame.title=file.name;frame.src=url;dialog.append(frame);}else{const image=document.createElement('img');image.className='rg-image';image.alt=file.name;image.src=url;dialog.append(image);}document.body.append(dialog);close.onclick=()=>dialog.close();dialog.onclose=()=>{if(url.startsWith('blob:'))URL.revokeObjectURL(url);dialog.remove();};dialog.showModal();}
+  const scriptUrl=global.document?.currentScript?.src;
+  function showFile(file,url){
+    if(parent!==window)parent.postMessage({type:'kgm-repair-focus'},location.origin);
+    const dialog=document.createElement('dialog'),close=document.createElement('button');let dispose,closed=false;
+    close.className='rg-close';close.textContent='닫기';dialog.append(close);
+    if(file.type==='application/pdf'){
+      const host=document.createElement('div'),download=document.createElement('a');host.className='rg-pdf-host';host.textContent='견적서를 불러오는 중…';
+      download.href=url;download.download=file.name;download.textContent='견적서 파일 내려받기';download.className='rg-pdf-download';dialog.append(host,download);
+      import(new URL('pdf-viewer.js?v=v173-2026-10-15',new URL('.',scriptUrl)).href).then(module=>{if(closed)return;host.textContent='';dispose=module.mountPdf(host,url);}).catch(()=>{if(!closed)host.textContent='미리보기를 불러오지 못했습니다. 파일을 내려받아 확인해주세요.';});
+    }else{const image=document.createElement('img');image.className='rg-image';image.alt=file.name;image.src=url;dialog.append(image);}
+    document.body.append(dialog);close.onclick=()=>dialog.close();dialog.onclose=()=>{closed=true;dispose?.();if(url.startsWith('blob:'))URL.revokeObjectURL(url);dialog.remove();};dialog.showModal();
+  }
   global.KgmRepairUI={escape,date,time,message,render,showFile};
 })(window);

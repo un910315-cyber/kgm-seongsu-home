@@ -3,3 +3,4 @@
 @media print{.rg-actions,.rg-check,dialog,button{display:none!important}.rg-shell{border:0;max-width:none}.rg-header{color:#111;background:#fff}.rg-badge{border:1px solid #ccc}.rg-body{padding:0}}
 
 dialog[open]{position:fixed;top:16px;bottom:auto;margin:0 auto;max-height:min(900px,calc(100vh - 32px))}
+.rg-pdf-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px}.rg-pdf-toolbar [role=status]{font-size:13px}.rg-pdf-viewport{max-height:min(600px,60vh);overflow:auto;background:#e4e7eb;border:1px solid var(--rg-border)}.rg-pdf-canvas{display:block;max-width:100%;margin:auto;background:white}.rg-pdf-download{display:inline-block;margin-top:12px;font-size:13px}
