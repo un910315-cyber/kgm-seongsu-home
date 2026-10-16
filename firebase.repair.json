@@ -1,0 +1,1 @@
+{"functions":[{"source":"repair-functions","codebase":"kgm-repair","runtime":"nodejs22","ignore":["node_modules","test","*.log"]}],"firestore":[{"database":"kgm-repair","rules":"repair-functions/firestore.rules"}]}

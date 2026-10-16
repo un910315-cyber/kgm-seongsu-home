@@ -11,11 +11,14 @@
     const response=target.querySelector('.rg-response');
     response.innerHTML='<div class="rg-actions"><button type="button" class="rg-primary" data-confirm>확인</button></div>';
     const confirm=response.querySelector('[data-confirm]');
+    const status=document.createElement('p');status.setAttribute('role','status');response.append(status);
+    function completed(value){confirm.textContent='확인했습니다';confirm.disabled=true;status.textContent='확인 일시: '+time(value.created);}
+    if(view.confirmation)completed(view.confirmation);
     confirm.onclick=async()=>{
       if(preview){target.closest('dialog')?.close();return;}
       if(demo){confirm.textContent='확인했습니다';return;}
       confirm.disabled=true;
-      try{await onConfirm();confirm.textContent='확인했습니다';}finally{confirm.disabled=false;}
+      try{completed(await onConfirm());}catch(e){status.textContent=e.message||'저장하지 못했습니다. 다시 눌러주세요.';confirm.disabled=false;}
     };
     target.querySelectorAll('[data-file]').forEach(b=>b.onclick=()=>onFile(s.files.find(f=>f.id===b.dataset.file)));
   }
