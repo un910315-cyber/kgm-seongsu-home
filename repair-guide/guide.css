@@ -24,3 +24,5 @@ dialog[open]{position:fixed;top:16px;bottom:auto;margin:0 auto;max-height:min(90
 @media(max-width:600px){.rg-customer{margin:0;border-radius:0;box-shadow:none}.rg-customer .rg-header{padding:25px 24px 30px}.rg-header-caption{margin-top:26px}.rg-customer .rg-header h1{font-size:26px}.rg-customer .rg-body{padding:20px 24px}.rg-customer .rg-vehicle h2{font-size:27px}.rg-customer .rg-date{padding:17px 18px}.rg-customer .rg-date strong{font-size:22px}.rg-contact{gap:8px}.rg-contact a{font-size:12px}}
 @media(max-width:350px){.rg-customer .rg-body{padding:18px}.rg-contact{align-items:flex-start;flex-direction:column}.rg-customer .rg-date strong{font-size:20px}}
 @media print{.rg-customer{box-shadow:none;margin:0}.rg-customer .rg-header{background:#fff;color:#152538}.rg-brand{color:#152538}.rg-customer .rg-header p{color:#627286}.rg-mode,.rg-footer{display:none}}
+
+.rg-contact .rg-contact-numbers{display:flex;flex-direction:column;gap:12px;text-align:right}.rg-contact-numbers a span{display:block;margin:0 0 3px;font-size:11px;font-weight:400;color:#647587}@media(max-width:350px){.rg-contact .rg-contact-numbers{text-align:left}}

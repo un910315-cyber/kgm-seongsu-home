@@ -2,7 +2,7 @@
  'use strict';
  const params=new URLSearchParams(location.search);if(params.get('demo')==='1'||!params.has('id'))return;
  const root=document.getElementById('customer-root'),ui=window.KgmRepairUI,id=params.get('id');
- const fail=message=>{root.innerHTML='<div class="rg-shell"><div class="rg-body"><h1>입고 및 수리 안내</h1><p role="alert">'+ui.escape(message)+'</p><p>문의: 010-3388-3466</p></div></div>';};
+ const fail=message=>{root.innerHTML='<div class="rg-shell"><div class="rg-body"><h1>입고 및 수리 안내</h1><p role="alert">'+ui.escape(message)+'</p><p>담당자: <a href="tel:01033883466">010-3388-3466</a><br>서비스센터: <a href="tel:024655582">02-465-5582</a></p></div></div>';};
  try{
   if(!/^[a-f0-9]{64}$/.test(id))throw Error('안내 링크를 확인해주세요.');
   const storageKey='kgm-repair:'+id;let token=new URLSearchParams(location.hash.slice(1)).get('token');
