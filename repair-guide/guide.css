@@ -43,3 +43,13 @@ dialog[open]{position:fixed;top:16px;bottom:auto;margin:0 auto;max-height:min(90
 @media(max-width:600px){.rg-customer{margin:0;border-radius:0}.rg-customer .rg-header{padding:26px 24px 30px}.rg-customer .rg-header-caption{margin-top:28px}.rg-customer .rg-header h1{font-size:27px}.rg-customer .rg-body{padding:18px 18px 24px}.rg-customer .rg-vehicle{padding:20px}.rg-customer .rg-vehicle h2{font-size:28px}.rg-customer .rg-date{padding:17px 20px 19px;margin-bottom:22px}.rg-customer .rg-date strong{font-size:21px}.rg-customer .rg-section{padding:19px;margin-bottom:20px}.rg-customer .rg-contact{padding:19px}.rg-customer .rg-contact-numbers a{font-size:12px;padding:12px 10px}}
 @media(max-width:360px){.rg-customer .rg-contact .rg-contact-numbers{grid-template-columns:1fr}.rg-customer .rg-file button{width:100%}.rg-customer .rg-body{padding:16px}.rg-customer .rg-date strong{font-size:20px}}
 @media print{.rg-customer .rg-header,.rg-customer .rg-body,.rg-customer .rg-section{background:#fff;box-shadow:none}.rg-customer .rg-header h1,.rg-customer .rg-wordmark{color:#172f3e}}
+
+/* Keep the vehicle, delivery date and document action prominent on phones. */
+.rg-customer .rg-header-caption{display:none}
+.rg-customer .rg-header{padding:26px 34px 28px}
+.rg-customer .rg-header h1{margin-top:24px;font-size:25px}
+.rg-customer .rg-date strong{font-size:27px;line-height:1.5;font-variant-numeric:tabular-nums}
+.rg-customer .rg-file button{width:100%;margin-top:4px;min-height:48px;font-size:14px}
+.rg-customer .rg-file-info>span{white-space:normal;overflow-wrap:anywhere}
+@media(max-width:600px){.rg-customer .rg-header{padding:23px 24px 25px}.rg-customer .rg-header h1{margin-top:21px;font-size:23px}.rg-customer .rg-header p{font-size:12px}.rg-customer .rg-vehicle h2{font-size:32px}.rg-customer .rg-date strong{font-size:25px}.rg-customer .rg-date .rg-sub{font-size:12px}.rg-customer .rg-section-intro{font-size:13px}}
+@media(max-width:360px){.rg-customer .rg-date strong{font-size:22px}}
