@@ -1,7 +1,7 @@
 // KGM 성수 내부 페이지 — Service Worker
 // /un/ 경로만 가로챔. un-v2/ 테스트 환경과 캐시 분리.
 
-const CACHE_VERSION = 'v184-2026-10-18';
+const CACHE_VERSION = 'v185-2026-10-18';
 const CACHE_NAME = `kgm-seongsu-un-${CACHE_VERSION}`;
 
 const APP_SHELL = [
@@ -32,7 +32,7 @@ const APP_SHELL = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(APP_SHELL))
+      .then((cache) => cache.addAll(APP_SHELL.map(url => new Request(url, { cache: 'reload' }))))
       .then(() => self.skipWaiting())
   );
 });
@@ -58,6 +58,12 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
   if (!url.pathname.startsWith('/un/')) return;
   if (url.pathname.startsWith('/un-v2/')) return;
+
+  // Repair guide must use current mode/permissions rather than an older cached script.
+  if (url.pathname.startsWith('/un/repair-guide/')) {
+    event.respondWith(fetch(new Request(req, {cache:'no-store'})));
+    return;
+  }
 
   if (req.mode === 'navigate') {
     // 네비게이션은 network-first → 오프라인일 때만 캐시 fallback
