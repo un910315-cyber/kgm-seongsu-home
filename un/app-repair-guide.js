@@ -1,7 +1,7 @@
 (function(){
   'use strict';const cfg=window.KGM_REPAIR_CONFIG||{};if(!cfg.enabled)return;
   document.body.classList.add('repair-guide-enabled');
-  window._repairGuideButton=function(id){if(!['admin','staff'].includes(window._userRole))return '';return '<button type="button" class="btn btn-ghost btn-sm" data-repair-admission="'+window.esc(id)+'">안내 발송</button>';};
+  window._repairGuideButton=function(id){if(window._userRole!=='admin')return '';return '<button type="button" class="btn btn-ghost btn-sm" data-repair-admission="'+window.esc(id)+'">안내 발송</button>';};
   const frameVersion=(document.currentScript?.src||'').match(/\?.*$/)?.[0]||'';
   let frame;
   window._mountRepairGuide=function(){if(!window._canAccessPage?.('repairguide'))return;if(!frame){frame=document.getElementById('repairGuideFrame');frame.src='repair-guide/index.html'+frameVersion;}else if(window.KgmRepairBridge.selection)frame.contentWindow.postMessage({type:'kgm-repair-select',id:window.KgmRepairBridge.selection},location.origin);};

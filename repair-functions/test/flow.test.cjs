@@ -21,8 +21,10 @@ const token=row=>new URLSearchParams(new URL(row.link).hash.slice(1)).get('token
 test('isolated full flow: authorization, retry, immutable versions, links, confirm, resend and cancellation',async()=>{
  assert.equal((await call('/api/staff/config',{token:'wrong'})).code,401);
  assert.equal((await call('/api/staff/config',{token:'viewer'})).code,403);
+ assert.equal((await call('/api/staff/config',{token:'staff'})).code,403);
+ assert.equal((await call('/api/staff/sends',{method:'POST',token:'staff',body:payload('staff-blocked-0001',{mode:'live'})})).code,403);
  assert.equal((await call('/api/staff/config',{origin:'https://evil.test'})).code,403);
- assert.equal((await call('/api/staff/config')).value.liveEnabled,false);
+ assert.equal((await call('/api/staff/config')).value.liveEnabled,true);
  assert.equal(documents.size,0,'read-only configuration creates no records');
  const input=payload('request-key-00000001');
  const [a,b]=await Promise.all([call('/api/staff/sends',{method:'POST',body:input}),call('/api/staff/sends',{method:'POST',body:input})]);
@@ -60,10 +62,10 @@ test('file signature, size, expiry and simulated fallback failures',()=>{
 test('connected staff and mobile customer UI complete a test send and confirmation',async()=>{
  const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
  const {chromium}=require('C:/Users/pc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
- const root=path.resolve(__dirname,'../..');let base;
+ const root=path.resolve(__dirname,'../..');let base,liveUi=false;
  const server=http.createServer(async(req,res)=>{
   const url=new URL(req.url,'http://local');
-  if(url.pathname.startsWith('/api/')){let body='';for await(const chunk of req)body+=chunk;const result=await call(url.pathname,{method:req.method,body:body?JSON.parse(body):undefined,token:(req.headers.authorization||'').replace('Bearer ',''),query:Object.fromEntries(url.searchParams)});res.statusCode=result.code;res.setHeader('Content-Type',result.bytes.length?'application/pdf':'application/json');res.end(result.bytes.length?result.bytes:JSON.stringify(result.value));return;}
+  if(url.pathname.startsWith('/api/')){let body='';for await(const chunk of req)body+=chunk;const result=await call(url.pathname,{method:req.method,body:body?JSON.parse(body):undefined,token:(req.headers.authorization||'').replace('Bearer ',''),query:Object.fromEntries(url.searchParams)});if(url.pathname==='/api/staff/config'&&!liveUi){result.value={...result.value,mode:'test',liveEnabled:false};}res.statusCode=result.code;res.setHeader('Content-Type',result.bytes.length?'application/pdf':'application/json');res.end(result.bytes.length?result.bytes:JSON.stringify(result.value));return;}
   if(url.pathname==='/fixture'){res.setHeader('Content-Type','text/html; charset=utf-8');res.end(`<script>window.KgmRepairBridge={role:'admin',config:{previewOnly:false,apiBase:location.origin},getToken:async()=>'admin',getRecords:()=>[${JSON.stringify({id:'admission-a',...admission})}]};</script><iframe id="staff" src="/un/repair-guide/" style="width:100%;height:1600px;border:0"></iframe>`);return;}
   if(url.pathname==='/repair-guide/server-config.js'){res.setHeader('Content-Type','text/javascript');res.end('window.KGM_REPAIR_CUSTOMER_API='+JSON.stringify(base));return;}
   let file=path.resolve(root,'.'+url.pathname+(url.pathname.endsWith('/')?'index.html':''));if(!file.startsWith(root+path.sep)||!fs.existsSync(file)){res.statusCode=404;res.end();return;}
@@ -78,6 +80,7 @@ test('connected staff and mobile customer UI complete a test send and confirmati
   assert.equal(newest.mode,'test');await frame.locator('#rg-send').click();await frame.locator('#rg-send').isEnabled();
   const customer=await browser.newPage({viewport:{width:390,height:844}});customer.on('pageerror',e=>errors.push(e.message));await customer.goto(base+'/repair-guide/?id='+newest.id+'#token='+d.tokenFor(newest.id,'unit-test-secret-not-a-real-secret'));await customer.locator('[data-confirm]').click();await customer.getByText(/확인 일시:/).waitFor();assert(await customer.locator('[data-confirm]').isDisabled());assert.equal(new URL(customer.url()).hash,'');await customer.reload();await customer.getByText(/확인 일시:/).waitFor();assert(await customer.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   await frame.locator('[data-tab="history"]').click();await frame.getByRole('button',{name:'보기',exact:true}).first().click();await frame.locator('#rg-detail').waitFor();assert.match(await frame.locator('#rg-detail').innerText(),/고객 확인 기록/);assert.deepEqual(errors,[]);
+  liveUi=true;await page.reload();await frame.getByRole('button',{name:'알림톡 발송',exact:true}).waitFor();assert(await frame.locator('#rg-scenario').isHidden());assert.match(await frame.locator('#rg-mode-badge').innerText(),/실제 알림톡 발송/);assert.deepEqual(errors,[]);
  }finally{await browser.close();await new Promise(r=>server.close(r));}
 });
 
@@ -86,4 +89,10 @@ test('deployed webhook handler authenticates and deduplicates reports without to
  const event={messageId:'M1',groupId:'G1',customFields:{kgmSendId:sendId},to:'01000000000',type:'ATA',statusCode:'4000',dateReported:'2026-10-16T00:00:00Z'};
  async function hook(secret,body=[event]){let code=200,value;const res={set(){},status(n){code=n;return this;},json(x){value=x;}};await backend.kgmSolapiWebhook({method:'POST',headers:{'x-solapi-secret':secret,'x-solapi-event-name':'SINGLE-REPORT'},body},res);return {code,value};}
  assert.equal((await hook('wrong')).code,401);const secret=require('crypto').createHash('sha1').update('unit-test-secret-not-a-real-secret').digest('hex');assert.equal((await hook(secret)).code,200);assert.equal((await hook(secret)).code,200);const updated=documents.get('sends/'+sendId);assert.equal(updated.delivery,'delivered');assert.equal(updated.attempts.length,1);assert.equal(updated.events.length,1);assert.deepEqual(updated.confirmation,{created:1});
+});
+
+test('live staff dispatch uses one durable claim and waits for delivery reports',async()=>{
+ const previousFetch=global.fetch;let dispatches=0;
+ global.fetch=async(url,options)=>{if(String(url).includes('/messages/v4/send-many/detail')){dispatches++;const request=JSON.parse(options.body);assert.equal(request.messages.length,1);assert.equal(request.messages[0].kakaoOptions.templateId,require('../message.cjs').approvedTemplate.id);return {ok:true,json:async()=>({messageList:[{messageId:'LIVE_MESSAGE'}],failedMessageList:[],groupInfo:{groupId:'LIVE_GROUP'}})};}return previousFetch(url,options);};
+ try{const input=payload('request-live-00000001',{mode:'live'});const [a,b]=await Promise.all([call('/api/staff/sends',{method:'POST',body:input}),call('/api/staff/sends',{method:'POST',body:input})]);assert.equal(a.code,200);assert.equal(b.code,200);assert.equal(a.value.id,b.value.id);assert.equal(dispatches,1);assert.equal(a.value.delivery,'requested');assert.equal(a.value.mode,'live');assert(!a.value.events.some(e=>e.kind==='delivery_result'));await call('/api/staff/sends',{method:'POST',body:input});assert.equal(dispatches,1);assert.equal(a.value.confirmation,null);}finally{global.fetch=previousFetch;}
 });

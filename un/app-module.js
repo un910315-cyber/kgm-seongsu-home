@@ -229,7 +229,7 @@
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
     admin: ['dashboard','list','status','complete','out','migyeol','leave','board','estimate','insurance','vendors','sales','reservation','usermgmt','repairguide'],
-    staff: ['status','complete','leave','board','estimate','insurance','vendors','repairguide'],
+    staff: ['status','complete','leave','board','estimate','insurance','vendors'],
     viewer: ['status','complete','leave','board','vendors']
   };
   window._requireRole=function(...roles){if(roles.includes(window._userRole)&&window._userEmail)return true;showNotif('접근 권한이 없습니다.',true);return false;};
@@ -1912,8 +1912,8 @@
   window.KgmRepairBridge={
     config:window.KGM_REPAIR_CONFIG||{enabled:false,apiBase:''},selection:null,
     get role(){return window._userRole;},
-    getToken:async function(){if(!auth.currentUser||!['admin','staff'].includes(window._userRole))throw new Error('직원 로그인이 필요합니다.');return auth.currentUser.getIdToken();},
-    getRecords:function(){if(!['admin','staff'].includes(window._userRole))return [];return getList().map(function(r){return {id:r.id,carNum:r.carNum,carModel:r.carModel,name:r.name,phone:r.phone,inDate:r.inDate,outDate:r.outDate,status:r.status};});}
+    getToken:async function(){if(!auth.currentUser||window._userRole!=='admin')throw new Error('직원 로그인이 필요합니다.');return auth.currentUser.getIdToken();},
+    getRecords:function(){if(window._userRole!=='admin')return [];return getList().map(function(r){return {id:r.id,carNum:r.carNum,carModel:r.carModel,name:r.name,phone:r.phone,inDate:r.inDate,outDate:r.outDate,status:r.status};});}
   };
 
   function recordTimeValue(r) {

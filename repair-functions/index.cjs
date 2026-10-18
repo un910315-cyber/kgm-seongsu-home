@@ -13,7 +13,7 @@ const solapi=require('./solapi.cjs');
 const db=getFirestore('kgm-repair'),bucket=getStorage().bucket('unmotors-kgm-repair-private');
 const sends=db.collection('sends'),reports=require('./reports.cjs')(db);
 const provider=()=>solapi.client({key:solapiKey.value(),secret:solapiSecret.value(),allowDispatch:config.liveEnabled});
-const config={mode:'test',liveEnabled:false,center:'KGM 성수서비스센터',centerPhone:'010-3388-3466'};
+const config={mode:'live',liveEnabled:true,center:'KGM 성수서비스센터',centerPhone:'010-3388-3466'};
 const bearer=req=>String(req.headers.authorization||'').replace(/^Bearer /,'');
 const link=row=>'https://kgm-seongsu.co.kr/repair-guide/?id='+row.id+'#token='+d.tokenFor(row.id,key.value());
 const staffView=row=>{const {tokenHash,...result}=row;return {...result,link:link(row)};};
@@ -25,7 +25,7 @@ async function staff(req){
  let user;try{user=await getAuth().verifyIdToken(bearer(req));}catch{throw d.fail(401,'내부 페이지에서 다시 로그인해주세요.');}
  if(!user.email||!user.email_verified)throw d.fail(403,'직원 계정 확인이 필요합니다.');
  const role=await existingRead('allowedEmails/'+user.email.replace(/\./g,','),bearer(req));
- if(!['admin','staff'].includes(role))throw d.fail(403,'접근 권한이 없습니다.');
+ if(role!=='admin')throw d.fail(403,'접근 권한이 없습니다.');
  return {uid:user.uid,name:user.name||user.email,email:user.email,role,token:bearer(req)};
 }
 async function manuals(){const rows=await db.collection('manuals').get();const custom=new Map(rows.docs.map(x=>[x.id,x.data()]));return require('./presets.cjs').map(m=>custom.get(m.id)||m);}
