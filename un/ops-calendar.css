@@ -1,0 +1,38 @@
+#page-opscalendar .oc-wrap{padding:24px;max-width:1680px;margin:auto}
+#page-opscalendar .oc-heading{margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+#page-opscalendar .oc-heading h2{font-size:25px;letter-spacing:-.8px;color:var(--text)}
+#page-opscalendar .oc-heading p{color:#a1a1b2;font-size:13px;margin-top:6px}
+#page-opscalendar .oc-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px}
+#page-opscalendar .oc-stat{padding:20px 22px;background:var(--surface);border:1px solid var(--border);border-radius:14px;border-top:2px solid currentColor}
+#page-opscalendar .oc-stat>span{font-size:13px;font-weight:600}
+#page-opscalendar .oc-stat strong{display:block;font-size:35px;line-height:1.5;color:var(--text);font-variant-numeric:tabular-nums}
+#page-opscalendar .oc-stat small{font-size:13px;font-weight:400;color:#a1a1b2;margin-left:6px}
+#page-opscalendar .oc-stat p{font-size:12px;color:#a1a1b2}
+#page-opscalendar .oc-in{color:#93c5fd}#page-opscalendar .oc-out{color:#6ee7b7}#page-opscalendar .oc-plan{color:#fcd34d}#page-opscalendar .oc-active{color:#c4b5fd}
+#page-opscalendar .oc-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
+#page-opscalendar .oc-month-nav{display:flex;align-items:center;gap:8px;margin-right:auto}
+#page-opscalendar input[type=month]{color-scheme:dark;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;min-width:0;font:inherit;font-weight:700}
+#page-opscalendar #oc-search{width:240px}#page-opscalendar #oc-filter{width:auto}
+#page-opscalendar .oc-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;align-items:start}
+#page-opscalendar .oc-calendar{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+#page-opscalendar .oc-week,#page-opscalendar .oc-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+#page-opscalendar .oc-week span{padding:12px;text-align:center;font-size:12px;color:#a1a1b2;border-bottom:1px solid var(--border)}
+#page-opscalendar .oc-week span:first-child{color:#fda4af}#page-opscalendar .oc-week span:last-child{color:#93c5fd}
+#page-opscalendar .oc-day{min-height:150px;min-width:0;padding:10px;background:transparent;color:var(--text-body);border:0;border-right:1px solid var(--border);border-bottom:1px solid var(--border);text-align:left;cursor:pointer;font:inherit;display:flex;flex-direction:column;gap:9px;position:relative}
+#page-opscalendar .oc-day:nth-child(7n){border-right:0}#page-opscalendar .oc-day:hover{background:var(--surface2)}
+#page-opscalendar .oc-day.oc-selected{background:#7c3aed16;box-shadow:inset 0 0 0 2px #a78bfa}
+#page-opscalendar .oc-day.oc-blank{background:#09090b44;cursor:default}
+#page-opscalendar .oc-day-number{font-weight:600;font-size:14px}#page-opscalendar .oc-day-number small{font-size:9px;margin-left:5px;color:#c4b5fd}
+#page-opscalendar .oc-today .oc-day-number{color:#c4b5fd}
+#page-opscalendar .oc-day-counts{display:flex;gap:4px;flex-wrap:wrap}
+#page-opscalendar .oc-chip{display:inline-block;background:#ffffff07;border:1px solid currentColor;border-radius:5px;padding:1px 5px;font-size:10px;white-space:nowrap}
+#page-opscalendar .oc-car-peek{font-size:10px;color:#a1a1b2;overflow-wrap:anywhere;line-height:1.8}
+#page-opscalendar .oc-detail{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;max-height:850px;overflow:auto}
+#page-opscalendar .oc-detail-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+#page-opscalendar .oc-detail-heading h3{font-size:17px}#page-opscalendar .oc-detail-heading>span{font-size:12px;color:#a1a1b2}
+#page-opscalendar .oc-record{padding:16px 0;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#page-opscalendar .oc-record>div{width:100%;overflow-wrap:anywhere}#page-opscalendar .oc-record strong{font-size:16px}#page-opscalendar .oc-record p{font-size:12px;color:#a1a1b2;margin-top:4px}
+#page-opscalendar .oc-note,#page-opscalendar .oc-empty{font-size:12px;color:#a1a1b2;line-height:1.8;padding-top:16px}
+#page-opscalendar button:focus-visible{outline:2px solid #c4b5fd;outline-offset:-3px}
+@media(max-width:1100px){#page-opscalendar .oc-layout{grid-template-columns:1fr}#page-opscalendar .oc-detail{max-height:none}#page-opscalendar #oc-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px}}
+@media(max-width:600px){#page-opscalendar .oc-wrap{padding:16px 10px}#page-opscalendar .oc-heading h2{font-size:21px}#page-opscalendar .oc-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}#page-opscalendar .oc-stat{padding:14px}#page-opscalendar .oc-stat strong{font-size:28px}#page-opscalendar .oc-stat p{font-size:10px}#page-opscalendar .oc-month-nav{width:100%;gap:4px}#page-opscalendar .oc-month-nav .btn{padding:8px 10px}#page-opscalendar #oc-search{flex:1;width:120px;min-width:0}#page-opscalendar .oc-day{padding:6px 3px;min-height:112px;gap:5px}#page-opscalendar .oc-day-number{font-size:12px}#page-opscalendar .oc-day-number small{display:none}#page-opscalendar .oc-chip{font-size:9px;padding:0 2px}#page-opscalendar .oc-car-peek{display:none}#page-opscalendar .oc-day-counts{gap:3px}#page-opscalendar #oc-list{grid-template-columns:1fr}#page-opscalendar .oc-heading{align-items:start}#page-opscalendar .oc-heading .btn{white-space:nowrap;font-size:11px}}

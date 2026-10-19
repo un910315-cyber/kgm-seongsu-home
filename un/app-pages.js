@@ -37,7 +37,7 @@
     var el = document.getElementById('page-'+name);
     if(el) el.classList.add('active');
     var opsGroup = document.getElementById('opsNavGroup');
-    if (opsGroup && ['list','status','complete','out','reservation'].indexOf(name) >= 0) {
+    if (opsGroup && ['list','status','complete','out','reservation','opscalendar'].indexOf(name) >= 0) {
       opsGroup.classList.add('nav-group-open', 'active');
     } else if (opsGroup) {
       opsGroup.classList.remove('active');
@@ -60,6 +60,7 @@
       if (name==='vendors' && window._renderVendors) window._renderVendors();
       if (name==='repairguide' && window._mountRepairGuide) window._mountRepairGuide();
       if (name==='reservation' && window._renderReservationBoard) window._renderReservationBoard();
+      if (name==='opscalendar' && window._renderOpsCalendar) window._renderOpsCalendar();
       if (name==='maintenance' && window._renderMaintenanceBoard) window._renderMaintenanceBoard();
       if (name==='blacklist' && window._renderBlacklist) window._renderBlacklist();
       if (name==='sales') { if(window._renderSalesReport) window._renderSalesReport(); if(window._renderAosReport) window._renderAosReport(); }

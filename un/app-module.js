@@ -228,7 +228,7 @@
 
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
-    admin: ['dashboard','list','status','complete','out','migyeol','leave','board','estimate','insurance','vendors','sales','reservation','usermgmt','repairguide'],
+    admin: ['dashboard','list','status','complete','out','migyeol','leave','board','estimate','insurance','vendors','sales','reservation','opscalendar','usermgmt','repairguide'],
     staff: ['status','complete','leave','board','estimate','insurance','vendors'],
     viewer: ['status','complete','leave','board','vendors']
   };
@@ -1908,6 +1908,14 @@
     return Object.entries(records).map(([id, val]) => ({ id, ...val }));
   }
 
+  // Calendar reads the existing admission subscription; all edits use the existing form.
+  window.KgmOpsCalendarBridge = {
+    getRecords:function(){
+      if(window._userRole!=='admin')return [];
+      return Object.entries(records).map(([id,r])=>({id,carNum:r.carNum,carModel:r.carModel,name:r.name,inDate:r.inDate,outDate:r.outDate,status:r.status}));
+    }
+  };
+
   // Isolated guide bridge: existing admissions/auth are reused without a new listener.
   window.KgmRepairBridge={
     config:window.KGM_REPAIR_CONFIG||{enabled:false,apiBase:''},selection:null,
@@ -1933,6 +1941,7 @@
     return el ? el.id.replace('page-','') : 'dashboard';
   }
   function refreshAll() {
+    try { if(_activePage()==='opscalendar'&&window._renderOpsCalendar)window._renderOpsCalendar(); } catch(e) { console.error('ops calendar:',e); }
     try { renderDashboard(); } catch(e) { console.error('renderDashboard error:', e); }
     try { renderList(); } catch(e) { console.error('renderList error:', e); }
     try { renderComplete(); } catch(e) {

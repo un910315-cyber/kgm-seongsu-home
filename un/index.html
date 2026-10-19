@@ -16,11 +16,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v188-2026-10-18">
-<link rel="stylesheet" href="design-refresh.css?v=v188-2026-10-18" media="screen">
+<link rel="stylesheet" href="styles.css?v=v189-2026-10-19">
+<link rel="stylesheet" href="ops-calendar.css?v=v189-2026-10-19">
+<script defer src="app-ops-calendar.js?v=v189-2026-10-19"></script>
+<link rel="stylesheet" href="design-refresh.css?v=v189-2026-10-19" media="screen">
 <style>body:not(.repair-guide-enabled) [data-repair-entry]{display:none!important}#repairGuideFrame{width:100%;min-height:750px;border:0;display:block;background:#f2f4f7}#page-repairguide .main{padding:16px}</style>
-<script src="repair-guide-config.js?v=v188-2026-10-18"></script>
-<script defer src="app-repair-guide.js?v=v188-2026-10-18"></script>
+<script src="repair-guide-config.js?v=v189-2026-10-19"></script>
+<script defer src="app-repair-guide.js?v=v189-2026-10-19"></script>
 </head>
 <body>
 
@@ -99,6 +101,7 @@
       <div class="nav-tab nav-subtab" onclick="switchPage('complete')">금일 출고 예정</div>
       <div class="nav-tab nav-subtab" onclick="switchPage('out')">출고완료</div>
       <div class="nav-tab nav-subtab" onclick="switchPage('reservation')" id="tab-reservation" style="display:none">예약 및 체크 현황판</div>
+      <div class="nav-tab nav-subtab" onclick="switchPage('opscalendar')" id="tab-opscalendar" style="display:none">입출고 실적 달력</div>
     </div>
   </div>
   <div class="nav-tab" onclick="switchPage('migyeol')" id="tab-migyeol">보험 미결</div>
@@ -1027,11 +1030,11 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script src="app-safety.js?v=v188-2026-10-18"></script>
-<script src="leave-calculation.js?v=v188-2026-10-18"></script>
-<script type="module" src="app-module.js?v=v188-2026-10-18"></script>
+<script src="app-safety.js?v=v189-2026-10-19"></script>
+<script src="leave-calculation.js?v=v189-2026-10-19"></script>
+<script type="module" src="app-module.js?v=v189-2026-10-19"></script>
 
-<script defer src="app-pages.js?v=v188-2026-10-18"></script>
+<script defer src="app-pages.js?v=v189-2026-10-19"></script>
 
 <!-- XLSX + JSZip: 보험 미결 탭 첫 진입 시 지연 로드 -->
 <script>
@@ -2231,6 +2234,12 @@
 <!-- Isolated customer guide; server writes remain disabled until backend connection. -->
 <section id="page-repairguide" class="page"><div class="main"><iframe id="repairGuideFrame" title="입고 및 수리 안내" referrerpolicy="no-referrer" src="about:blank"></iframe></div></section>
 <!-- 예약 및 체크 현황판 (관리자 전용) -->
+<div id="page-opscalendar" class="page">
+  <div class="main oc-wrap">
+    <div class="oc-heading"><div><h2>입출고 실적 달력</h2><p>입고부터 출고까지, 한 달의 흐름을 한눈에 확인하세요.</p></div><button type="button" class="btn btn-primary" onclick="if(window._userRole==='admin')window._openModal(null)">+ 차량 등록</button></div>
+    <div id="oc-root"></div>
+  </div>
+</div>
 <div id="page-reservation" class="page">
   <div class="main">
     <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -2555,6 +2564,6 @@
 <script src="work-codes-data.js?v=v133-2026-08-25"></script>
 <script defer src="app-maintenance.js?v=v133-2026-08-25"></script>
 <script defer src="app-features.js?v=v133-2026-08-25"></script>
-<script defer src="app-workcodes-ui.js?v=v188-2026-10-18"></script>
+<script defer src="app-workcodes-ui.js?v=v189-2026-10-19"></script>
 </body>
 </html>
