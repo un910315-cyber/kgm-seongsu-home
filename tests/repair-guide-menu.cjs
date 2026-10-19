@@ -27,5 +27,47 @@ const server=http.createServer((req,res)=>{const url=new URL(req.url,'http://loc
  assert.equal(await page.evaluate(()=>window._tokenReads),0);assert.deepEqual(await page.evaluate(()=>window.fixtureRecords),fixtures);assert.deepEqual(apiRequests,[]);assert.deepEqual(errors,[]);
  await page.goto(base+'/un/?role=viewer');assert(await page.locator('[data-repair-entry]').isHidden());await page.evaluate(()=>window._openRepairGuide('intake-current'));assert.equal(await page.locator('#repairGuideFrame').getAttribute('src'),'about:blank');
  await page.goto(base+'/un/?role=staff');assert(await page.locator('[data-repair-entry]').isHidden());await page.evaluate(()=>window._openRepairGuide('intake-current'));assert.equal(await page.locator('#repairGuideFrame').getAttribute('src'),'about:blank');
- console.log('PASS internal menu: admin access, staff/viewer blocked, intake priority/reuse, attachment/manual/date preview, response/write locks, no API/auth calls or data mutations, 390/844/1366px');
+ // Mock the connected send API: never send messages or touch production records.
+ await page.goto(base+'/un/');
+ await page.evaluate(base=>{window.KgmRepairBridge.config={enabled:true,previewOnly:false,apiBase:base+'/mock'};},base);
+ const sentPayloads=[];let releaseSend;
+ await page.route('**/mock/api/staff/**',async route=>{
+  const endpoint=new URL(route.request().url()).pathname.split('/').pop();
+  if(endpoint==='config')return route.fulfill({json:{mode:'live',liveEnabled:true}});
+  if(endpoint==='manuals')return route.fulfill({json:[{id:'standard',title:'기본 안내',body:'저장된 기본 안내문'}]});
+  if(endpoint==='sends'&&route.request().method()==='POST'){
+   sentPayloads.push(route.request().postDataJSON());
+   await new Promise(resolve=>releaseSend=resolve);
+   return route.fulfill({json:{id:'mock-send',mode:'live',delivery:'requested',link:base+'/mock-customer'}});
+  }
+  throw Error('Unexpected API '+endpoint);
+ });
+ await page.locator('[data-repair-entry]').click();
+ await staff.locator('#rg-search').fill('123');await staff.locator('[data-admission="intake-current"]').click();
+ await staff.locator('#rg-notice').fill('이 고객만의 안내');
+ await staff.locator('#rg-upload').setInputFiles({name:'estimate.pdf',mimeType:'application/pdf',buffer:pdf});
+ await staff.locator('#rg-send').click();await page.waitForFunction(()=>document.getElementById('repairGuideFrame').contentDocument.getElementById('rg-reset').disabled);
+ while(!releaseSend)await new Promise(r=>setTimeout(r,10));
+ assert(await staff.locator('#rg-reset').isDisabled());
+ await staff.locator('#rg-reset').evaluate(b=>b.onclick());
+ assert(await staff.locator('#rg-selected').isVisible());
+ releaseSend();await staff.locator('#rg-sent-open').waitFor();
+ await staff.locator('#rg-reset').click();
+ assert(await staff.locator('#rg-selected').isHidden());
+ for(const id of ['rg-search','rg-phone','rg-date','rg-upload'])assert.equal(await staff.locator('#'+id).inputValue(),'');
+ assert.equal(await staff.locator('#rg-files').innerText(),'');assert.equal(await staff.locator('#rg-send-result').innerText(),'');
+ assert.equal(await staff.locator('#rg-notice').inputValue(),'저장된 기본 안내문');
+ assert.equal(await staff.locator('#rg-recipient').innerText(),'차량을 선택해주세요.');
+ assert.equal(await page.evaluate(()=>window.KgmRepairBridge.selection),null);
+ await staff.locator('#rg-send').click();assert.equal(sentPayloads.length,1);
+ assert.match(await staff.locator('#staff-error').innerText(),/차량을 선택/);
+ await page.evaluate(()=>window._mountRepairGuide());assert(await staff.locator('#rg-selected').isHidden());
+ await staff.locator('#rg-search').fill('123');await staff.locator('[data-admission="intake-old"]').click();
+ await staff.locator('#rg-upload').setInputFiles({name:'next.pdf',mimeType:'application/pdf',buffer:pdf});
+ releaseSend=null;await staff.locator('#rg-send').click();while(!releaseSend)await new Promise(r=>setTimeout(r,10));
+ assert.notEqual(sentPayloads[0].requestKey,sentPayloads[1].requestKey);assert.equal(sentPayloads[1].admissionId,'intake-old');
+ assert.equal(sentPayloads[1].notice,'저장된 기본 안내문');assert.equal(sentPayloads[1].files[0].name,'next.pdf');
+ releaseSend();await staff.locator('#rg-sent-open').waitFor();
+ assert.deepEqual(errors,[]);
+ console.log('PASS internal menu and reset: draft cleared, default notice restored, selection cleared across menu switches, in-flight reset locked, next send uses fresh key and correct admission/files; sends mocked only');
 }finally{await browser.close();await new Promise(r=>server.close(r));}})().catch(e=>{console.error(e);server.close();process.exit(1);});
