@@ -15,7 +15,7 @@ const sends=db.collection('sends'),reports=require('./reports.cjs')(db);
 const provider=()=>solapi.client({key:solapiKey.value(),secret:solapiSecret.value(),allowDispatch:config.liveEnabled});
 const config={mode:'live',liveEnabled:true,center:'KGM 성수서비스센터',centerPhone:'010-3388-3466'};
 const bearer=req=>String(req.headers.authorization||'').replace(/^Bearer /,'');
-const link=row=>'https://kgm-seongsu.co.kr/repair-guide/?id='+row.id+'#token='+d.tokenFor(row.id,key.value());
+const link=row=>row.kind==='deductible'?null:'https://kgm-seongsu.co.kr/repair-guide/?id='+row.id+'#token='+d.tokenFor(row.id,key.value());
 const staffView=row=>{const {tokenHash,...result}=row;return {...result,link:link(row)};};
 async function existingRead(path,token){
  const url=new URL('https://unmotors-default-rtdb.firebaseio.com/'+path+'.json');url.searchParams.set('auth',token);
@@ -32,21 +32,21 @@ async function manuals(){const rows=await db.collection('manuals').get();const c
 async function send(input,user){
  d.validate(input);const mode=input.mode==='live'?'live':'test';if(mode==='live'&&!config.liveEnabled)throw d.fail(403,'실제 발송은 아직 잠겨 있습니다.');const requestHash=d.hash(d.stable(input)),sendId=d.hash(user.uid+':'+input.requestKey),ref=sends.doc(sendId);
  const previous=await ref.get();if(previous.exists){if(previous.data().requestHash!==requestHash)throw d.fail(409,'이미 처리된 요청 번호입니다.');return staffView(previous.data());}
- const now=Date.now(),result=mode==='test'?d.simulated(input.scenario,now):{delivery:'requested',channel:'alimtalk',attempts:[]};let snapshot,version,versionRef,versionKey;
- if(input.resendOf){const old=await sends.doc(input.resendOf).get();if(!old.exists||old.data().admission!==input.admissionId)throw d.fail(404,'이전 안내를 찾을 수 없습니다.');snapshot={...old.data().snapshot,staffName:user.name};version=old.data().version;}
+ const now=Date.now(),result=mode==='test'?d.simulated(input.scenario,now):{delivery:'requested',channel:'alimtalk',attempts:[]};let snapshot,version=null,versionRef,versionKey,kind=input.kind||'repair',previousMessage;
+ if(input.resendOf){const old=await sends.doc(input.resendOf).get();if(!old.exists||old.data().admission!==input.admissionId)throw d.fail(404,'이전 안내를 찾을 수 없습니다.');kind=old.data().kind||'repair';if(input.kind&&input.kind!==kind)throw d.fail(400,'이전 안내 종류와 일치하지 않습니다.');snapshot={...old.data().snapshot,staffName:user.name};version=old.data().version;previousMessage=old.data().message;}
  else{
   const vehicle=await existingRead('records/'+input.admissionId,user.token);if(!vehicle||vehicle._deletedAt)throw d.fail(404,'입고 건을 찾을 수 없습니다.');
-  const files=d.prepareFiles(input.files),stored=[];
+  const files=kind==='deductible'?[]:d.prepareFiles(input.files),stored=[];
   for(const f of files){const path=d.hash(input.admissionId)+'/'+f.digest;try{await bucket.file(path).save(f.data,{resumable:false,preconditionOpts:{ifGenerationMatch:0},metadata:{contentType:f.type,cacheControl:'private, no-store'}});}catch(e){if(Number(e.code)!==412)throw e;}stored.push({id:d.hash(f.digest+f.name),name:f.name,type:f.type,path,size:f.data.length,digest:f.digest});}
-  versionKey=d.hash(input.admissionId+':'+d.stable(stored));versionRef=db.collection('versions').doc(versionKey);
-  snapshot={center:config.center,centerPhone:config.centerPhone,vehicle:{id:input.admissionId,carNum:String(vehicle.carNum||''),carModel:String(vehicle.carModel||''),name:String(vehicle.name||''),phone:d.phone(input.phone),inDate:String(vehicle.inDate||'')},expectedDeliveryDate:input.expectedDeliveryDate||'',notice:input.notice,files:stored,staffName:user.name};
+  if(kind==='repair'){versionKey=d.hash(input.admissionId+':'+d.stable(stored));versionRef=db.collection('versions').doc(versionKey);}
+  snapshot={kind,center:config.center,centerPhone:config.centerPhone,vehicle:{id:input.admissionId,carNum:String(vehicle.carNum||''),carModel:String(vehicle.carModel||''),name:String(vehicle.name||''),phone:d.phone(input.phone),inDate:String(vehicle.inDate||'')},expectedDeliveryDate:kind==='repair'?(input.expectedDeliveryDate||''):'',notice:kind==='repair'?input.notice:'',files:stored,staffName:user.name,...(kind==='deductible'?{amount:d.amount(input.amount)}:{})};
  }
  const outcome=await db.runTransaction(async tx=>{
   const existing=await tx.get(ref);if(existing.exists){if(existing.data().requestHash!==requestHash)throw d.fail(409,'이미 처리된 요청 번호입니다.');return {row:existing.data(),created:false};}
   if(versionRef){const v=await tx.get(versionRef),counterRef=db.collection('admissions').doc(d.hash(input.admissionId)),counter=await tx.get(counterRef);version=v.exists?v.data().number:(counter.exists?counter.data().version:0)+1;if(!v.exists){tx.create(versionRef,{admission:input.admissionId,number:version,created:now});tx.set(counterRef,{version});}}
   snapshot={...snapshot,estimateVersion:version};
-  const row={id:sendId,requestHash,admission:input.admissionId,version,created:now,expires:now+7*86400000,canceled:false,mode,response:'pending',confirmation:null,resend_of:input.resendOf||null,snapshot,staffUid:user.uid,tokenHash:d.hash(d.tokenFor(sendId,key.value())),...result,events:[{kind:'send_requested',created:now},...(mode==='test'?[{kind:'delivery_result',created:now}]:[])]};
-  row.message=message.build(snapshot,link(row));if(mode==='live')row.provider={name:'solapi',dispatchClaimedAt:now,fallbackEnabled:true};tx.create(ref,row);return {row,created:true};
+  const row={id:sendId,requestHash,kind,admission:input.admissionId,version,created:now,expires:kind==='repair'?now+7*86400000:null,canceled:false,mode,response:kind==='repair'?'pending':'not_required',confirmation:null,resend_of:input.resendOf||null,snapshot,staffUid:user.uid,tokenHash:kind==='repair'?d.hash(d.tokenFor(sendId,key.value())):null,...result,events:[{kind:'send_requested',created:now},...(mode==='test'?[{kind:'delivery_result',created:now}]:[])]};
+  row.message=kind==='deductible'&&previousMessage?previousMessage:message.build(snapshot,link(row));if(mode==='live')row.provider={name:'solapi',dispatchClaimedAt:now,fallbackEnabled:true};tx.create(ref,row);return {row,created:true};
  });
  if(outcome.created&&mode==='live'){
   // The durable claim is made before transport. Never automatically retry an ambiguous send.
@@ -69,7 +69,7 @@ exports.kgmRepairApi=onRequest({region:'asia-northeast3',memory:'512MiB',timeout
   const parts=req.path.split('/').filter(Boolean);if(parts[0]!=='api')throw d.fail(404,'경로를 확인해주세요.');
   if(parts[1]==='staff'){
    const user=await staff(req),route=parts[2];
-   if(req.method==='GET'&&route==='provider'){if(user.role!=='admin')throw d.fail(403,'관리자만 확인할 수 있습니다.');res.json(await provider().readiness());return;}
+   if(req.method==='GET'&&route==='provider'){if(user.role!=='admin')throw d.fail(403,'관리자만 확인할 수 있습니다.');if(req.query.kind&&!['repair','deductible'].includes(req.query.kind))throw d.fail(400,'안내 종류를 확인해주세요.');res.json(await provider().readiness(req.query.kind));return;}
    if(req.method==='GET'&&route==='config'){res.json(config);return;}
    if(route==='manuals'){
     if(req.method==='PUT'){if(user.role!=='admin')throw d.fail(403,'관리자만 수정할 수 있습니다.');const m=req.body;if(!['basic','insurance','parts'].includes(m.id)||typeof m.title!=='string'||!m.title.trim()||m.title.length>100||typeof m.body!=='string'||!m.body.trim()||m.body.length>6000)throw d.fail(400,'안내문을 확인해주세요.');await db.collection('manuals').doc(m.id).set({id:m.id,title:m.title,body:m.body});}
@@ -81,7 +81,7 @@ exports.kgmRepairApi=onRequest({region:'asia-northeast3',memory:'512MiB',timeout
     if(req.method==='GET'&&parts[4]==='file'){await attachment(res,row,req.query.id);return;}
     if(req.method==='GET'&&parts.length===4){res.json(staffView(row));return;}
     if(req.method==='POST'&&parts[4]==='refresh-result'){if(row.mode!=='live'||!row.provider?.groupId){res.json(staffView(row));return;}const result=await provider().request('/messages/v4/list?groupId='+encodeURIComponent(row.provider.groupId)+'&limit=20');for(const event of Object.values(result.messageList||{}))await reports.single({...event,customFields:{...event.customFields,kgmSendId:row.id}});res.json(staffView((await ref.get()).data()));return;}
-    if(req.method==='POST'&&parts[4]==='cancel'){await db.runTransaction(async tx=>{const current=(await tx.get(ref)).data();if(!current.canceled)tx.update(ref,{canceled:true,events:[...current.events,{kind:'link_canceled',created:Date.now()}]});});res.json({ok:true});return;}
+    if(req.method==='POST'&&parts[4]==='cancel'){if(row.kind==='deductible')throw d.fail(400,'이 안내에는 고객 링크가 없습니다.');await db.runTransaction(async tx=>{const current=(await tx.get(ref)).data();if(!current.canceled)tx.update(ref,{canceled:true,events:[...current.events,{kind:'link_canceled',created:Date.now()}]});});res.json({ok:true});return;}
    }
   }else if(parts[1]==='customer'&&parts[2]==='sends'){
    const ref=sends.doc(d.id(parts[3])),row=d.checkToken((await ref.get()).data(),bearer(req));

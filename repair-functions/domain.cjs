@@ -12,7 +12,9 @@ function prepareFiles(files){
  if(!type||f.type!==type)throw fail(400,'PDF, JPG, PNG 파일만 첨부해주세요.');return {data,type,digest:hash(data),name:String(f.name||'견적서').replace(/[\x00-\x1f\x7f]/g,'').slice(0,180)};
  });
 }
-function validate(input){id(input.admissionId);if(!/^[a-zA-Z0-9-]{16,100}$/.test(input.requestKey||''))throw fail(400,'요청 번호를 확인해주세요.');if(input.resendOf){id(input.resendOf);return;}
+function amount(value){if(!['string','number'].includes(typeof value)||!/^\d{1,9}$/.test(String(value))||!Number.isSafeInteger(Number(value))||Number(value)<=0)throw fail(400,'자기부담금을 1~999,999,999원 범위의 정수로 입력해주세요.');return Number(value);}
+function validate(input){if(!input||typeof input!=='object')throw fail(400,'요청 내용을 확인해주세요.');if(input.kind!==undefined&&!['repair','deductible'].includes(input.kind))throw fail(400,'안내 종류를 확인해주세요.');id(input.admissionId);if(!/^[a-zA-Z0-9-]{16,100}$/.test(input.requestKey||''))throw fail(400,'요청 번호를 확인해주세요.');if(input.resendOf){id(input.resendOf);return;}
+ if(input.kind==='deductible'){phone(input.phone);amount(input.amount);if(input.files?.length)throw fail(400,'자기부담금 안내에는 파일을 첨부하지 않습니다.');return;}
  phone(input.phone);if(typeof input.notice!=='string'||!input.notice.trim()||input.notice.length>6000)throw fail(400,'안내 내용을 확인해주세요.');const date=input.expectedDeliveryDate||'';if(date&&(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(Date.parse(date))||new Date(date).toISOString().slice(0,10)!==date))throw fail(400,'예상 출고일을 확인해주세요.');}
 function tokenFor(sendId,key){return crypto.createHmac('sha256',key).update('kgm-repair-link-v1:'+sendId).digest('base64url');}
 function checkToken(row,token,now=Date.now()){
@@ -23,4 +25,4 @@ function simulated(scenario,now){
  const attempt=(channel,status,reason='')=>({channel,status,reason,created:now});
  switch(scenario){case 'failed':return {delivery:'failed',channel:'alimtalk',attempts:[attempt('alimtalk','failed','테스트 실패 결과')]};case 'fallback-delivered':return {delivery:'delivered',channel:'lms',attempts:[attempt('alimtalk','failed','테스트 대체발송 조건'),attempt('lms','delivered')]};case 'fallback-failed':return {delivery:'failed',channel:'lms',attempts:[attempt('alimtalk','failed','테스트 대체발송 조건'),attempt('lms','failed','테스트 실패 결과')]};case 'unknown':return {delivery:'unknown',channel:'alimtalk',attempts:[attempt('alimtalk','unknown')]};case 'delivered':return {delivery:'delivered',channel:'alimtalk',attempts:[attempt('alimtalk','delivered')]};default:throw fail(400,'테스트 결과를 선택해주세요.');}
 }
-module.exports={hash,fail,stable,id,phone,prepareFiles,validate,tokenFor,checkToken,fileFor,simulated};
+module.exports={hash,fail,stable,id,phone,amount,prepareFiles,validate,tokenFor,checkToken,fileFor,simulated};

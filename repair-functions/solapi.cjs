@@ -1,10 +1,11 @@
 'use strict';
-const crypto=require('node:crypto'),template=require('./message.cjs').approvedTemplate;
+const crypto=require('node:crypto'),messages=require('./message.cjs');
 function verifyWebhook(secret,received){if(typeof received!=='string'||!/^[a-f0-9]{40}$/i.test(received))return false;const expected=crypto.createHash('sha1').update(secret).digest();return crypto.timingSafeEqual(expected,Buffer.from(received,'hex'));}
 function state(code){code=String(code);if(code==='4000')return 'delivered';if(['2000','3000'].includes(code))return 'requested';if(/^[12345]\d{3}$/.test(code))return 'failed';return 'unknown';}
 function payload(row,from){
  if(row.mode!=='live')throw Error('Test records cannot be dispatched');
  if(!/^0\d{8,10}$/.test(from))throw Error('Registered sender required');
+ const template=messages.templateFor(row.kind);if(row.message.templateId!==template.id)throw Error('Unregistered template');
  const customFields={kgmSendId:row.id},sms={to:row.snapshot.vehicle.phone,from,type:'LMS',text:row.message.sms,customFields};
  return {messages:[{to:row.snapshot.vehicle.phone,from,type:'ATA',text:row.message.text,customFields,kakaoOptions:{pfId:template.pfId,templateId:template.id,disableSms:true,variables:row.message.variables},replacements:[sms]}],allowDuplicates:false,showMessageList:true};
 }
@@ -15,7 +16,7 @@ function client({key,secret,fetcher=fetch,allowDispatch=false}){
   const response=await fetcher('https://api.solapi.com'+route,{method,headers:{Authorization:`HMAC-SHA256 apiKey=${key}, date=${date}, salt=${salt}, signature=${signature}`,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(15000)});
   const result=await response.json();if(!response.ok){const error=Error('솔라피 연결 오류 ('+response.status+')');error.providerCode=String(result.errorCode||'UNKNOWN').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80);throw error;}return result;
  }
- return {request,send:(row,from)=>request('/messages/v4/send-many/detail',{method:'POST',body:payload(row,from)}),async readiness(){const [templates,senders]=await Promise.all([request('/kakao/v2/templates/?templateId='+template.id+'&limit=10'),request('/senderid/v1/numbers')]);const found=(templates.templateList||templates.templates||[]).find(x=>x.templateId===template.id||x._id===template.id);return {authenticated:true,templateApproved:found?.status==='APPROVED',senderActive:(senders.senderIds||[]).some(x=>x.phoneNumber==='01033883466'&&x.status==='ACTIVE'),liveEnabled:allowDispatch};}};
+ return {request,send:(row,from)=>request('/messages/v4/send-many/detail',{method:'POST',body:payload(row,from)}),async readiness(kind){const template=messages.templateFor(kind);const [templates,senders]=await Promise.all([request('/kakao/v2/templates/?templateId='+template.id+'&limit=10'),request('/senderid/v1/numbers')]);const found=(templates.templateList||templates.templates||[]).find(x=>x.templateId===template.id||x._id===template.id);return {authenticated:true,templateId:template.id,templateApproved:found?.status==='APPROVED',senderActive:(senders.senderIds||[]).some(x=>x.phoneNumber==='01033883466'&&x.status==='ACTIVE'),liveEnabled:allowDispatch};}};
 }
 function applyReport(row,event,now=Date.now()){
  if(row.mode!=='live'||event.customFields?.kgmSendId!==row.id||event.to!==row.snapshot.vehicle.phone)return null;

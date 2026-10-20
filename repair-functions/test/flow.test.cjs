@@ -80,6 +80,21 @@ test('connected staff and mobile customer UI complete a test send and confirmati
   assert.equal(newest.mode,'test');await frame.locator('#rg-send').click();await frame.locator('#rg-send').isEnabled();
   const customer=await browser.newPage({viewport:{width:390,height:844}});customer.on('pageerror',e=>errors.push(e.message));await customer.goto(base+'/repair-guide/?id='+newest.id+'#token='+d.tokenFor(newest.id,'unit-test-secret-not-a-real-secret'));await customer.locator('[data-confirm]').click();await customer.getByText(/확인 일시:/).waitFor();assert(await customer.locator('[data-confirm]').isDisabled());assert.equal(new URL(customer.url()).hash,'');await customer.reload();await customer.getByText(/확인 일시:/).waitFor();assert(await customer.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   await frame.locator('[data-tab="history"]').click();await frame.getByRole('button',{name:'보기',exact:true}).first().click();await frame.locator('#rg-detail').waitFor();assert.match(await frame.locator('#rg-detail').innerText(),/고객 확인 기록/);assert.deepEqual(errors,[]);
+  await frame.locator('[data-tab="send"]').click();await frame.locator('#rg-kind').selectOption('deductible');
+  assert(await frame.locator('#rg-repair-fields').isHidden());assert(await frame.locator('#rg-message-button').isHidden());
+  await page.evaluate(()=>window.addEventListener('message',e=>{const f=document.getElementById('staff');if(e.origin===location.origin&&e.source===f.contentWindow&&e.data?.type==='kgm-repair-focus')f.scrollIntoView({block:'start'});}));
+  const beforeDeductible=documents.size;await frame.locator('#rg-send').click();assert.match(await frame.locator('#staff-error').innerText(),/자기부담금/);assert.equal(documents.size,beforeDeductible);
+  await frame.locator('#rg-amount').fill('200000');assert.match(await frame.locator('#rg-message').innerText(),/200,000원/);
+  await frame.locator('#rg-preview').click();assert.match(await frame.locator('#rg-preview-body').innerText(),/200,000원/);assert.equal(documents.size,beforeDeductible);await frame.locator('#rg-preview-dialog > .rg-close').click();
+  await frame.locator('#rg-send').click();await frame.getByText('테스트 발송 기록을 저장했습니다.',{exact:true}).waitFor();assert.equal(await frame.locator('#rg-sent-open').count(),0);
+  const deductible=[...documents.values()].find(r=>r.kind==='deductible');assert.equal(deductible.snapshot.amount,200000);assert.equal(deductible.message.text,await frame.locator('#rg-message').innerText());
+  const output=path.resolve(root,'../../outputs');fs.mkdirSync(output,{recursive:true});
+  await frame.locator('body').screenshot({path:path.join(output,'deductible-guide-desktop.png')});
+  for(const width of [390,844]){await page.setViewportSize({width,height:1000});assert(await frame.locator('body').evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'deductible overflow '+width);}await page.setViewportSize({width:1366,height:1000});
+  await frame.locator('[data-tab="history"]').click();await frame.locator('#rg-history-kind').selectOption('deductible');await frame.getByRole('button',{name:'보기',exact:true}).first().click();await frame.getByRole('heading',{name:/자기부담금 안내/}).waitFor();
+  assert.match(await frame.locator('#rg-detail').innerText(),/200,000원/);assert.equal(await frame.locator('#rg-open-link,#rg-cancel').count(),0);assert.match(await frame.locator('#rg-history-rows').innerText(),/확인 대상 아님/);
+  await frame.locator('#rg-resend').click();await frame.getByText(deductible.id,{exact:true}).waitFor();assert.equal([...documents.values()].filter(r=>r.kind==='deductible').length,2);
+  await frame.locator('[data-tab="send"]').click();await frame.locator('#rg-reset').click();assert.equal(await frame.locator('#rg-amount').inputValue(),'');await frame.locator('#rg-kind').selectOption('repair');assert(await frame.locator('#rg-upload').isVisible());assert(await frame.locator('#rg-amount').isHidden());
   liveUi=true;await page.reload();await frame.getByRole('button',{name:'알림톡 발송',exact:true}).waitFor();assert(await frame.locator('#rg-scenario').isHidden());assert.match(await frame.locator('#rg-mode-badge').innerText(),/실제 알림톡 발송/);assert.deepEqual(errors,[]);
  }finally{await browser.close();await new Promise(r=>server.close(r));}
 });
@@ -95,4 +110,31 @@ test('live staff dispatch uses one durable claim and waits for delivery reports'
  const previousFetch=global.fetch;let dispatches=0;
  global.fetch=async(url,options)=>{if(String(url).includes('/messages/v4/send-many/detail')){dispatches++;const request=JSON.parse(options.body);assert.equal(request.messages.length,1);assert.equal(request.messages[0].kakaoOptions.templateId,require('../message.cjs').approvedTemplate.id);return {ok:true,json:async()=>({messageList:[{messageId:'LIVE_MESSAGE'}],failedMessageList:[],groupInfo:{groupId:'LIVE_GROUP'}})};}return previousFetch(url,options);};
  try{const input=payload('request-live-00000001',{mode:'live'});const [a,b]=await Promise.all([call('/api/staff/sends',{method:'POST',body:input}),call('/api/staff/sends',{method:'POST',body:input})]);assert.equal(a.code,200);assert.equal(b.code,200);assert.equal(a.value.id,b.value.id);assert.equal(dispatches,1);assert.equal(a.value.delivery,'requested');assert.equal(a.value.mode,'live');assert(!a.value.events.some(e=>e.kind==='delivery_result'));await call('/api/staff/sends',{method:'POST',body:input});assert.equal(dispatches,1);assert.equal(a.value.confirmation,null);}finally{global.fetch=previousFetch;}
+});
+
+test('deductible uses its approved template, immutable amount, no estimate/link/confirmation, and preserves repair records',async()=>{
+ const versionsBefore=clone([...documents].filter(([k])=>k.startsWith('versions/')||k.startsWith('admissions/'))),objectsBefore=objects.size;
+ const repairsBefore=clone([...documents].filter(([k,v])=>k.startsWith('sends/')&&v.kind!=='deductible'));
+ const input={kind:'deductible',mode:'test',admissionId:'admission-a',phone:'01000000000',amount:200000,requestKey:'deductible-request-0001',scenario:'fallback-delivered',files:[]};
+ const [a,b]=await Promise.all([call('/api/staff/sends',{method:'POST',body:input}),call('/api/staff/sends',{method:'POST',body:input})]);
+ assert.equal(a.code,200);assert.equal(a.value.id,b.value.id);const row=a.value;
+ assert.equal(row.kind,'deductible');assert.equal(row.snapshot.amount,200000);assert.equal(row.message.templateId,'KA01TP261019092629941aRA99IN7rgE');
+ assert.deepEqual(row.message.variables,{'#{차량번호}':admission.carNum,'#{차종}':admission.carModel,'#{금액}':'200,000'});
+ assert(row.message.text.includes('200,000원'));assert(row.message.text.includes('02-465-558200'));
+ assert.equal(row.link,null);assert.equal(row.version,null);assert.equal(row.confirmation,null);assert.equal(row.response,'not_required');assert.equal(row.snapshot.files.length,0);assert.equal(row.channel,'lms');
+ assert(!row.message.sms.includes('/repair-guide/'));assert.equal(objects.size,objectsBefore);
+ assert.deepEqual([...documents].filter(([k])=>k.startsWith('versions/')||k.startsWith('admissions/')),versionsBefore);
+ const route='/api/customer/sends/'+row.id,t=d.tokenFor(row.id,'unit-test-secret-not-a-real-secret');
+ for(const suffix of ['','/confirm','/file'])assert.equal((await call(route+suffix,{method:suffix==='/confirm'?'POST':'GET',token:t})).code,404);
+ assert.equal((await call('/api/staff/sends/'+row.id+'/cancel',{method:'POST'})).code,400);
+ assert.equal((await call('/api/staff/sends',{method:'POST',body:{...input,amount:300000}})).code,409);
+ for(const amount of [0,-1,1.5,1000000000,'1e5','200,000','abc'])assert.equal((await call('/api/staff/sends',{method:'POST',body:{...input,requestKey:'deductible-invalid-0001',amount}})).code,400);
+ assert.equal((await call('/api/staff/sends',{method:'POST',body:{...input,kind:'unregistered'}})).code,400);
+ assert.equal((await call('/api/staff/sends',{method:'POST',token:'staff',body:input})).code,403);
+ const resend=(await call('/api/staff/sends',{method:'POST',body:{admissionId:input.admissionId,resendOf:row.id,requestKey:'deductible-resend-0001',scenario:'failed',amount:999999}})).value;
+ assert.notEqual(resend.id,row.id);assert.equal(resend.kind,'deductible');assert.equal(resend.snapshot.amount,200000);assert.deepEqual(resend.message,row.message);
+ assert.deepEqual([...documents].filter(([k,v])=>k.startsWith('sends/')&&v.kind!=='deductible'),repairsBefore);
+ const originalFetch=global.fetch;let dispatches=0;
+ global.fetch=async(url,options)=>{if(String(url).includes('/messages/v4/send-many/detail')){dispatches++;const request=JSON.parse(options.body),m=request.messages[0];assert.equal(m.kakaoOptions.templateId,row.message.templateId);assert.deepEqual(m.kakaoOptions.variables,row.message.variables);assert.equal(m.text,row.message.text);assert(m.replacements[0].text.includes('200,000원'));return {ok:true,json:async()=>({messageList:[{messageId:'DEDUCTIBLE_LIVE'}],failedMessageList:[],groupInfo:{groupId:'DEDUCTIBLE_GROUP'}})};}return originalFetch(url,options);};
+ try{const live={...input,mode:'live',requestKey:'deductible-live-00001'};const results=await Promise.all([call('/api/staff/sends',{method:'POST',body:live}),call('/api/staff/sends',{method:'POST',body:live})]);assert(results.every(r=>r.code===200));assert.equal(dispatches,1);assert.equal(results[0].value.delivery,'requested');}finally{global.fetch=originalFetch;}
 });

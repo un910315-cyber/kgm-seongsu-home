@@ -16,3 +16,5 @@ dialog{background:#14141b;border-color:#3e354c;box-shadow:0 30px 100px #0009}dia
 @media(max-width:500px){.staff-shell{padding:17px}.staff-panel{padding:18px;border-radius:11px}.staff-title{gap:14px}.staff-title h1{font-size:22px}.staff-tabs{width:100%;gap:2px}.staff-tabs button{flex:1;padding:9px 6px;font-size:12px}.staff-framehead{padding:14px 17px}.staff-framehead span{font-size:10px}.staff-bubble pre{padding:17px;font-size:13px}.staff-message{padding:13px}.staff-manual-grid{gap:14px}}
 @media(prefers-reduced-motion:reduce){button,.staff-tabs button,.staff-panel input,.staff-panel textarea,.staff-panel select{transition:none}}
 .staff-check[hidden]{display:none!important}
+
+.staff-emphasis{white-space:pre-wrap;padding:15px 15px 0;font-weight:700;color:#e9e2f4}.staff-message-extra{border-top:1px solid var(--rg-border);color:var(--rg-sub);font-size:12px!important}#rg-kind{font-weight:700}#rg-deductible-fields{padding-top:8px}#rg-amount{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}#rg-history-kind{width:auto;max-width:100%;margin-bottom:12px}#rg-preview-body>.staff-detail{max-width:580px;margin:auto;padding:18px}
