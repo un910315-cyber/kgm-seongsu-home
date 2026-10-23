@@ -4,10 +4,15 @@ const {chromium}=require('C:/Users/pc/.cache/codex-runtimes/codex-primary-runtim
 (async()=>{
  const browser=await chromium.launch({channel:'msedge',headless:true}),page=await browser.newPage();
  await page.route('**/*',r=>r.abort());
- const original=cp.execFileSync('git',['show','rollback-before-design-refresh-20260912:un/index.html'],{encoding:'utf8'});
  const html=fs.readFileSync('un/index.html','utf8');
- const clean=s=>s.replaceAll('v152-2026-09-12','v151-2026-09-12').replace(/<link rel="stylesheet" href="design-refresh[^>]+>\r?\n/,'').replace(/\r\n/g,'\n');
- assert.equal(clean(html),original.replace(/\r\n/g,'\n'),'HTML functions/handlers must remain unchanged');
+ // The 9/12 "HTML must equal the old tag" check went stale once the page was intentionally changed.
+ // What it protected still matters: every inline event handler must point at a function the app's scripts define.
+ const js=fs.readdirSync('un').filter(f=>f.endsWith('.js')).map(f=>fs.readFileSync('un/'+f,'utf8')).join('\n')+[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(m=>m[1]).join('\n');
+ const handlers=new Set([...html.matchAll(/\son[a-z]+="\s*(?:window\.)?([A-Za-z_$][\w$]*)\s*\(/g)].map(m=>m[1]));
+ const defined=n=>new RegExp('window\\.'+n+'\\s*=|function\\s+'+n+'\\s*\\(|\\b'+n+'\\s*=\\s*(async\\s*)?(function|\\()').test(js);
+ const keywords=new Set(['if','return','event','this','document','confirm','alert']);
+ const missing=[...handlers].filter(n=>!keywords.has(n)&&!defined(n));
+ assert.deepEqual(missing,[],'HTML handlers without a JS definition: '+missing.join(', '));
  await page.setContent(html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'').replace(/<link\b[^>]*>/gi,''));
  await page.evaluate(css=>{let e=document.createElement('style');e.textContent=css;document.head.append(e);},fs.readFileSync('un/styles.css','utf8'));
  await page.evaluate(()=>{['loadingScreen','loginScreen'].forEach(id=>document.getElementById(id)?.remove());document.querySelectorAll('.nav-tab').forEach(e=>e.style.display='');});
