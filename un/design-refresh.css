@@ -231,6 +231,31 @@
   /* Korean text inside numbers and codes used to fall back from the monospace face; keep digits aligned instead */
   body :is(.car-num, .wc-item-code, .stat-value, .ops-chip, .badge) { font-family: inherit !important; font-variant-numeric: tabular-nums; }
   body :is(.nav-tab, .car-num):focus-visible { outline: 2px solid #c1a7ff; outline-offset: 2px; border-radius: 6px; }
+  /* v195: the notification lost its styling in the May migration and sat as a cut-off green strip at the top of the page.
+     Restore it as a toast that is hidden until shown. */
+  body .notif {
+    position: fixed; left: 50%; bottom: 24px; z-index: 10050;
+    max-width: min(420px, calc(100vw - 32px)); padding: 12px 18px; border-radius: 10px;
+    font-size: 13px; font-weight: 700; line-height: 1.5; word-break: keep-all;
+    box-shadow: 0 10px 28px #0007; pointer-events: none;
+    opacity: 0; visibility: hidden; transform: translate(-50%, 12px);
+    transition: opacity .2s ease, transform .2s ease, visibility 0s linear .2s;
+  }
+  body .notif.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); transition: opacity .2s ease, transform .2s ease; }
+  /* v195: shortcut links and the date block now sit inside the left menu column (moved by app-pages.js), so they never overlap menu items */
+  body .nav-tabs > :is(.sidebar-links, .sidebar-status) {
+    position: static !important; left: auto !important; bottom: auto !important; width: 100% !important; flex: 0 0 auto;
+  }
+  body .nav-tabs > .sidebar-links { margin-top: auto; padding-top: 14px; border-top: 1px solid #2b3544; }
+  body .nav-tabs > .sidebar-status { padding-top: 8px; }
+  /* v195: the 보험사 연락처 filter (전체·국산차·외제차) had no style and showed as plain white browser buttons */
+  body .page .cal-toggle { display: inline-flex; align-items: center; gap: 4px; padding: 4px; border: 1px solid #303b4b; border-radius: 8px; background: #121923; }
+  body .page .cal-toggle button {
+    min-height: 32px; padding: 0 12px; border: 0; border-radius: 6px; background: transparent;
+    color: #acb8c9; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+  body .page .cal-toggle button:hover { background: #202a39; color: #f4f6fb; }
+  body .page .cal-toggle button.active { background: #2c2541; color: #e7dcff; box-shadow: none; font-weight: 700; }
   body .modal { background: #171e29 !important; border-color: #3d495d !important; border-radius: 14px !important; }
   body .modal-header { background: #1d2633 !important; border-color: #354155 !important; }
   body .modal-title { font-weight: 700 !important; }
@@ -303,3 +328,4 @@
     body .page.active { animation: none !important; }
   }
 }
+@media print { #notif { display: none !important; } }

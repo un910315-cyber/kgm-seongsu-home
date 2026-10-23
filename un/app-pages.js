@@ -87,6 +87,16 @@
     e.preventDefault();
     t.click();
   });
+  // 왼쪽 메뉴: 바로가기(카톡·EPC·볼트·홈페이지)와 날짜를 메뉴 목록 아래로 옮겨 메뉴와 겹치지 않게 한다
+  (function(){
+    var nav = document.querySelector('.nav-tabs');
+    if (!nav) return;
+    var before = nav.querySelector('.account-settings');
+    ['.sidebar-links', '.sidebar-status'].forEach(function(sel){
+      var el = document.querySelector(sel);
+      if (el && el.parentElement !== nav) nav.insertBefore(el, before);
+    });
+  })();
   // 휴대폰 한 줄 메뉴: 선택한 메뉴가 화면 밖에 있으면 보이는 곳으로 밀어 준다
   document.addEventListener('click', function(e){
     var t = e.target && e.target.closest ? e.target.closest('.nav-tab') : null;
