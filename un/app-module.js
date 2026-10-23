@@ -4426,13 +4426,44 @@
 
 
   // ---- VENDOR CONTACTS (거래처 연락처 — 전 직원 보기, 관리자만 등록·삭제) ----
-  const vendorRef = ref(db, 'vendorContacts');
+  // 공개 범위별로 저장 위치를 나눠 Firebase 규칙이 직접 막는다 (화면에서만 숨기던 방식 대체).
+  // all → vendorContacts (승인된 전원), staff → vendorContactsStaff (관리자·Staff), admin → vendorContactsAdmin (관리자)
+  const VENDOR_NODES = { all: 'vendorContacts', staff: 'vendorContactsStaff', admin: 'vendorContactsAdmin' };
+  const VENDOR_READERS = { all: ['admin', 'staff', 'viewer'], staff: ['admin', 'staff'], admin: ['admin'] };
+  const vendorBuckets = { all: {}, staff: {}, admin: {} };
+  const vendorBucketOf = {};
   let vendorContacts = {};
   let editingVendorId = null;
 
-  authReadyOnValue(vendorRef, function(snap){
-    vendorContacts = snap.val() || {};
+  // 옮기는 도중 같은 id가 두 곳에 있으면 더 좁은 공개 범위를 따른다
+  function _mergeVendors() {
+    var merged = {};
+    ['all', 'staff', 'admin'].forEach(function(bucket){
+      Object.keys(vendorBuckets[bucket]).forEach(function(id){
+        var v = vendorBuckets[bucket][id];
+        if (!v) return;
+        merged[id] = Object.assign({}, v, { visibility: bucket });
+        vendorBucketOf[id] = bucket;
+      });
+    });
+    Object.keys(vendorBucketOf).forEach(function(id){ if (!merged[id]) delete vendorBucketOf[id]; });
+    vendorContacts = merged;
     try { window._renderVendors && window._renderVendors(); } catch(e) { console.error(e); }
+  }
+
+  // 역할이 읽을 수 없는 목록은 구독하지 않는다 (권한 오류를 만들지 않고, 로그아웃 뒤 이전 사용자 목록도 남기지 않음)
+  Object.keys(VENDOR_NODES).forEach(function(bucket){
+    const start = () => {
+      vendorBuckets[bucket] = {};
+      _mergeVendors();
+      if (!VENDOR_READERS[bucket].includes(window._userRole)) return function(){};
+      return onValue(ref(db, VENDOR_NODES[bucket]), function(snap){
+        vendorBuckets[bucket] = snap.val() || {};
+        _mergeVendors();
+      }, function(e){ console.warn('vendor contacts ' + bucket, e && e.code); });
+    };
+    realtimeStarters.push(start);
+    if (realtimeReady) realtimeUnsubs.push(start());
   });
 
   window._renderVendors = function() {
@@ -4560,29 +4591,38 @@
     var memo = document.getElementById('vendor-memo').value.trim();
     if (!name) { showNotif('거래처 이름을 입력해주세요', true); return; }
     if (!phone) { showNotif('전화번호를 입력해주세요', true); return; }
+    if (!VENDOR_NODES[visibility]) visibility = 'all';
     var data = {
       name: name, phone: phone, person: person, category: category, visibility: visibility, memo: memo
     };
+    var targetNode = VENDOR_NODES[visibility];
     try {
       if (editingVendorId) {
         data.updatedAt = new Date().toISOString();
         data.updatedBy = window._userEmail || '';
-        await update(ref(db, 'vendorContacts/' + editingVendorId), data);
+        var fromBucket = vendorBucketOf[editingVendorId] || 'all';
+        if (fromBucket === visibility) {
+          await update(ref(db, targetNode + '/' + editingVendorId), data);
+        } else {
+          // 공개 범위를 바꾸면 한 번의 쓰기로 옛 위치에서 지우고 새 위치에 옮긴다
+          var moved = Object.assign({}, vendorContacts[editingVendorId] || {}, data);
+          var paths = {};
+          paths[VENDOR_NODES[fromBucket] + '/' + editingVendorId] = null;
+          paths[targetNode + '/' + editingVendorId] = moved;
+          await update(ref(db), paths);
+        }
         showNotif(name + ' 수정 완료');
       } else {
         data.addedAt = new Date().toISOString();
         data.addedBy = window._userEmail || '';
-        await push(ref(db, 'vendorContacts'), data);
+        await push(ref(db, targetNode), data);
         showNotif(name + ' 등록 완료');
       }
       document.getElementById('vendorModal').classList.remove('open');
       editingVendorId = null;
     } catch (e) {
       console.error('saveVendor', e);
-      var msg = /PERMISSION_DENIED|permission/i.test(String(e && (e.code || e.message) || ''))
-        ? 'Firebase 규칙에 vendorContacts 권한 추가 필요'
-        : '저장 실패: ' + (e && e.message);
-      showNotif(msg, true);
+      showNotif('저장 실패: ' + (e && e.message), true);
     }
   };
 
@@ -4592,7 +4632,7 @@
     var name = (v && v.name) ? v.name : '';
     if (!(await window._confirm((name ? '[' + name + '] ' : '') + '이 거래처를 삭제하시겠습니까?','삭제',''))) return;
     try {
-      await remove(ref(db, 'vendorContacts/' + id));
+      await remove(ref(db, VENDOR_NODES[vendorBucketOf[id] || 'all'] + '/' + id));
       showNotif('삭제되었습니다');
     } catch (e) { showNotif('삭제 실패: ' + e.message, true); }
   };

@@ -19,7 +19,6 @@
     color: var(--text-body);
     letter-spacing: -.2px;
   }
-  #matrixBg { opacity: 0 !important; }
   body .header, body:has(.page.active) .header,
   body:has(#page-dashboard.active) .header,
   body .nav-tabs, body:has(.page.active) .nav-tabs {
@@ -312,7 +311,9 @@
       padding: 6px 12px !important; background: #2c2541 !important; border-color: #5f488b !important;
       color: #e7dcff !important; box-shadow: none !important;
     }
-    body:has(.page.active) .nav-tabs {
+    /* v197: the dashboard has its own, more specific nav rules in styles.css, so name it here too */
+    body:has(.page.active) .nav-tabs,
+    body:has(#page-dashboard.active) .nav-tabs {
       position: sticky !important; top: 0 !important; z-index: 101;
       flex-wrap: nowrap !important; overflow-x: auto !important; overscroll-behavior-x: contain;
       padding: 6px 10px !important; gap: 4px !important; scrollbar-width: none;
@@ -322,9 +323,14 @@
     body:has(.page.active) .nav-group .nav-subtabs { display: contents !important; }
     body:has(.page.active) #opsNavGroup > .nav-parent { display: none !important; }
     body:has(.page.active) .nav-subtab::before { display: none !important; }
-    body:has(.page.active) .nav-tab {
+    body:has(.page.active) .nav-tab,
+    body:has(#page-dashboard.active) .nav-tab {
       flex: none !important; white-space: nowrap !important; min-height: 40px !important;
       padding: 10px 12px !important; font-size: 13px !important; line-height: 20px !important;
+    }
+    /* v197: the five summary cards were squeezed into 50px columns with one letter per line; use rows of three */
+    html body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stats-grid {
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important;
     }
     /* Keep the car number visible while the wide list scrolls sideways */
     body .page .table-wrap :is(th, td):first-child { position: sticky; left: 0; z-index: 1; background: #171e29; }

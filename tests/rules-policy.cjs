@@ -25,4 +25,14 @@ assert(check('leaveRequests','r','rep@test',full));assert(check('leaveUsage','r_
 let trash=structuredClone(base);trash.records.car._deletedAt='now';assert(!check('records','car','staff@test',trash));assert(check('records','car','admin@test',trash));
 base.leaveRequests.r.status='pending_manager';let wrongTeam=structuredClone(base);wrongTeam.leaveRequests.r.status='pending_admin';assert(!check('leaveRequests','r','manager@test',wrongTeam));
 base.leaveEmployees.manager.team='A';assert(check('leaveRequests','r','manager@test',wrongTeam));
-console.log('PASS: approved membership, admin data controls, approver roles/teams, atomic approval rules, usage protection, trash permissions');
+// 거래처 공개 범위는 저장 위치로 나뉘고 규칙이 읽기를 막는다. 연락처 쓰기는 관리자만.
+assert(check('vendorContacts',null,'rep@test',null,true));
+assert(!check('vendorContactsStaff',null,'rep@test',null,true));assert(check('vendorContactsStaff',null,'staff@test',null,true));
+assert(!check('vendorContactsAdmin',null,'staff@test',null,true));assert(check('vendorContactsAdmin',null,'admin@test',null,true));
+const vendor=(node,visibility)=>{const next=structuredClone(base);next[node]={v:{name:'거래처',phone:'010',visibility}};return next;};
+assert(!check('vendorContacts','v','staff@test',vendor('vendorContacts','all')));assert(check('vendorContacts','v','admin@test',vendor('vendorContacts','all')));
+assert(!check('vendorContacts','v','admin@test',vendor('vendorContacts','admin')),'admin-only vendor must not land in the public list');
+assert(check('vendorContactsAdmin','v','admin@test',vendor('vendorContactsAdmin','admin')));assert(!check('vendorContactsAdmin','v','admin@test',vendor('vendorContactsAdmin','all')));
+assert(check('vendorContactsStaff','v','admin@test',vendor('vendorContactsStaff','staff')));assert(!check('vendorContactsStaff','v','staff@test',vendor('vendorContactsStaff','staff')));
+const ins=structuredClone(base);ins.insuranceContacts={i:{company:'보험사'}};assert(!check('insuranceContacts','i','staff@test',ins));assert(check('insuranceContacts','i','admin@test',ins));
+console.log('PASS: approved membership, admin data controls, approver roles/teams, atomic approval rules, usage protection, trash permissions, vendor visibility by location, admin-only contact writes');

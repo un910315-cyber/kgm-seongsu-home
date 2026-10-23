@@ -36,4 +36,11 @@ const req="newData.parent().parent().child('leaveRequests').child(newData.child(
 rules.leaveUsage={'.read':approved,'$id':{
  '.write':approved+' && ('+admin+" || (!data.exists() && "+director+" && "+req+".child('status').val() == 'approved' && "+req+".child('approvedBy').val() == auth.token.email && "+req+".child('empId').val() == newData.child('empId').val() && $id == newData.child('fromRequestId').val() + '_' + newData.child('date').val()))"
 }};
+// 2026-10-24 연락처: 거래처 공개 범위를 저장 위치로 나눠 규칙이 직접 막고, 연락처 등록·수정·삭제는 관리자만.
+const staffUp="("+role+" == 'admin' || "+role+" == 'staff')";
+const adminWrite={'.write':approved+' && '+admin};
+rules.vendorContacts={'.read':approved,'$id':{...adminWrite,'.validate':"!newData.child('visibility').exists() || newData.child('visibility').val() == 'all'"}};
+rules.vendorContactsStaff={'.read':approved+' && '+staffUp,'$id':{...adminWrite,'.validate':"newData.child('visibility').val() == 'staff'"}};
+rules.vendorContactsAdmin={'.read':approved+' && '+admin,'$id':{...adminWrite,'.validate':"newData.child('visibility').val() == 'admin'"}};
+rules.insuranceContacts={'.read':approved,'$id':{...adminWrite}};
 module.exports={rules};

@@ -97,6 +97,47 @@
       if (el && el.parentElement !== nav) nav.insertBefore(el, before);
     });
   })();
+  // 팝업(.modal-overlay): 화면읽기 프로그램에 대화상자로 알리고, 열리면 안으로 포커스를 옮기고,
+  // Tab이 팝업 밖으로 새지 않게 하고, 닫히면 열기 전에 있던 곳으로 포커스를 돌려준다
+  (function(){
+    var FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+    var stack = [];
+    function visibleItems(m){
+      return Array.prototype.filter.call(m.querySelectorAll(FOCUSABLE), function(el){ return el.offsetParent !== null; });
+    }
+    document.querySelectorAll('.modal-overlay').forEach(function(m, i){
+      m.setAttribute('role', 'dialog');
+      m.setAttribute('aria-modal', 'true');
+      var title = m.querySelector('.modal-title');
+      if (title) {
+        if (!title.id) title.id = (m.id || 'modal' + i) + '-title';
+        m.setAttribute('aria-labelledby', title.id);
+      }
+      new MutationObserver(function(){
+        var open = m.classList.contains('open');
+        var at = stack.findIndex(function(s){ return s.modal === m; });
+        if (open && at < 0) {
+          stack.push({ modal: m, back: document.activeElement });
+          if (!m.contains(document.activeElement)) {
+            var first = visibleItems(m)[0];
+            if (first) first.focus({ preventScroll: true });
+          }
+        } else if (!open && at >= 0) {
+          var back = stack.splice(at, 1)[0].back;
+          if (back && back.focus && document.contains(back)) back.focus({ preventScroll: true });
+        }
+      }).observe(m, { attributes: true, attributeFilter: ['class'] });
+    });
+    document.addEventListener('keydown', function(e){
+      if (e.key !== 'Tab' || !stack.length) return;
+      var m = stack[stack.length - 1].modal;
+      var items = visibleItems(m);
+      if (!items.length) return;
+      var first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && (document.activeElement === first || !m.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (document.activeElement === last || !m.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
+    });
+  })();
   // 휴대폰 한 줄 메뉴: 선택한 메뉴가 화면 밖에 있으면 보이는 곳으로 밀어 준다
   document.addEventListener('click', function(e){
     var t = e.target && e.target.closest ? e.target.closest('.nav-tab') : null;
