@@ -65,3 +65,5 @@
     window.addEventListener('message',event=>{if(event.origin!==location.origin||event.source!==parent||event.data?.type!=='kgm-repair-select')return;search();choose(event.data.id);tab('send');});search();const initial=bridge.selection;if(initial){choose(initial);$('rg-search').value=selected?.carNum||'';search();}kindLayout();sync();new ResizeObserver(resize).observe(document.body);
   }catch(e){error(e.message);$('rg-send').disabled=true;}
 })();
+// 알림톡 종류를 한눈에 보이는 버튼으로 고른다. 값과 기존 동작(내용 전환·발송 중 잠금)은 숨긴 #rg-kind가 그대로 맡는다.
+(function(){var sel=document.getElementById('rg-kind'),btns=Array.prototype.slice.call(document.querySelectorAll('.staff-kind [data-kind]'));if(!sel||!btns.length)return;function sync(){btns.forEach(function(b){b.setAttribute('aria-checked',String(b.dataset.kind===sel.value));b.disabled=sel.disabled;});}btns.forEach(function(b){b.addEventListener('click',function(){if(sel.disabled||sel.value===b.dataset.kind)return;sel.value=b.dataset.kind;sel.dispatchEvent(new Event('change'));sync();});});new MutationObserver(sync).observe(sel,{attributes:true,attributeFilter:['disabled']});sel.addEventListener('change',sync);sync();})();

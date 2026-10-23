@@ -248,6 +248,17 @@
   }
   body .nav-tabs > .sidebar-links { margin-top: auto; padding-top: 14px; border-top: 1px solid #2b3544; }
   body .nav-tabs > .sidebar-status { padding-top: 8px; }
+  /* v196: on PC the floating "앱 설치" button sat at the bottom right and covered list page numbers.
+     Park it at the bottom of the left menu column instead, and stop the menu just above it. */
+  @media (min-width: 901px) {
+    body:has(.page.active):has(#pwaHeaderBtn:not([style*="none"])) .nav-tabs { bottom: 62px !important; }
+    body .pwa-header-btn {
+      left: 14px !important; right: auto !important; bottom: 14px !important; width: 156px;
+      padding: 9px 12px; border-radius: 8px; font-size: 12px; font-weight: 700;
+      background: #202a38 !important; border: 1px solid #3c485b !important; color: #dce5f3 !important; box-shadow: none !important;
+    }
+    body .pwa-header-btn:hover { background: #2a3546 !important; border-color: #55657c !important; transform: none; }
+  }
   /* v195: the 보험사 연락처 filter (전체·국산차·외제차) had no style and showed as plain white browser buttons */
   body .page .cal-toggle { display: inline-flex; align-items: center; gap: 4px; padding: 4px; border: 1px solid #303b4b; border-radius: 8px; background: #121923; }
   body .page .cal-toggle button {

@@ -4262,6 +4262,64 @@
     });
   };
 
+  // ---- 연락처 인쇄 (사무실 비치용 A4 흑백 표) ----
+  function _contactPrint(title, toolsText, bodyHtml) {
+    var today = (window.KgmSafety && window.KgmSafety.date) ? window.KgmSafety.date() : new Date().toISOString().slice(0, 10);
+    var html = '<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>' + esc(title) + '</title>'
+      + '<style>@page{size:A4;margin:12mm 11mm;}*{box-sizing:border-box;}'
+      + 'body{margin:0;background:#fff;color:#111;font-family:"Malgun Gothic","Noto Sans KR",sans-serif;font-size:10.5pt;line-height:1.4;}'
+      + 'header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #111;padding-bottom:6px;margin:0 0 8px;}'
+      + 'h1{font-size:16pt;margin:0;}header p{margin:0;font-size:9pt;color:#444;text-align:right;}'
+      + 'table{width:100%;border-collapse:collapse;}thead{display:table-header-group;}'
+      + 'th,td{border:1px solid #9a9a9a;padding:4px 6px;vertical-align:top;text-align:left;overflow-wrap:anywhere;}'
+      + 'th{background:#e6e6e6;font-size:9.5pt;}tr{break-inside:avoid;page-break-inside:avoid;}'
+      + 'tbody tr:nth-child(even) td{background:#f5f5f5;}tr.cat td{background:#d9d9d9;font-weight:700;}'
+      + '.co{font-weight:700;}.ph{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;}'
+      + '.fx{color:#444;font-size:9pt;white-space:nowrap;}.dim{color:#777;}.p+.p{border-top:1px dashed #bbb;margin-top:3px;padding-top:3px;}'
+      + '.note{margin-top:8px;font-size:8.5pt;color:#555;}'
+      + '.print-tools{padding:12px 16px;margin-bottom:12px;background:#eee;font:14px sans-serif;}.print-tools button{padding:8px 18px;margin-right:12px;}'
+      + '@media print{.print-tools{display:none;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body>'
+      + '<div class="print-tools"><button onclick="window.print()">인쇄</button>' + esc(toolsText) + '</div>'
+      + '<header><h1>' + esc(title) + '</h1><p>KGM 성수서비스센터<br>출력일 ' + esc(today) + '</p></header>'
+      + bodyHtml + '</body></html>';
+    var w = window.open('', '_blank', 'width=900,height=1100');
+    if (!w) { showNotif('팝업을 허용한 뒤 인쇄를 다시 눌러주세요.', true); return; }
+    w.document.write(html); w.document.close();
+    var ready = w.document.fonts ? w.document.fonts.ready : Promise.resolve();
+    ready.then(function(){ setTimeout(function(){ if (w.closed) return; try { w.focus(); w.print(); } catch(e) {} }, 300); });
+  }
+
+  // 화면에 보이는 보험사(검색·국산/외제 필터 반영)를 표로 인쇄
+  window._printInsuranceContacts = function() {
+    var page = document.getElementById('page-insurance');
+    var view = (page && page.getAttribute('data-filter')) || 'all';
+    var ids = [];
+    document.querySelectorAll('#insurance-list .ins-card').forEach(function(card){
+      if (card.style.display !== 'none') ids.push(card.getAttribute('data-id'));
+    });
+    ids = ids.filter(function(id){ return insuranceContacts[id]; });
+    if (!ids.length) { showNotif('인쇄할 보험사가 없습니다', true); return; }
+    var showDom = view !== 'foreign', showFor = view !== 'domestic';
+    function people(list) {
+      if (!list.length) return '<span class="dim">미등록</span>';
+      return list.map(function(p){
+        return '<div class="p">' + (p.name ? esc(p.name) + ' ' : '') + (p.phone ? '<span class="ph">' + esc(p.phone) + '</span>' : '')
+          + (p.fax ? '<div class="fx">팩스 ' + esc(p.fax) + '</div>' : '') + '</div>';
+      }).join('');
+    }
+    // 국산차·외제차 담당자가 같아도 두 칸 모두 그대로 적는다 (한 칸만 보고도 바로 찾을 수 있게)
+    var rows = ids.map(function(id){
+      var c = insuranceContacts[id];
+      var dom = _insNormalize(c.domestic), fgn = _insNormalize(c.foreign);
+      var cells = (showDom ? '<td>' + people(dom) + '</td>' : '') + (showFor ? '<td>' + people(fgn) + '</td>' : '');
+      return '<tr><td class="co">' + esc(c.company || '(이름 없음)') + '</td>' + cells + '</tr>';
+    }).join('');
+    var head = '<tr><th style="width:24%">보험사</th>' + (showDom ? '<th>국산차 담당</th>' : '') + (showFor ? '<th>외제차 담당</th>' : '') + '</tr>';
+    var title = '보험사 연락처' + (view === 'domestic' ? ' (국산차)' : view === 'foreign' ? ' (외제차)' : '');
+    _contactPrint(title, '보험사 ' + ids.length + '곳 · 화면에 보이는 목록(검색·국산/외제 선택)을 그대로 인쇄합니다.',
+      '<table><thead>' + head + '</thead><tbody>' + rows + '</tbody></table>');
+  };
+
   function _renderInsRowHTML(p) {
     p = p || {};
     return '<div class="ins-row" style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;">'
