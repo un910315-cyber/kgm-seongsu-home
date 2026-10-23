@@ -501,31 +501,11 @@ body > div[style*="position:fixed;top:0;"] {
   font-family: 'Inter', 'Noto Sans KR', sans-serif;
 }
 
-
 /* 2. 대시보드 사이드-바이-사이드 레이아웃 */
-
-
 
 /* 3. 매출 보고 위젯 — 스파크라인 행 */
 
-
-
-
-
-
-
-
-
-
 /* 4. 매출 보고 입력 페이지 격자 */
-
-
-
-
-
-
-
-
 
 /* 5. 섹션 라벨 */
 
@@ -737,7 +717,6 @@ body > div[style*="position:fixed;top:0;"] {
   gap: 12px;
 }
 
-
 .form-actions {
   padding: 14px 20px;
   background: var(--surface2);
@@ -833,13 +812,9 @@ body > div[style*="position:fixed;top:0;"] {
   color: #8b95a8;
 }
 
-
 /* 매출 일별 추이 + 매출 보고 — 반반 2컬럼 */
 
-
-
 /* 매출 추이 카드 하단 — 수리 대기 차량 목록 */
-
 
 #page-dashboard .trend-wait-col {
   flex: 1 1 0;
@@ -934,9 +909,6 @@ body > div[style*="position:fixed;top:0;"] {
   max-width: 72px;
 }
 
-
-
-
 #page-dashboard #kgmIntakeChart {
   padding: 4px 2px 0;
   background: transparent;
@@ -947,14 +919,6 @@ body > div[style*="position:fixed;top:0;"] {
   height: 178px !important;
   min-width: 0 !important;
 }
-
-
-
-
-
-
-
-
 
 #page-dashboard .dashboard-bottom-row {
   display: grid;
@@ -1102,29 +1066,12 @@ body > div[style*="position:fixed;top:0;"] {
   padding: 10px !important;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
 #page-dashboard .cum-sales-mix-svg {
   display: block;
   width: 100%;
   height: 100%;
   overflow: visible;
 }
-
-
-
-
-
 
 @media (min-width: 1200px) and (max-height: 860px) {
   #page-dashboard .main {
@@ -1149,8 +1096,6 @@ body > div[style*="position:fixed;top:0;"] {
     height: 150px !important;
   }
 
-  
-  
   #page-dashboard .monthly-stats-card #stats-chart {
     height: 86px !important;
   }
@@ -1262,14 +1207,10 @@ body > div[style*="position:fixed;top:0;"] {
   font-size: 13px;
 }
 
-
-
-
 #page-dashboard .monthly-stats-card {
   max-height: 264px;
   overflow: hidden;
 }
-
 
 @media (min-width: 1200px) and (max-height: 920px) {
   #page-dashboard .main {
@@ -1284,15 +1225,10 @@ body > div[style*="position:fixed;top:0;"] {
     min-height: 86px;
   }
 
-  
   #page-dashboard #kgmIntakeChart svg {
     height: 136px !important;
   }
 
-  
-  
-  
-  
   #page-dashboard .monthly-stats-card #stats-chart {
     height: 72px !important;
   }
@@ -2216,7 +2152,6 @@ body:has(.page.active) .page.active > .main {
   font-weight: 700;
 }
 
-
 #page-estimate .eabw {
   display: flex;
   justify-content: flex-end;
@@ -2846,11 +2781,6 @@ body:has(#page-dashboard.active) #page-dashboard .main {
   padding: 92px 38px 22px;
 }
 
-
-
-
-
-
 body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card {
   background: transparent;
   border: 0;
@@ -2931,18 +2861,11 @@ body:has(#page-dashboard.active) #page-dashboard .stat-sub {
   font-size: 12px;
 }
 
-
-
-
-
 body:has(#page-dashboard.active) #page-dashboard .sales-trend-svg {
   width: 100%;
   height: 100%;
   display: block;
 }
-
-
-
 
 body:has(#page-dashboard.active) #page-dashboard .widget-card {
   border-radius: 8px;
@@ -2971,19 +2894,10 @@ body:has(#page-dashboard.active) #page-dashboard .chart-subtitle {
   font-weight: 700;
 }
 
-
-
-
-
 body:has(#page-dashboard.active) #page-dashboard #kgmIntakeChart svg {
   height: 208px !important;
   min-width: 0 !important;
 }
-
-
-
-
-
 
 body:has(#page-dashboard.active) #page-dashboard .dashboard-bottom-row {
   grid-template-columns: minmax(0, 1.02fr) minmax(460px, .98fr);
@@ -3002,8 +2916,6 @@ body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card #stats-char
   height: 132px !important;
   overflow: hidden;
 }
-
-
 
 body:has(#page-dashboard.active) #page-dashboard .dashboard-ops-card {
   display: flex;
@@ -3117,7 +3029,6 @@ body:has(#page-dashboard.active) #page-dashboard .status-pill.wait {
     padding-top: 92px;
   }
 
-  
   body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card .stats-grid {
     gap: 14px !important;
   }
@@ -3139,8 +3050,6 @@ body:has(#page-dashboard.active) #page-dashboard .status-pill.wait {
     padding-bottom: 16px;
   }
 
-  
-  
   body:has(#page-dashboard.active) #page-dashboard .dashboard-kpi-card {
     margin-bottom: 14px;
   }
@@ -3159,7 +3068,6 @@ body:has(#page-dashboard.active) #page-dashboard .status-pill.wait {
     height: 30px;
   }
 
-  
   body:has(#page-dashboard.active) #page-dashboard .widget-card {
     padding: 15px 18px;
   }
@@ -3169,20 +3077,10 @@ body:has(#page-dashboard.active) #page-dashboard .status-pill.wait {
     padding-bottom: 10px;
   }
 
-  
-  
-  
   body:has(#page-dashboard.active) #page-dashboard #kgmIntakeChart svg {
     height: 142px !important;
   }
 
-  
-  
-  
-  
-  
-  
-  
   body:has(#page-dashboard.active) #page-dashboard .dashboard-bottom-row {
     gap: 14px;
   }
@@ -3196,10 +3094,6 @@ body:has(#page-dashboard.active) #page-dashboard .status-pill.wait {
     height: 106px !important;
   }
 
-  
-  
-  
-  
   }
 
 @media (max-width: 900px) {
@@ -3443,11 +3337,6 @@ body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card div[style*=
   padding: 14px !important;
 }
 
-
-
-
-
-
 body:has(#page-dashboard.active) #page-dashboard .cum-sales-breakdown-row {
   min-width: 0;
 }
@@ -3499,8 +3388,6 @@ body:has(#page-dashboard.active) #page-dashboard .cum-sales-breakdown-track i {
   box-shadow: 0 0 18px color-mix(in srgb, var(--seg-color) 38%, transparent);
 }
 
-
-
 @media (min-width: 1180px) and (max-height: 940px) {
   body:has(#page-dashboard.active) #page-dashboard .monthly-stats-card,
   body:has(#page-dashboard.active) #page-dashboard .cumulative-sales-card {
@@ -3512,7 +3399,6 @@ body:has(#page-dashboard.active) #page-dashboard .cum-sales-breakdown-track i {
     height: 148px !important;
   }
 
-  
   }
 
 @media (max-width: 1180px) {
@@ -3533,7 +3419,6 @@ body:has(#page-dashboard.active) #page-dashboard .cum-sales-breakdown-track i {
     height: 180px !important;
   }
 
-  
   }
 
 /* Monthly insight bar: compact executive readout below the monthly intake trend. */
@@ -4748,15 +4633,11 @@ body:has(.page.active) .sidebar-links a:hover {
 
 /* Dashboard cumulative sales cleanup. */
 
-
-
-
-
 /* KGM intake card: remove leftover decorative top line from the compact today card. */
 
 /* 모바일(<=760px): 대시보드 가운데 줄 3칸은 폰에서 1칸으로 (세로 스택) */
 @media (max-width: 900px) {
-  
+
   body:has(#page-dashboard.active) #page-dashboard .ops-summary-grid,
   body:has(#page-dashboard.active) #page-dashboard .ops-location-list {
     grid-template-columns: 1fr;
@@ -4892,7 +4773,6 @@ body:has(.page.active) .sidebar-links a:hover {
   color: #6b7280; font-size: 11px; padding: 34px 0;
 }
 
-
 /* ───── 월 목표 달성 축하 / 미설정 ───── */
 .monthly-insight-item.forecast.achieved {
   background: linear-gradient(135deg, rgba(34,197,94,.20), rgba(34,197,94,.08)) !important;
@@ -4920,7 +4800,6 @@ body:has(.page.active) .sidebar-links a:hover {
   transform: translateY(-1px);
   transition: all .15s ease;
 }
-
 
 /* ───── 작업코드 참고표 — 부품 카테고리별 카드 ───── */
 .wc-grid {
@@ -4978,7 +4857,6 @@ body:has(.page.active) .sidebar-links a:hover {
   border-radius: 5px;
   letter-spacing: .3px;
 }
-
 
 /* ─────  대시보드 AOS 미수금 풀폭 띠  ───── */
 .dash-aos-strip {
@@ -5065,9 +4943,6 @@ body:has(.page.active) .sidebar-links a:hover {
 
 /* ───── 대시보드 한눈에 정리 — 매출 보고 3열 + 막대 슬림화 ───── */
 /* 매출 보고: 보증·기능·파손+보험 그룹을 가로 3열로 — 세로 스크롤 없이 비교 */
-
-
-
 
 /* 주차별·월별 매출 막대: 항목이 적을 때 통짜 슬래브가 되지 않게 폭 제한 */
 .cum-week-track {
