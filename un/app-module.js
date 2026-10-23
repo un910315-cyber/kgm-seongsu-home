@@ -1963,7 +1963,7 @@
     if (status === '출고' || status === '미수리 출고') return '-';
     const colors = { '1층':'#a78bfa', '판금':'#f472b6', '도장':'#fb923c', '정비':'#34d399', '도장대기중':'#fbbf24', '조립대기중':'#2dd4bf', '조립중':'#84cc16', '5층':'#60a5fa', '지하':'#94a3b8' };
     const c = colors[loc]||'#94a3b8';
-    return `<span style="display:inline-block;white-space:nowrap;background:${c}22;color:${c};padding:2px 10px;border-radius:5px;font-size:12px;font-weight:700;border:1px solid ${c}44;">${loc}</span>`;
+    return `<span class="loc-badge" data-loc="${esc(loc)}" style="display:inline-block;white-space:nowrap;background:${c}22;color:${c};padding:2px 10px;border-radius:5px;font-size:12px;font-weight:700;border:1px solid ${c}44;">${loc}</span>`;
   }
   function insBadge(val, label) {
     if (!val) return `<span style="color:var(--text-dim);font-size:12px;">-</span>`;
@@ -2013,7 +2013,7 @@
     const label = loc || '위치없음';
     const emptyClass = loc ? '' : ' empty';
     const styleAttr = loc ? ` style="${_chipStyle(LOC_CHIP_COLORS[loc] || '#94a3b8')}"` : '';
-    return `<button class="ops-chip ops-location${emptyClass}"${styleAttr} onclick="openLocPicker('${id}','${loc||''}')" type="button" title="클릭하여 위치 선택"><span>${esc(label)}</span></button>`;
+    return `<button class="ops-chip ops-location${emptyClass}" data-loc="${esc(loc || '')}"${styleAttr} onclick="openLocPicker('${id}','${loc||''}')" type="button" title="클릭하여 위치 선택"><span>${esc(label)}</span></button>`;
   }
 
   // 상태 빠른변경 셀
@@ -2487,10 +2487,10 @@
     const statusChart = document.getElementById('opsStatusChart');
     if (statusChart) {
       const rows = [
-        { label: '수리 대기', value: wait, color: '#a78bfa' },
-        { label: '수리 중', value: repair, color: '#60a5fa' },
-        { label: '수리 완료', value: done, color: '#34d399' },
-        { label: '오늘 입고', value: intake, color: '#fb7185' }
+        { label: '수리 대기', value: wait, color: 'var(--st-wait, #a78bfa)' },
+        { label: '수리 중', value: repair, color: 'var(--st-work, #60a5fa)' },
+        { label: '수리 완료', value: done, color: 'var(--st-done, #34d399)' },
+        { label: '오늘 입고', value: intake, color: 'var(--st-in, #fb7185)' }
       ];
       const max = Math.max(1, ...rows.map(r => r.value));
       statusChart.innerHTML = rows.map(row => {

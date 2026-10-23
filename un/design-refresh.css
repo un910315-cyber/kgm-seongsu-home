@@ -152,6 +152,71 @@
     border-radius: 6px !important;
   }
   body .ops-location::before, body .ops-status::before { box-shadow: none !important; }
+  /* Status colors v192: one set shared by list chips, badges, the status picker and dashboard.
+     Color is for status only; locations are neutral and grouped by border style. */
+  :root {
+    --st-in: #a9b4c3;
+    --st-wait: #e0b25a;
+    --st-work: #7aa7e8;
+    --st-done: #5fc196;
+    --st-today: #5fc196;
+    --st-today-ink: #0b1a12;
+    --st-out: #7c8696;
+    --st-loss: #e47c7c;
+  }
+  body :is(.ops-status, .badge, .status-pick-btn) { --st: var(--st-in); }
+  body :is(.ops-status.status-수리대기, .badge-wait, .status-pick-btn[data-val="수리대기"]) { --st: var(--st-wait); }
+  body :is(.ops-status.status-수리중, .badge-repair, .status-pick-btn[data-val="수리중"]) { --st: var(--st-work); }
+  body :is(.ops-status.status-수리완료, .badge-done, .status-pick-btn[data-val="수리완료"]) { --st: var(--st-done); }
+  body :is(.ops-status.status-출고, .ops-status.status-미수리출고, .badge-out, .badge-out-norepair, .status-pick-btn[data-val="출고"]) { --st: var(--st-out); }
+  body :is(.ops-status.status-전손처리, .badge-total-loss, .status-pick-btn[data-val="전손처리"]) { --st: var(--st-loss); }
+  body .ops-status {
+    --chip-color: var(--st) !important;
+    color: var(--st) !important;
+    background: color-mix(in srgb, var(--st) 12%, #171e29) !important;
+    border-color: color-mix(in srgb, var(--st) 38%, #171e29) !important;
+  }
+  body .ops-status:hover { border-color: var(--st) !important; }
+  body .badge {
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+    padding: 3px 9px; border-radius: 6px; border: 1px solid color-mix(in srgb, var(--st) 38%, #171e29);
+    background: color-mix(in srgb, var(--st) 12%, #171e29); color: var(--st);
+    font-size: 12px; font-weight: 700;
+  }
+  body .badge .bdot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+  body .status-pick-btn {
+    color: var(--st) !important;
+    background: color-mix(in srgb, var(--st) 10%, #171e29) !important;
+    border-color: color-mix(in srgb, var(--st) 34%, #171e29) !important;
+  }
+  body :is(.ops-status.status-금일출고예정, .badge-pickup-today, .status-pick-btn[data-val="금일 출고예정"]) {
+    --chip-color: var(--st-today-ink) !important;
+    color: var(--st-today-ink) !important;
+    background: var(--st-today) !important;
+    border-color: var(--st-today) !important;
+  }
+  body :is(.ops-status.status-출고, .ops-status.status-미수리출고, .badge-out, .badge-out-norepair) { color: #9aa3b1 !important; }
+  body :is(.ops-location:not(.empty), .loc-badge) {
+    --chip-color: #d2d9e3 !important;
+    color: #d2d9e3 !important;
+    background: #1f2835 !important;
+    border: 1px solid #3a4658 !important;
+  }
+  body .ops-location:not(.empty)::before { display: none; }
+  body :is(.ops-location, .loc-badge, .loc-pick-btn):is([data-loc="도장대기중"], [data-loc="조립대기중"], [data-val="도장대기중"], [data-val="조립대기중"]) {
+    border-style: dashed !important; border-color: #6b7a90 !important;
+  }
+  body :is(.ops-location, .loc-badge, .loc-pick-btn):is([data-loc="1층"], [data-loc="5층"], [data-loc="지하"], [data-val="1층"], [data-val="5층"], [data-val="지하"]) {
+    background: transparent !important; border-color: #2c3646 !important; color: #b3bdca !important;
+  }
+  body .ops-location:not(.empty):hover { border-color: #8593a8 !important; }
+  body .loc-pick-btn { color: #d2d9e3 !important; background: #1f2835 !important; border-color: #3a4658 !important; }
+  body .loc-pick-btn.active { outline: 2px solid #e8edf5; outline-offset: 2px; }
+  body .page .dashboard-kpi-card .stat-card.purple::after { background: var(--st-wait) !important; opacity: 1; }
+  body .page .dashboard-kpi-card .stat-card.blue::after { background: var(--st-work) !important; opacity: 1; }
+  body .page .dashboard-kpi-card .stat-card.green::after { background: var(--st-done) !important; opacity: 1; }
+  body .page .dashboard-kpi-card :is(.stat-card.orange, .stat-card.red)::after { display: none; }
+  body .page .dashboard-kpi-card .stat-value { color: var(--text) !important; }
   body .modal { background: #171e29 !important; border-color: #3d495d !important; border-radius: 14px !important; }
   body .modal-header { background: #1d2633 !important; border-color: #354155 !important; }
   body .modal-title { font-weight: 700 !important; }
