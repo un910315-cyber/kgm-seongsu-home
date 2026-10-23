@@ -2260,7 +2260,7 @@
       recentTbody.innerHTML = recent.length ? recent.map(r => `
         <tr>
           <td>${fmt(r.inDate)}</td>
-          <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">${esc(r.carNum)}</span></td>
+          <td><span class="car-num" tabindex="0" role="button" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">${esc(r.carNum)}</span></td>
           <td>${esc(r.carModel)||'-'}</td>
           <td>${statusQuickCell(r.id, r.status)}</td>
         </tr>`).join('') : `<tr><td colspan="4" class="empty" style="padding:22px">최근 입고 차량이 없습니다</td></tr>`;
@@ -2278,7 +2278,7 @@
     const pg = _paginate('dashboard', show, dq + '|' + dLoc + '|' + dSt);
     tbody.innerHTML = pg.pageData.map(r => `
       <tr class="${r.carType === '현대해상' ? 'hyundai-partner-row' : ''}">
-        <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span>${r.carType === '현대해상' ? '<span class="hyundai-partner-badge">현대해상</span>' : ''}</td>
+        <td><span class="car-num" tabindex="0" role="button" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span>${r.carType === '현대해상' ? '<span class="hyundai-partner-badge">현대해상</span>' : ''}</td>
         <td>${esc(r.carModel)||'-'}</td>
         <td>${phoneCell(r.phone)}</td>
         <td>${locationQuickCell(r.id, r.location, r.status)}</td>
@@ -2544,7 +2544,7 @@
     const pg = _paginate('list', data, q + '|' + fs);
     tbody.innerHTML = pg.pageData.map(r => `
       <tr class="${r.carType === '현대해상' ? 'hyundai-partner-row' : ''}">
-        <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">${esc(r.carNum)}</span>${r.carType === '현대해상' ? '<span class="hyundai-partner-badge">현대해상</span>' : ''}</td>
+        <td><span class="car-num" tabindex="0" role="button" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">${esc(r.carNum)}</span>${r.carType === '현대해상' ? '<span class="hyundai-partner-badge">현대해상</span>' : ''}</td>
         <td>${esc(r.carModel)||'-'}</td>
         <td>${phoneCell(r.phone)}</td>
         <td>${locationBadge(r.location, r.status)}</td>
@@ -2585,7 +2585,7 @@
     const pg = _paginate('out', data, q + '|' + month);
     tbody.innerHTML = pg.pageData.map(r => `
       <tr>
-        <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span></td>
+        <td><span class="car-num" tabindex="0" role="button" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span></td>
         <td>${esc(r.carModel)||'-'}</td>
         <td>${phoneCell(r.phone)}</td>
         <td>${insBadge(r.insDaemul,'대물')}</td>
@@ -2614,7 +2614,7 @@
     empty.style.display='none';
     tbody.innerHTML = data.map(r => `
       <tr class="${r.carType === '현대해상' ? 'hyundai-partner-row' : ''}">
-        <td><span class="car-num" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span>${r.carType === '현대해상' ? '<span class="hyundai-partner-badge">현대해상</span>' : ''}</td>
+        <td><span class="car-num" tabindex="0" role="button" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span>${r.carType === '현대해상' ? '<span class="hyundai-partner-badge">현대해상</span>' : ''}</td>
         <td>${esc(r.carModel)||'-'}</td>
         <td>${phoneCell(r.phone)}</td>
         <td>${locationQuickCell(r.id, r.location, r.status)}</td>
@@ -3093,10 +3093,10 @@
     const periodName = isMonthly ? parseInt(selMonth)+'월' : '연간';
     const summary = document.getElementById('stats-summary');
     if (summary) summary.innerHTML = `
-      <div class="stat-card orange"><div class="stat-label">KGM</div><div class="stat-value" style="color:var(--accent);">${kgm.length}</div><div class="stat-sub">${periodData.length ? Math.round(kgm.length/periodData.length*100) : 0}% 비율</div></div>
-      <div class="stat-card blue"><div class="stat-label">국산차</div><div class="stat-value" style="color:var(--blue);">${domestic.length}</div><div class="stat-sub">타사 국산</div></div>
-      <div class="stat-card red"><div class="stat-label">외산차</div><div class="stat-value" style="color:var(--red);">${foreign.length}</div><div class="stat-sub">현대해상 제외</div></div>
-      <div class="stat-card red"><div class="stat-label">현대해상</div><div class="stat-value" style="color:#f59e0b;">${hyundai.length}</div><div class="stat-sub">협력업체 · 외산차</div></div>
+      <div class="stat-card orange"><div class="stat-label">KGM</div><div class="stat-value" style="color:var(--c-kgm, var(--accent));">${kgm.length}</div><div class="stat-sub">${periodData.length ? Math.round(kgm.length/periodData.length*100) : 0}% 비율</div></div>
+      <div class="stat-card blue"><div class="stat-label">국산차</div><div class="stat-value" style="color:var(--c-dom, var(--blue));">${domestic.length}</div><div class="stat-sub">타사 국산</div></div>
+      <div class="stat-card red"><div class="stat-label">외산차</div><div class="stat-value" style="color:var(--c-for, var(--red));">${foreign.length}</div><div class="stat-sub">현대해상 제외</div></div>
+      <div class="stat-card red"><div class="stat-label">현대해상</div><div class="stat-value" style="color:var(--c-hy, #f59e0b);">${hyundai.length}</div><div class="stat-sub">협력업체 · 외산차</div></div>
       <div class="stat-card green"><div class="stat-label">${periodName} 입고</div><div class="stat-value" style="color:var(--green);">${periodData.length}</div><div class="stat-sub">출고완료 ${outDone.length}대</div></div>
     `;
 
@@ -3177,7 +3177,7 @@
           xx += ww;
           return out;
         };
-        return seg(kgmW, '#8b5cf6') + seg(domW, '#3b82f6') + seg(forW, '#f43f5e') + seg(hyW, '#f59e0b') + seg(unW, '#475569');
+        return seg(kgmW, 'var(--c-kgm, #8b5cf6)') + seg(domW, 'var(--c-dom, #3b82f6)') + seg(forW, 'var(--c-for, #f43f5e)') + seg(hyW, 'var(--c-hy, #f59e0b)') + seg(unW, '#475569');
       }).join('');
       chart.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="monthly-ribbon-svg">`
         + `<defs><linearGradient id="monthlyRibbonArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8b5cf6" stop-opacity=".34"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity=".015"/></linearGradient><filter id="monthlyRibbonGlow"><feGaussianBlur stdDeviation="2.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`
@@ -3197,11 +3197,11 @@
       const isCur = d.prefix===curMonth2;
       const kgmPct = d.total>0 ? Math.round(d.mKgm/d.total*100)+'%' : '-';
       return `<tr style="${isCur ? 'background:rgba(139,92,246,0.06);' : ''}">
-        <td style="font-weight:700;${isCur ? 'color:var(--accent);' : ''}">${d.m}월${isCur ? ' ◆' : ''}</td>
-        <td><span style="color:var(--accent);font-weight:700;">${d.mKgm || '-'}</span></td>
-        <td><span style="color:var(--blue);">${d.mDom || '-'}</span></td>
-        <td><span style="color:var(--red);">${d.mFor || '-'}</span></td>
-        <td><span style="color:#f59e0b;">${d.mHy || '-'}</span></td>
+        <td style="font-weight:700;${isCur ? 'color:var(--c-kgm, var(--accent));' : ''}">${d.m}월${isCur ? ' ◆' : ''}</td>
+        <td><span style="color:var(--c-kgm, var(--accent));font-weight:700;">${d.mKgm || '-'}</span></td>
+        <td><span style="color:var(--c-dom, var(--blue));">${d.mDom || '-'}</span></td>
+        <td><span style="color:var(--c-for, var(--red));">${d.mFor || '-'}</span></td>
+        <td><span style="color:var(--c-hy, #f59e0b);">${d.mHy || '-'}</span></td>
         <td style="color:var(--text-dim);">${d.mUn || '-'}</td>
         <td><span style="font-weight:800;font-size:14px;">${d.total || '-'}</span></td>
         <td><span style="color:var(--green);font-weight:600;">${d.mOut || '-'}</span></td>
@@ -3214,16 +3214,16 @@
     const tfoot = document.getElementById('stats-tfoot');
     if(tfoot){
       const yPct = tTotal>0 ? Math.round(tKgm/tTotal*100)+'%' : '-';
-      tfoot.innerHTML = `<tr style="background:rgba(139,92,246,0.08);border-top:2px solid var(--accent);">
-        <td style="font-weight:900;color:var(--accent);font-size:13px;">연간 합계</td>
-        <td style="font-weight:900;color:var(--accent);font-size:15px;">${tKgm}</td>
-        <td style="font-weight:700;color:var(--blue);font-size:14px;">${tDom}</td>
-        <td style="font-weight:700;color:var(--red);font-size:14px;">${tFor}</td>
-        <td style="font-weight:700;color:#f59e0b;font-size:14px;">${tHy}</td>
+      tfoot.innerHTML = `<tr style="background:rgba(139,92,246,0.08);border-top:2px solid var(--c-kgm, var(--accent));">
+        <td style="font-weight:900;color:var(--c-kgm, var(--accent));font-size:13px;">연간 합계</td>
+        <td style="font-weight:900;color:var(--c-kgm, var(--accent));font-size:15px;">${tKgm}</td>
+        <td style="font-weight:700;color:var(--c-dom, var(--blue));font-size:14px;">${tDom}</td>
+        <td style="font-weight:700;color:var(--c-for, var(--red));font-size:14px;">${tFor}</td>
+        <td style="font-weight:700;color:var(--c-hy, #f59e0b);font-size:14px;">${tHy}</td>
         <td style="color:var(--text-dim);font-weight:600;">${tUn}</td>
         <td style="font-weight:900;font-size:16px;">${tTotal}</td>
         <td style="font-weight:700;color:var(--green);font-size:14px;">${tOut}</td>
-        <td style="font-weight:700;color:var(--accent);">${yPct}</td>
+        <td style="font-weight:700;color:var(--c-kgm, var(--accent));">${yPct}</td>
       </tr>`;
     }
 
@@ -3237,17 +3237,17 @@
       const unPct = Math.max(0, 100 - kgmPct - domPct - forPct - hyPct);
       bar.innerHTML = `
         <div style="display:flex;border-radius:8px;overflow:hidden;height:36px;margin-bottom:12px;">
-          ${kgmPct ? `<div style="width:${kgmPct}%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#000;">KGM ${kgmPct}%</div>` : ''}
-          ${domPct ? `<div style="width:${domPct}%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#000;">국산 ${domPct}%</div>` : ''}
-          ${forPct ? `<div style="width:${forPct}%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;">외산 ${forPct}%</div>` : ''}
-          ${hyPct ? `<div style="width:${hyPct}%;background:#f59e0b;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;">현대해상 ${hyPct}%</div>` : ''}
+          ${kgmPct ? `<div style="width:${kgmPct}%;background:var(--c-kgm, var(--accent));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#000;">KGM ${kgmPct}%</div>` : ''}
+          ${domPct ? `<div style="width:${domPct}%;background:var(--c-dom, var(--blue));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#000;">국산 ${domPct}%</div>` : ''}
+          ${forPct ? `<div style="width:${forPct}%;background:var(--c-for, var(--red));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0b1a12;">외산 ${forPct}%</div>` : ''}
+          ${hyPct ? `<div style="width:${hyPct}%;background:var(--c-hy, #f59e0b);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0b1a12;">현대해상 ${hyPct}%</div>` : ''}
           ${unPct > 0 ? `<div style="width:${unPct}%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-dim);">미분류</div>` : ''}
         </div>
         <div style="display:flex;gap:16px;flex-wrap:wrap;">
-          <span style="font-size:12px;color:var(--accent);">■ KGM ${kgm.length}대</span>
-          <span style="font-size:12px;color:var(--blue);">■ 국산차 ${domestic.length}대</span>
-          <span style="font-size:12px;color:var(--red);">■ 외산차 ${foreign.length}대</span>
-          <span style="font-size:12px;color:#f59e0b;">■ 현대해상 ${hyundai.length}대</span>
+          <span style="font-size:12px;color:var(--c-kgm, var(--accent));">■ KGM ${kgm.length}대</span>
+          <span style="font-size:12px;color:var(--c-dom, var(--blue));">■ 국산차 ${domestic.length}대</span>
+          <span style="font-size:12px;color:var(--c-for, var(--red));">■ 외산차 ${foreign.length}대</span>
+          <span style="font-size:12px;color:var(--c-hy, #f59e0b);">■ 현대해상 ${hyundai.length}대</span>
           ${uncat.length ? `<span style="font-size:12px;color:var(--text-dim);">■ 미분류 ${uncat.length}대</span>` : ''}
         </div>`;
     } else if (bar) {
@@ -3273,10 +3273,10 @@
         tmBar.innerHTML = `
           <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;font-weight:600;letter-spacing:.3px;">이번 달(${moLabel}) 차량 구분 · 총 ${tmTot}대</div>
           <div style="display:flex;border-radius:6px;overflow:hidden;height:26px;">
-            ${kP ? `<div style="width:${kP}%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#000;">KGM ${tmKgm} (${kP}%)</div>` : ''}
-            ${dP ? `<div style="width:${dP}%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#000;">국산 ${tmDom} (${dP}%)</div>` : ''}
-            ${fP ? `<div style="width:${fP}%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">외산 ${tmFor} (${fP}%)</div>` : ''}
-            ${hP ? `<div style="width:${hP}%;background:#f59e0b;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;">현대해상 ${tmHy} (${hP}%)</div>` : ''}
+            ${kP ? `<div style="width:${kP}%;background:var(--c-kgm, var(--accent));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#000;">KGM ${tmKgm} (${kP}%)</div>` : ''}
+            ${dP ? `<div style="width:${dP}%;background:var(--c-dom, var(--blue));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#000;">국산 ${tmDom} (${dP}%)</div>` : ''}
+            ${fP ? `<div style="width:${fP}%;background:var(--c-for, var(--red));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0b1a12;">외산 ${tmFor} (${fP}%)</div>` : ''}
+            ${hP ? `<div style="width:${hP}%;background:var(--c-hy, #f59e0b);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0b1a12;">현대해상 ${tmHy} (${hP}%)</div>` : ''}
             ${uP > 0 ? `<div style="width:${uP}%;background:var(--border);"></div>` : ''}
           </div>`;
       } else {
@@ -3313,10 +3313,10 @@
     const r = records[id];
     if (!r) return;
     const typeBadge = r.carType ? {
-      'KGM': `<span style="background:rgba(245,166,35,0.15);color:var(--accent);padding:3px 12px;border-radius:20px;font-weight:700;font-size:13px;border:1px solid rgba(245,166,35,0.3);">KGM</span>`,
-      '국산차': `<span style="background:rgba(75,156,255,0.15);color:var(--blue);padding:3px 12px;border-radius:20px;font-weight:700;font-size:13px;border:1px solid rgba(75,156,255,0.3);">국산차</span>`,
-      '외산차': `<span style="background:rgba(232,68,42,0.15);color:var(--red);padding:3px 12px;border-radius:20px;font-weight:700;font-size:13px;border:1px solid rgba(232,68,42,0.3);">외산차</span>`,
-      '현대해상': `<span style="background:rgba(232,68,42,0.15);color:var(--red);padding:3px 12px;border-radius:20px;font-weight:700;font-size:13px;border:1px solid rgba(232,68,42,0.3);">현대해상</span>`,
+      'KGM': `<span style="background:rgba(245,166,35,0.15);color:var(--c-kgm, var(--accent));padding:3px 12px;border-radius:20px;font-weight:700;font-size:13px;border:1px solid rgba(245,166,35,0.3);">KGM</span>`,
+      '국산차': `<span style="background:rgba(75,156,255,0.15);color:var(--c-dom, var(--blue));padding:3px 12px;border-radius:20px;font-weight:700;font-size:13px;border:1px solid rgba(75,156,255,0.3);">국산차</span>`,
+      '외산차': `<span style="background:rgba(232,68,42,0.15);color:var(--c-for, var(--red));padding:3px 12px;border-radius:20px;font-weight:700;font-size:13px;border:1px solid rgba(232,68,42,0.3);">외산차</span>`,
+      '현대해상': `<span style="background:rgba(232,68,42,0.15);color:var(--c-hy, var(--red));padding:3px 12px;border-radius:20px;font-weight:700;font-size:13px;border:1px solid rgba(232,68,42,0.3);">현대해상</span>`,
     }[r.carType] || '-' : '-';
 
     document.getElementById('detailContent').innerHTML = `
@@ -3384,9 +3384,18 @@
   };
 
   // ---- NOTIF ----
+  // 직원에게 Firebase 원문 오류 대신 읽을 수 있는 안내를 보여준다 (앞의 "저장 실패:" 같은 머리말은 유지)
+  function _friendlyErrorText(msg) {
+    const s = String(msg);
+    const cut = s.indexOf(':');
+    const head = cut > 0 ? s.slice(0, cut + 1) + ' ' : '';
+    if (/permission[_ ]denied/i.test(s)) return head + '권한이 없어 처리하지 못했어요. 다시 로그인해 보세요.';
+    if (/network|failed to fetch|unavailable|offline/i.test(s)) return head + '인터넷 연결을 확인한 뒤 다시 시도해 주세요.';
+    return s;
+  }
   function showNotif(msg, isError) {
     const n = document.getElementById('notif');
-    n.textContent = msg;
+    n.textContent = isError ? _friendlyErrorText(msg) : msg;
     n.style.background = isError ? 'var(--red)' : 'var(--green)';
     n.style.color = isError ? '#fff' : '#000';
     n.classList.add('show');

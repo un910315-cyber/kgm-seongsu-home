@@ -217,6 +217,20 @@
   body .page .dashboard-kpi-card .stat-card.green::after { background: var(--st-done) !important; opacity: 1; }
   body .page .dashboard-kpi-card :is(.stat-card.orange, .stat-card.red)::after { display: none; }
   body .page .dashboard-kpi-card .stat-value { color: var(--text) !important; }
+  /* Report v193: dashboard car-type colors (imports no longer red), neutral table headers, quiet data check */
+  :root { --c-kgm: #a48cf0; --c-dom: #6f9bd8; --c-for: #4fb3a2; --c-hy: #d9a54c; }
+  body #page-dashboard .monthly-stats-card thead th { color: #b4c0d2 !important; }
+  body #page-dashboard #stats-summary .stat-card::after { display: none; }
+  body .stats-datacheck {
+    background: transparent !important; border: 0 !important; border-top: 1px solid #2b3544 !important;
+    border-radius: 0 !important; padding: 8px 0 !important;
+  }
+  body .stats-datacheck > div { font-size: 11.5px !important; }
+  body #page-status .section-header > .section-title { display: none; }
+  body .header .date-badge { white-space: nowrap; }
+  /* Korean text inside numbers and codes used to fall back from the monospace face; keep digits aligned instead */
+  body :is(.car-num, .wc-item-code, .stat-value, .ops-chip, .badge) { font-family: inherit !important; font-variant-numeric: tabular-nums; }
+  body :is(.nav-tab, .car-num):focus-visible { outline: 2px solid #c1a7ff; outline-offset: 2px; border-radius: 6px; }
   body .modal { background: #171e29 !important; border-color: #3d495d !important; border-radius: 14px !important; }
   body .modal-header { background: #1d2633 !important; border-color: #354155 !important; }
   body .modal-title { font-weight: 700 !important; }
@@ -249,12 +263,37 @@
     body:has(.page.active) .nav-subtab { font-size: 11.5px !important; }
   }
   @media (max-width: 900px) {
-    body:has(.page.active) .nav-group,
-    body:has(.page.active) .nav-group.nav-group-open .nav-subtabs {
-      min-width: 0 !important; max-width: 100% !important;
-      flex-wrap: wrap !important; width: 100% !important;
+    /* Phone v193: one-line header, and the menu as a single sideways-scrolling row that sticks to the top. */
+    body:has(.page.active) .header { padding: 8px 14px !important; gap: 10px !important; align-items: center !important; }
+    body:has(.page.active) .logo-grad { width: auto !important; min-height: 0 !important; height: 30px !important; }
+    body:has(.page.active) .logo-grad::before { font-size: 22px !important; }
+    body:has(.page.active) .logo-grad::after { display: none !important; }
+    body .header .online-badge { display: none !important; }
+    body:has(.page.active) .header-right { flex-wrap: nowrap !important; min-width: 0; margin-left: auto !important; margin-right: 72px !important; }
+    body .header .date-badge { padding: 4px 10px !important; font-size: 12px !important; }
+    body .pwa-header-btn {
+      position: absolute !important; top: 10px !important; right: 12px !important; bottom: auto !important;
+      padding: 6px 12px !important; background: #2c2541 !important; border-color: #5f488b !important;
+      color: #e7dcff !important; box-shadow: none !important;
     }
-    body:has(.page.active) .nav-tab { min-height: 34px !important; font-size: 11px !important; }
+    body:has(.page.active) .nav-tabs {
+      position: sticky !important; top: 0 !important; z-index: 101;
+      flex-wrap: nowrap !important; overflow-x: auto !important; overscroll-behavior-x: contain;
+      padding: 6px 10px !important; gap: 4px !important; scrollbar-width: none;
+      border-bottom: 1px solid #303b4b;
+    }
+    body:has(.page.active) .nav-group,
+    body:has(.page.active) .nav-group .nav-subtabs { display: contents !important; }
+    body:has(.page.active) #opsNavGroup > .nav-parent { display: none !important; }
+    body:has(.page.active) .nav-subtab::before { display: none !important; }
+    body:has(.page.active) .nav-tab {
+      flex: none !important; white-space: nowrap !important; min-height: 40px !important;
+      padding: 10px 12px !important; font-size: 13px !important; line-height: 20px !important;
+    }
+    /* Keep the car number visible while the wide list scrolls sideways */
+    body .page .table-wrap :is(th, td):first-child { position: sticky; left: 0; z-index: 1; background: #171e29; }
+    body .page .table-wrap tbody tr:nth-child(even) td:first-child { background: #1b2330; }
+    body .page .table-wrap thead th:first-child { background: #1c2532 !important; z-index: 6 !important; }
     body .wc-table-view { padding: 16px 10px; }
     body .wc-item { padding: 11px 12px; gap: 10px; }
     body .wc-item-name { flex-basis: 130px; }

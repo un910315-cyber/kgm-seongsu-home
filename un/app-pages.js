@@ -75,6 +75,28 @@
   }
   window.toggleOpsNav = toggleOpsNav;
 
+  // 키보드로도 메뉴와 차량번호를 열 수 있게 (Tab으로 이동, Enter/Space로 실행)
+  document.querySelectorAll('.nav-tab').forEach(function(t){
+    t.setAttribute('tabindex', '0');
+    t.setAttribute('role', 'button');
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var t = e.target;
+    if (!t || !t.matches || !t.matches('.nav-tab[role="button"], .car-num[role="button"]')) return;
+    e.preventDefault();
+    t.click();
+  });
+  // 휴대폰 한 줄 메뉴: 선택한 메뉴가 화면 밖에 있으면 보이는 곳으로 밀어 준다
+  document.addEventListener('click', function(e){
+    var t = e.target && e.target.closest ? e.target.closest('.nav-tab') : null;
+    if (!t || window.innerWidth > 900) return;
+    setTimeout(function(){
+      var a = document.querySelector('.nav-tab.active:not(.nav-parent)') || t;
+      if (a.scrollIntoView) a.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }, 0);
+  });
+
   // DATE
   function updateDate() {
     const now = new Date();
