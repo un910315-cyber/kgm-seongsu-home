@@ -2,7 +2,7 @@
 // Firebase 초기화 + 인증 + 거래·연차·게시판·블랙리스트 등 메인 로직
 
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, onValue, push, update, remove, set, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref, onValue, push, update, remove, set, get, runTransaction, query, orderByKey, limitToLast } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getFirestore, collection, doc, setDoc, getDoc, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject, listAll } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1806,7 +1806,8 @@
     });
   })();
 
-  authReadyOnValue(ref(db, 'aosClaims'), function(snap) {
+  // 날짜별 스냅숏이 쌓이지만(2026-10 기준 13개·2.7MB) 화면은 최신·직전 두 개만 쓴다 → 최근 2개만 받는다
+  authReadyOnValue(query(ref(db, 'aosClaims'), orderByKey(), limitToLast(2)), function(snap) {
     aosClaimsData = snap.val() || {};
     try { renderAosReport(); } catch (e) {}
     try { renderAosDashboardStrip(); } catch (e) {}
