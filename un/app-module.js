@@ -657,8 +657,9 @@
   // 구독 시작 함수를 영구 보관 — 로그아웃 후 재로그인 시에도 전체 재구독 가능해야 함
   const realtimeStarters = [];
   const realtimeUnsubs = [];
-  function authReadyOnValue(targetRef, next, error) {
-    const start = () => onValue(targetRef, next, error);
+  // roles를 주면 그 역할일 때만 구독한다 (규칙이 막는 데이터를 다른 역할이 구독해 권한 오류를 내지 않게)
+  function authReadyOnValue(targetRef, next, error, roles) {
+    const start = () => (roles && !roles.includes(window._userRole)) ? function(){} : onValue(targetRef, next, error);
     realtimeStarters.push(start);
     if (realtimeReady) {
       const unsub = start();
@@ -803,19 +804,19 @@
     });
     if (typeof renderDashboard === 'function') { try { renderDashboard(); } catch(e){} }
     if (typeof renderSalesWidget === 'function') { try { renderSalesWidget(); } catch(e){} }
-  }, (err) => { console.warn('kgmDaily subscribe', err); });
+  }, (err) => { console.warn('kgmDaily subscribe', err); }, ['admin']);
 
   // 일일 매출 실시간 수신
   authReadyOnValue(salesDailyRef, (snap) => {
     salesDailyMap = snap.val() || {};
     if (typeof renderSalesWidget === 'function') { try { renderSalesWidget(); } catch(e){} }
-  }, (err) => { console.warn('salesDaily subscribe', err); });
+  }, (err) => { console.warn('salesDaily subscribe', err); }, ['admin']);
 
   // 매달 보증금 실시간 수신
   authReadyOnValue(depositRef, (snap) => {
     depositMap = snap.val() || {};
     if (typeof renderSalesWidget === 'function') { try { renderSalesWidget(); } catch(e){} }
-  }, (err) => { console.warn('deposit subscribe', err); });
+  }, (err) => { console.warn('deposit subscribe', err); }, ['admin']);
 
   // 월별 목표 (KGM 입고 대수) — { 'YYYY-MM': number }
   let monthlyTargetMap = {};
@@ -825,7 +826,7 @@
     monthlyTargetMap = snap.val() || {};
     window._monthlyTargetMap = monthlyTargetMap;
     try { if (window._renderStats) window._renderStats(); } catch(e) {}
-  }, (err) => { console.warn('monthlyTarget subscribe', err); });
+  }, (err) => { console.warn('monthlyTarget subscribe', err); }, ['admin']);
 
   // 관리자: 이번 달 목표 설정 (insight bar 클릭)
   window._setMonthlyTargetPrompt = async function() {
@@ -1809,7 +1810,7 @@
     aosClaimsData = snap.val() || {};
     try { renderAosReport(); } catch (e) {}
     try { renderAosDashboardStrip(); } catch (e) {}
-  });
+  }, function(err) { console.warn('aosClaims subscribe', err); }, ['admin']);
 
   // 일일 매출 저장 (부품 / 기능) — 매출 보고 페이지에서 호출
   window._salesSavePage = async function(cat) {

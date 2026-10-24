@@ -35,4 +35,21 @@ assert(!check('vendorContacts','v','admin@test',vendor('vendorContacts','admin')
 assert(check('vendorContactsAdmin','v','admin@test',vendor('vendorContactsAdmin','admin')));assert(!check('vendorContactsAdmin','v','admin@test',vendor('vendorContactsAdmin','all')));
 assert(check('vendorContactsStaff','v','admin@test',vendor('vendorContactsStaff','staff')));assert(!check('vendorContactsStaff','v','staff@test',vendor('vendorContactsStaff','staff')));
 const ins=structuredClone(base);ins.insuranceContacts={i:{company:'보험사'}};assert(!check('insuranceContacts','i','staff@test',ins));assert(check('insuranceContacts','i','admin@test',ins));
-console.log('PASS: approved membership, admin data controls, approver roles/teams, atomic approval rules, usage protection, trash permissions, vendor visibility by location, admin-only contact writes');
+// 매출·보증금·KGM 대수·월 목표·보험 미결은 관리자만 읽고 쓴다. 권한 표는 관리자만 읽는다.
+for(const key of ['salesDaily','monthlyDeposit','kgmDailyCount','monthlyTarget','aosClaims']){
+ assert(!check(key,null,'staff@test',null,true),key+' read');assert(check(key,null,'admin@test',null,true),key+' admin read');
+ const next=structuredClone(base);next[key]={'2026-10-24':1};assert(!check(key,null,'staff@test',next),key+' write');assert(check(key,null,'admin@test',next),key+' admin write');
+}
+assert(!check('allowedEmails',null,'staff@test',null,true));assert(check('allowedEmails',null,'admin@test',null,true));
+assert(!check('leaveAccess',null,'rep@test',null,true));assert(check('leaveAccess',null,'admin@test',null,true));
+// 게시판: 본인 이름으로만 쓰고, 남의 글은 지우지 못한다 (관리자는 가능)
+const post=(email)=>{const s=structuredClone(base);s.board={p:{text:'메모',authorEmail:email}};return s;};
+assert(check('board','p','staff@test',post('staff@test')),'own post');
+assert(!check('board','p','staff@test',post('admin@test')),'cannot post as someone else');
+const withPost=structuredClone(base);withPost.board={p:{text:'메모',authorEmail:'rep@test'}};
+const removed=structuredClone(withPost);delete removed.board.p;
+const checkFrom=(email,before,after)=>{const saved=structuredClone(base);Object.keys(base).forEach(k=>delete base[k]);Object.assign(base,before);try{return check('board','p',email,after);}finally{Object.keys(base).forEach(k=>delete base[k]);Object.assign(base,saved);}};
+assert(!checkFrom('staff@test',withPost,removed),'cannot delete another person post');
+assert(checkFrom('rep@test',withPost,removed),'can delete own post');
+assert(checkFrom('admin@test',withPost,removed),'admin can delete any post');
+console.log('PASS: approved membership, admin data controls, approver roles/teams, atomic approval rules, usage protection, trash permissions, vendor visibility by location, admin-only contact writes, admin-only sales/claims data, private permission tables, own board posts');

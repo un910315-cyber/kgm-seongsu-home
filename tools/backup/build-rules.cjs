@@ -43,4 +43,12 @@ rules.vendorContacts={'.read':approved,'$id':{...adminWrite,'.validate':"!newDat
 rules.vendorContactsStaff={'.read':approved+' && '+staffUp,'$id':{...adminWrite,'.validate':"newData.child('visibility').val() == 'staff'"}};
 rules.vendorContactsAdmin={'.read':approved+' && '+admin,'$id':{...adminWrite,'.validate':"newData.child('visibility').val() == 'admin'"}};
 rules.insuranceContacts={'.read':approved,'$id':{...adminWrite}};
+// 2026-10-24 보안 점검: 화면에서 관리자만 다루는 매출·보증금·KGM 대수·월 목표·보험 미결은 읽기·쓰기 모두 관리자만.
+for(const key of ['salesDaily','monthlyDeposit','kgmDailyCount','monthlyTarget','aosClaims'])rules[key]={'.read':approved+' && '+admin,'.write':approved+' && '+admin};
+// 화면이 읽지 않는 권한 표(이메일별 역할·직원 연결)는 관리자만 읽기. 규칙 안의 root.child(...) 조회는 영향 없음.
+rules.allowedEmails['.read']=approved+' && '+admin;
+rules.leaveAccess['.read']=approved+' && '+admin;
+// 게시판: 누구나 글을 쓰되 작성자 이메일은 본인 것만, 수정·삭제는 본인 글만 (관리자는 전부).
+const mine="auth.token.email.toLowerCase()";
+rules.board={'.read':approved,'$id':{'.write':approved+" && ("+admin+" || ((!data.exists() || data.child('authorEmail').val().toLowerCase() == "+mine+") && (!newData.exists() || newData.child('authorEmail').val().toLowerCase() == "+mine+")))"}};
 module.exports={rules};

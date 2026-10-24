@@ -8,7 +8,7 @@
 // 배포 직후 이 페이지를 맡은 서비스워커가 옛 버전이면, 새 서비스워커로 바뀐 뒤 한 번만 새로고침한다.
 // (옛 서비스워커가 저장해 둔 옛 JS와 새 HTML이 섞이는 것을 막음. 버전당 한 번, 로그인 전 시점)
 (function(){
-  var PAGE_VERSION = 'v198-2026-10-24';
+  var PAGE_VERSION = 'v199-2026-10-24';
   if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) return;
   var key = 'kgm-sw-reloaded-' + PAGE_VERSION;
   try { if (sessionStorage.getItem(key)) return; } catch (e) { return; }
@@ -37,13 +37,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v198-2026-10-24">
-<link rel="stylesheet" href="ops-calendar.css?v=v198-2026-10-24">
-<script defer src="app-ops-calendar.js?v=v198-2026-10-24"></script>
-<link rel="stylesheet" href="design-refresh.css?v=v198-2026-10-24" media="screen">
+<link rel="stylesheet" href="styles.css?v=v199-2026-10-24">
+<link rel="stylesheet" href="ops-calendar.css?v=v199-2026-10-24">
+<script defer src="app-ops-calendar.js?v=v199-2026-10-24"></script>
+<link rel="stylesheet" href="design-refresh.css?v=v199-2026-10-24" media="screen">
 <style>body:not(.repair-guide-enabled) [data-repair-entry]{display:none!important}#repairGuideFrame{width:100%;min-height:750px;border:0;display:block;background:#f2f4f7}#page-repairguide .main{padding:16px}</style>
-<script src="repair-guide-config.js?v=v198-2026-10-24"></script>
-<script defer src="app-repair-guide.js?v=v198-2026-10-24"></script>
+<script src="repair-guide-config.js?v=v199-2026-10-24"></script>
+<script defer src="app-repair-guide.js?v=v199-2026-10-24"></script>
 </head>
 <body>
 
@@ -1017,11 +1017,11 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script src="app-safety.js?v=v198-2026-10-24"></script>
-<script src="leave-calculation.js?v=v198-2026-10-24"></script>
-<script type="module" src="app-module.js?v=v198-2026-10-24"></script>
+<script src="app-safety.js?v=v199-2026-10-24"></script>
+<script src="leave-calculation.js?v=v199-2026-10-24"></script>
+<script type="module" src="app-module.js?v=v199-2026-10-24"></script>
 
-<script defer src="app-pages.js?v=v198-2026-10-24"></script>
+<script defer src="app-pages.js?v=v199-2026-10-24"></script>
 
 <!-- XLSX + JSZip: 보험 미결 탭 첫 진입 시 지연 로드 -->
 <script>
@@ -1041,7 +1041,7 @@
   };
 })();
 </script>
-<script defer src="app-insurance.js?v=v198-2026-10-24"></script>
+<script defer src="app-insurance.js?v=v199-2026-10-24"></script>
 
 
 <div id="page-estimate" class="page">
@@ -2549,9 +2549,9 @@
   </div>
 </div>
 
-<script src="work-codes-data.js?v=v198-2026-10-24"></script>
-<script defer src="app-maintenance.js?v=v198-2026-10-24"></script>
-<script defer src="app-features.js?v=v198-2026-10-24"></script>
-<script defer src="app-workcodes-ui.js?v=v198-2026-10-24"></script>
+<script src="work-codes-data.js?v=v199-2026-10-24"></script>
+<script defer src="app-maintenance.js?v=v199-2026-10-24"></script>
+<script defer src="app-features.js?v=v199-2026-10-24"></script>
+<script defer src="app-workcodes-ui.js?v=v199-2026-10-24"></script>
 </body>
 </html>

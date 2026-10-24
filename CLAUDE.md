@@ -16,16 +16,33 @@ GitHub Pages로 배포되는 정적 사이트. 회사 대표 페이지 + 임원 
 /digital-card-lee/       # 이동근 정비팀장 카드
 /digital-card-yang/      # 양은주 대표이사 카드
 /digital-card-yoon/      # 윤유현 부장 카드
-/un/index.html           # 내부용 관리 페이지(싱글 HTML, ~5100 lines)
+/un/                     # 내부용 관리 페이지 (아래 "내부용 페이지" 참고)
+/un/repair-guide/        # 입고 및 수리 안내 직원 화면 (내부 페이지 안 iframe)
+/repair-guide/           # 고객이 받는 안내 화면 (공개)
+/repair-functions/       # 안내 발송용 Cloud Functions (솔라피 연동)
+/un-v2/                  # 예전 실험 디자인. 운영 /un/과 별개, 건드리지 않음
 /kakao-qr/               # 카카오톡 QR 페이지
-/CNAME                   # 커스텀 도메인 설정
+/tools/backup/           # 데이터 백업, DB 규칙 빌드·게시 도구
+/tests/                  # 회귀 테스트 (node tests/<이름>.cjs)
+/CNAME                   # 커스텀 도메인 설정 (명시적 요청 없이 변경 금지)
 ```
 
 각 디지털 명함 폴더: `index.html` + og 이미지(`og-preview-v2.png`).
 
-## 내부용 페이지 (`un/index.html`)
+## 내부용 페이지 (`/un/`)
 
-모든 기능이 단일 HTML 파일에 있음(CSS + JS 인라인). Firebase(Auth + Realtime DB + Firestore) 기반.
+빌드 도구 없는 정적 파일. Firebase(Auth + Realtime DB + Firestore) 기반. 2026-05에 단일 HTML에서 여러 파일로 나뉨.
+
+| 파일 | 역할 |
+|---|---|
+| `un/index.html` | 화면 구조·메뉴·팝업. 맨 위 인라인 코드는 서비스워커 버전 확인(배포 직후 1회 새로고침) |
+| `un/app-module.js` | ES 모듈. 로그인·역할(`ROLE_MENUS`)·실시간 구독·차량/연차/연락처 등 핵심 |
+| `un/app-pages.js` | 페이지 전환(`switchPage`), 메뉴 키보드 조작, 팝업 접근성, 사이드바 배치 |
+| `un/app-features.js` | 부가 기능, 서비스워커 등록 |
+| `un/app-insurance.js` / `app-maintenance.js` / `app-ops-calendar.js` / `app-workcodes-ui.js` | 보험 미결·긴급 정비(메뉴 숨김)·실적 달력·작업코드표 |
+| `un/styles.css` | 기본 스타일(예전 다크 테마) |
+| `un/design-refresh.css` | 화면 전용 덮어쓰기 층: 네이비 색, 상태 색 토큰(`--st-*`), 차트 색(`--c-*`), 휴대폰 배치. 색·배치 수정은 여기서 |
+| `un/sw.js` | 서비스워커. `CACHE_VERSION`과 index.html의 `?v=`·`PAGE_VERSION`을 같은 문자열로 함께 올림 |
 
 ### 역할 체계
 
@@ -33,18 +50,17 @@ Firestore `users/{email}.role` 필드:
 
 | 키 | 라벨 | 접근 메뉴 |
 |---|---|---|
-| `admin` | 👑 관리자 | 전체 |
-| `staff` | 🔧 Staff 1단계 | dashboard, complete, leave, board, estimate |
-| `viewer` | 👤 Staff 2단계 | dashboard, complete, leave, board |
+| `admin` | 👑 관리자 | 전체 (대시보드·매출 보고·보험 미결·예약 현황판·실적 달력·수리 안내·사용자 관리 포함) |
+| `staff` | 🔧 Staff 1단계 | status, complete, leave, board, estimate, insurance, vendors |
+| `viewer` | 👤 Staff 2단계 | status, complete, leave, board, vendors |
 
-관리자 전용: list(입출고), out(출고완료), stats(월별통계), migyeol(보험미결), usermgmt(사용자관리).
+정확한 목록은 `un/app-module.js`의 `ROLE_MENUS`. 라벨 상수 `_RL`/`_RD`/`_RC`와 역할 드롭다운 3곳(접근요청 승인, 승인된 사용자 편집, 승인 직전 선택)이 중복이라 라벨/옵션 변경 시 함께 수정.
 
-역할 상수는 `ROLE_MENUS` 객체(~970행) 및 `_RL`/`_RD`/`_RC`(~1135행). 역할 드롭다운은 3곳(접근요청 승인 시, 승인된 사용자 편집, 승인 직전 선택)에 중복 존재하므로 라벨/옵션 변경 시 동시 수정 필요.
+### 탭 노출과 접근
 
-### 탭 노출 로직
-
-- 기본 노출 여부: HTML의 `style="display:none"` 인라인 + 인증 완료 시 `ROLE_MENUS` 기반 루프(~1034행)가 show/hide 재설정.
-- 관리자 전용 명시적 show 블록(`setTimeout(..., 2000)` 내부, ~1120행)이 `tab-usermgmt`/`tab-leave`/`tab-board`를 다시 `display=''`로 세팅. 최근 `tab-leave`/`tab-board`는 루프만으로도 노출되므로 이 블록 중 둘은 redundant. 건드리지 않는 편이 안전.
+- 메뉴 노출: 인증 후 `ROLE_MENUS` 기반 루프가 `.nav-tab` show/hide.
+- 페이지 진입: `switchPage()`가 `window._canAccessPage()`로 막음.
+- 데이터: 메뉴 숨김만으로 막지 않는다. Firebase 규칙(`tools/backup/build-rules.cjs`)이 역할별로 막고, 화면은 읽을 수 있는 역할일 때만 구독(`authReadyOnValue(ref, next, error, ['admin'])`).
 
 ### 주요 Firebase 경로
 
@@ -148,33 +164,42 @@ Firestore `users/{email}.role` 필드:
 
 ### 사용자 관리 페이지 역할 수정
 
-`ROLE_MENUS`, `_RL`/`_RD`, 드롭다운 옵션 3곳, 역할 안내 카드 3개(~3340행) 전부 맞춰서 수정해야 드리프트 없음.
+`ROLE_MENUS`, `_RL`/`_RD`, 드롭다운 옵션 3곳, 역할 안내 카드 3개 전부 맞춰서 수정해야 드리프트 없음.
+
+### 화면 수정 후 배포 (표준 절차)
+
+1. 최신 `origin/master` 확인, 작업 브랜치에서 수정
+2. `un/index.html`의 `?v=`·`PAGE_VERSION`과 `un/sw.js`의 `CACHE_VERSION`을 같은 새 문자열로 일괄 변경 (예: `v198-2026-10-24` → `v199-...`). 안내 직원 화면을 바꿨으면 `un/repair-guide/index.html`의 `?v=`도
+3. `node --check`로 바꾼 JS 문법 확인, `tests/` 전부 실행 (`for t in tests/*.cjs; do node $t; done`)
+4. 데이터 백업(`tools/backup/safe-backup.cjs`, Firebase CLI 로그인 필요) → 롤백 태그(`rollback-before-<작업>-YYYYMMDD`) push → master fast-forward push (강제 push 금지)
+5. 1~2분 뒤 라이브 파일이 커밋과 같은지, `sw.js` 버전이 새 값인지 확인
 
 ## Firebase 보안 규칙
 
-Firebase Realtime Database 규칙은 Firebase Console에서 관리 (레포에는 없음). 새 경로 추가 시 규칙에도 등록 필요. 현재 규칙 템플릿:
+Realtime Database 규칙의 원본은 `tools/backup/build-rules.cjs` (Console에서 직접 고치지 않음). 새 최상위 경로를 쓰면 여기에 반드시 추가 (`$other`는 모두 거부 → 안 하면 `PERMISSION_DENIED`).
 
-```json
-{
-  "rules": {
-    "records":             { ".read": "auth != null", ".write": "auth != null" },
-    "leaveEmployees":      { ".read": "auth != null", ".write": "auth != null" },
-    "leaveUsage":          { ".read": "auth != null", ".write": "auth != null" },
-    "leaveRequests":       { ".read": "auth != null", ".write": "auth != null" },
-    "annualLeaveNotices":  { ".read": "auth != null", ".write": "auth != null" },
-    "board":               { ".read": "auth != null", ".write": "auth != null" },
-    "companyEvents":       { ".read": "auth != null", ".write": "auth != null" },
-    "$other":              { ".read": false, ".write": false }
-  }
-}
-```
+- 검사: `node tests/rules-policy.cjs` (역할별 읽기·쓰기 기대값)
+- 게시: 게시 직전 운영 규칙 사본을 `tools/backup/rules-before-<작업>-YYYYMMDD.json`으로 남기고
+  `node tools/backup/publish-rules.cjs --baseline <그 파일>` (점검, 쓰기 없음) → `--publish` (게시 + 재조회 확인).
+  운영 규칙이 기준 파일과 다르면 덮어쓰지 않고 멈춘다.
+- 현재 원칙: 승인된 사용자(admin/staff/viewer)만 읽기. 매출·보증금·KGM 대수·월 목표·보험 미결·권한 표는 관리자만.
+  거래처는 공개 범위별 저장 위치(`vendorContacts` / `vendorContactsStaff` / `vendorContactsAdmin`), 연락처 쓰기는 관리자만.
+  게시판은 본인 글만 수정·삭제.
 
 Console: https://console.firebase.google.com/project/unmotors/database/unmotors-default-rtdb/rules
 
-신규 컬렉션 추가 시 여기 블록 추가 안 하면 `PERMISSION_DENIED` 에러 발생.
+## 다른 컴퓨터에서 작업할 때
+
+- 코드는 이 저장소에 모두 있다. `git clone` 후 바로 수정 가능. 배포는 GitHub push 권한(`gh auth login`) 필요.
+- 백업·규칙 도구는 Firebase CLI(`npm i -g firebase-tools`, `firebase login`) 필요.
+- 브라우저 테스트(Playwright)는 현재 사무실 PC의 Codex 실행 환경 경로를 쓴다. 다른 PC에서는 Playwright 설치가 필요.
+- 상세 작업 기록·운영 지침(`CODEX.md`, 바탕화면 `KGM견적/CLAUDE.md`)은 로컬 전용이라 저장소에 없다. 백업 데이터(고객 정보 포함)는 절대 커밋하지 않는다.
 
 ## 알려진 제약
 
-- `switchPage()`에 권한 가드 없음. 현재는 nav-tab의 `display:none`으로 차단되지만, 프로그래매틱 호출은 막히지 않음. 위험한 엔트리포인트(대시보드의 직접 이동 버튼 등)가 생기면 가드 추가 필요.
+- 서비스워커는 `?v=`가 자기 버전과 같을 때만 저장본을 쓴다. 버전 문자열을 안 올리면 예전 파일이 계속 나온다.
+- `styles.css`의 대시보드 전용 규칙(`body:has(#page-dashboard.active) ...`)이 더 강해서, 공통 수정이 대시보드에서만 안 먹을 수 있다. design-refresh.css에 대시보드 선택자를 함께 적는다.
+- Windows Git Bash `sed -i`는 CRLF 파일 줄끝을 바꿀 수 있다. 큰 치환은 node 스크립트로.
+- 이 폴더는 다른 Windows 계정 소유라 `git`이 거부하면 `git -c safe.directory=<경로> ...`로 실행 (전역 설정 변경 대신).
 - `statusBadge`처럼 흔한 이름은 이미 다른 용도로 선점된 경우가 많음 — 신규 함수는 도메인 prefix(`reqStatusBadge`, `noticeStatusBadge` 등) 붙일 것. 동명 선언 시 ES6 module 전체 파싱 실패로 앱 전체가 "Firebase 연결 중..."에서 멈춤.
 - 큰 JS 추가 후 푸시 전 **`node --check`로 syntax 검증 필수** (MEMORY 참고).

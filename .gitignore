@@ -20,3 +20,7 @@ Thumbs.db
 # 임시
 *.log
 *.tmp
+
+# 로컬 전용 작업 기록 (사이트로 공개되지 않게)
+CODEX.md
+CODEX.before-*.md
