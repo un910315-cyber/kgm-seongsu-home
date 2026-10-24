@@ -2981,75 +2981,38 @@
     const monthNo = Math.max(1, Math.min(12, targetMonth || currentMonth));
     const current = monthlyData[monthNo - 1] || { total: 0, mKgm: 0, mDom: 0, mFor: 0 };
     const prevDate = new Date(Number(opts.year), monthNo - 2, 1);
-    const prevPrefix = prevDate.getFullYear() + '-' + String(prevDate.getMonth() + 1).padStart(2, '0');
-    const prevTotal = (opts.allList || []).filter(r => (r.inDate || '').startsWith(prevPrefix)).length;
-    const diff = current.total - prevTotal;
-    const daysInMonth = new Date(Number(opts.year), monthNo, 0).getDate();
-    const isCurrentMonth = opts.year === currentYear && monthNo === currentMonth;
-    const elapsedDays = isCurrentMonth ? Math.max(1, Math.min(now.getDate(), daysInMonth)) : daysInMonth;
-    const remainingDays = isCurrentMonth ? Math.max(0, daysInMonth - elapsedDays) : 0;
-    const targetClose = isCurrentMonth ? current.total + remainingDays : current.total;
+    const ym = (y, m) => y + '-' + String(m).padStart(2, '0');
+    const monthPrefix = ym(opts.year, monthNo);
+    const prevPrefix = ym(prevDate.getFullYear(), prevDate.getMonth() + 1);
     const best = monthlyData.reduce((top, item) => item.total > top.total ? item : top, monthlyData[0]);
     const kgmPct = current.total ? Math.round((current.mKgm / current.total) * 100) : 0;
-    const diffClass = diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat';
-    const diffText = prevTotal ? (diff > 0 ? '+' : '') + diff + '대' : '전월 없음';
-    const diffMeta = prevTotal ? '전월 ' + prevTotal + '대 기준' : '비교 데이터 대기';
     const monthLabel = monthNo + '월';
     const bestLabel = (best && best.total) ? best.m + '월 ' + best.total + '대' : '-';
 
-    // 월 목표 타일 — 현재월: 실제 목표 비교(달성 시 축하), 다른 월: 마감 대수
-    let targetTile;
-    if (isCurrentMonth) {
-      const ymKey = currentYear + '-' + String(currentMonth).padStart(2, '0');
-      const target = Number((window._monthlyTargetMap || {})[ymKey]) || 0;
-      if (target > 0) {
-        const pct = Math.round((current.total / target) * 100);
-        if (current.total >= target) {
-          const over = current.total - target;
-          targetTile = {
-            cls: 'forecast achieved',
-            label: '🎉 목표 달성!',
-            value: current.total + ' / ' + target + '대',
-            meta: over > 0 ? '+' + over + '대 초과 · ' + pct + '%' : '딱 목표 달성 · 100%',
-            clickable: true
-          };
-        } else {
-          targetTile = {
-            cls: 'forecast',
-            label: '월 목표',
-            value: current.total + ' / ' + target + '대',
-            meta: pct + '% · ' + (target - current.total) + '대 남음',
-            clickable: true
-          };
-        }
-      } else {
-        targetTile = {
-          cls: 'forecast unset',
-          label: '월 목표',
-          value: '미설정',
-          meta: '관리자: 클릭해 설정',
-          clickable: true
-        };
-      }
-    } else {
-      targetTile = {
-        cls: 'forecast',
-        label: '마감 대수',
-        value: current.total + '대',
-        meta: '선택월 기준',
-        clickable: false
-      };
-    }
+    // 출고 완료: 그 달에 실제 출고(출고·미수리 출고)된 차량. 출고 예정 차량의 outDate(예정일)는 세지 않는다.
+    const isOut = r => r.status === '출고' || r.status === '미수리 출고';
+    const outsIn = prefix => (opts.allList || []).filter(r => isOut(r) && (r.outDate || '').startsWith(prefix));
+    const outs = outsIn(monthPrefix);
+    // 평균 수리 기간: 그 달에 출고된 차량의 입고일→출고일 일수 평균 (미수리 출고·날짜 오류 제외)
+    const avgDays = list => {
+      const days = list.filter(r => r.status === '출고' && r.inDate)
+        .map(r => (new Date(r.outDate) - new Date(r.inDate)) / 86400000)
+        .filter(d => Number.isFinite(d) && d >= 0);
+      return days.length ? { avg: days.reduce((a, b) => a + b, 0) / days.length, n: days.length } : null;
+    };
+    const cur = avgDays(outs), prev = avgDays(outsIn(prevPrefix));
+    const daysTile = cur
+      ? { cls: 'days', label: '평균 수리 기간', value: cur.avg.toFixed(1) + '일',
+          meta: prev ? '전월 ' + prev.avg.toFixed(1) + '일' : '출고 ' + cur.n + '대 기준' }
+      : { cls: 'days', label: '평균 수리 기간', value: '-', meta: '이달 출고 없음' };
 
     bar.innerHTML = [
-      { cls: 'now', label: monthLabel + ' 현재', value: current.total + '대', meta: 'KGM 비중 ' + kgmPct + '%' },
-      { cls: diffClass, label: '전월 대비', value: diffText, meta: diffMeta },
-      targetTile,
+      { cls: 'now', label: monthLabel + ' 입고', value: current.total + '대', meta: 'KGM 비중 ' + kgmPct + '%' },
+      { cls: 'out', label: monthLabel + ' 출고', value: outs.length + '대', meta: '같은 달 입고 ' + current.total + '대' },
+      daysTile,
       { cls: 'best', label: '올해 최고월', value: bestLabel, meta: '월별 입고 피크' }
     ].map(item => (
-      '<div class="monthly-insight-item ' + item.cls + '"'
-        + (item.clickable ? ' onclick="window._setMonthlyTargetPrompt&&window._setMonthlyTargetPrompt()" style="cursor:pointer;"' : '')
-        + '>' +
+      '<div class="monthly-insight-item ' + item.cls + '">' +
         '<span>' + item.label + '</span>' +
         '<strong>' + item.value + '</strong>' +
         '<em>' + item.meta + '</em>' +
@@ -3236,22 +3199,13 @@
       const domPct = Math.round(domestic.length/periodData.length*100);
       const forPct = Math.round(foreign.length/periodData.length*100);
       const hyPct = Math.round(hyundai.length/periodData.length*100);
-      const unPct = Math.max(0, 100 - kgmPct - domPct - forPct - hyPct);
-      bar.innerHTML = `
-        <div style="display:flex;border-radius:8px;overflow:hidden;height:36px;margin-bottom:12px;">
-          ${kgmPct ? `<div style="width:${kgmPct}%;background:var(--c-kgm, var(--accent));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#000;">KGM ${kgmPct}%</div>` : ''}
-          ${domPct ? `<div style="width:${domPct}%;background:var(--c-dom, var(--blue));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#000;">국산 ${domPct}%</div>` : ''}
-          ${forPct ? `<div style="width:${forPct}%;background:var(--c-for, var(--red));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0b1a12;">외산 ${forPct}%</div>` : ''}
-          ${hyPct ? `<div style="width:${hyPct}%;background:var(--c-hy, #f59e0b);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0b1a12;">현대해상 ${hyPct}%</div>` : ''}
-          ${unPct > 0 ? `<div style="width:${unPct}%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-dim);">미분류</div>` : ''}
-        </div>
-        <div style="display:flex;gap:16px;flex-wrap:wrap;">
-          <span style="font-size:12px;color:var(--c-kgm, var(--accent));">■ KGM ${kgm.length}대</span>
-          <span style="font-size:12px;color:var(--c-dom, var(--blue));">■ 국산차 ${domestic.length}대</span>
-          <span style="font-size:12px;color:var(--c-for, var(--red));">■ 외산차 ${foreign.length}대</span>
-          <span style="font-size:12px;color:var(--c-hy, #f59e0b);">■ 현대해상 ${hyundai.length}대</span>
-          ${uncat.length ? `<span style="font-size:12px;color:var(--text-dim);">■ 미분류 ${uncat.length}대</span>` : ''}
-        </div>`;
+      bar.innerHTML = _ratioBarHtml([
+        { label: 'KGM', count: kgm.length, pct: kgmPct, color: 'var(--c-kgm, var(--accent))' },
+        { label: '국산차', count: domestic.length, pct: domPct, color: 'var(--c-dom, var(--blue))' },
+        { label: '외산차', count: foreign.length, pct: forPct, color: 'var(--c-for, var(--red))' },
+        { label: '현대해상', count: hyundai.length, pct: hyPct, color: 'var(--c-hy, #f59e0b)' },
+        { label: '미분류', count: uncat.length, pct: Math.max(0, 100 - kgmPct - domPct - forPct - hyPct), color: 'var(--border)' }
+      ], 32);
     } else if (bar) {
       bar.innerHTML = `<div style="color:var(--text-dim);text-align:center;padding:20px;">데이터가 없습니다</div>`;
     }
@@ -3270,22 +3224,41 @@
         const tmTot = tmData.length;
         const pct = (n) => Math.round(n / tmTot * 100);
         const kP = pct(tmKgm), dP = pct(tmDom), fP = pct(tmFor), hP = pct(tmHy);
-        const uP = Math.max(0, 100 - kP - dP - fP - hP);
         const moLabel = (now.getMonth() + 1) + '월';
-        tmBar.innerHTML = `
-          <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;font-weight:600;letter-spacing:.3px;">이번 달(${moLabel}) 차량 구분 · 총 ${tmTot}대</div>
-          <div style="display:flex;border-radius:6px;overflow:hidden;height:26px;">
-            ${kP ? `<div style="width:${kP}%;background:var(--c-kgm, var(--accent));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#000;">KGM ${tmKgm} (${kP}%)</div>` : ''}
-            ${dP ? `<div style="width:${dP}%;background:var(--c-dom, var(--blue));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#000;">국산 ${tmDom} (${dP}%)</div>` : ''}
-            ${fP ? `<div style="width:${fP}%;background:var(--c-for, var(--red));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0b1a12;">외산 ${tmFor} (${fP}%)</div>` : ''}
-            ${hP ? `<div style="width:${hP}%;background:var(--c-hy, #f59e0b);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#0b1a12;">현대해상 ${tmHy} (${hP}%)</div>` : ''}
-            ${uP > 0 ? `<div style="width:${uP}%;background:var(--border);"></div>` : ''}
-          </div>`;
+        tmBar.innerHTML = `<div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;font-weight:600;letter-spacing:.3px;">이번 달(${moLabel}) 차량 구분 · 총 ${tmTot}대</div>`
+          + _ratioBarHtml([
+            { label: 'KGM', count: tmKgm, pct: kP, color: 'var(--c-kgm, var(--accent))' },
+            { label: '국산', count: tmDom, pct: dP, color: 'var(--c-dom, var(--blue))' },
+            { label: '외산', count: tmFor, pct: fP, color: 'var(--c-for, var(--red))' },
+            { label: '현대해상', count: tmHy, pct: hP, color: 'var(--c-hy, #f59e0b)' },
+            { label: '미분류', count: tmTot - tmKgm - tmDom - tmFor - tmHy, pct: Math.max(0, 100 - kP - dP - fP - hP), color: 'var(--border)' }
+          ], 24);
       } else {
         tmBar.innerHTML = `<div style="font-size:11px;color:var(--text-dim);text-align:center;padding:6px 0;">이번 달 입고 데이터 없음</div>`;
       }
     }
   }
+  // 차량 구분 비율 막대: 칸이 넓을 때만 안에 글씨를 쓰고(좁은 칸에서 "현대해상" 등이 잘리던 문제),
+  // 모든 구분은 아래 범례에 대수·비율을 함께 적는다. 0대인 구분은 막대·범례에서 뺀다. (label은 코드의 고정 문구)
+  function _ratioBarHtml(parts, height) {
+    const shown = parts.filter(p => p.count > 0);
+    const total = shown.reduce((sum, p) => sum + p.count, 0) || 1;
+    const segs = shown.map(p => {
+      const inside = p.pct >= 16 ? p.label + ' ' + p.pct + '%' : '';
+      // 폭은 반올림 전 실제 비율로 (반올림 합이 100이 안 돼 끝에 빈칸이 생기지 않게)
+      return '<div title="' + p.label + ' ' + p.count + '대 (' + p.pct + '%)" style="width:' + (p.count / total * 100).toFixed(2) + '%;background:' + p.color
+        + ';display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:#0b1220;white-space:nowrap;overflow:hidden;">' + inside + '</div>';
+    }).join('');
+    const legend = parts.filter(p => p.count > 0).map(p =>
+      '<span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-body,#dce3ed);white-space:nowrap;">'
+        + '<i style="width:9px;height:9px;border-radius:2px;background:' + p.color + ';display:inline-block;"></i>'
+        + p.label + ' <b style="font-variant-numeric:tabular-nums;">' + p.count + '대</b>'
+        + '<span style="color:var(--text-dim);font-variant-numeric:tabular-nums;">' + p.pct + '%</span></span>'
+    ).join('');
+    return '<div style="display:flex;border-radius:6px;overflow:hidden;height:' + height + 'px;margin-bottom:10px;">' + segs + '</div>'
+      + '<div style="display:flex;gap:8px 16px;flex-wrap:wrap;">' + legend + '</div>';
+  }
+
   window.renderStats = renderStats;
   window.initYearSelect = initYearSelect;
 

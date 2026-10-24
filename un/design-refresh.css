@@ -220,6 +220,9 @@
   :root { --c-kgm: #a48cf0; --c-dom: #6f9bd8; --c-for: #4fb3a2; --c-hy: #d9a54c; }
   body #page-dashboard .monthly-stats-card thead th { color: #b4c0d2 !important; }
   body #page-dashboard #stats-summary .stat-card::after { display: none; }
+  /* v201: 월별 통계 아래 상자 — 전월 대비·월 목표 대신 출고 대수와 평균 수리 기간 */
+  body #page-dashboard .monthly-insight-item.out { --insight-color: var(--st-done); }
+  body #page-dashboard .monthly-insight-item.days { --insight-color: var(--st-work); }
   body .stats-datacheck {
     background: transparent !important; border: 0 !important; border-top: 1px solid #2b3544 !important;
     border-radius: 0 !important; padding: 8px 0 !important;
