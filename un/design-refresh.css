@@ -152,7 +152,7 @@
   }
   body .ops-location::before, body .ops-status::before { box-shadow: none !important; }
   /* Status colors v192: one set shared by list chips, badges, the status picker and dashboard.
-     Color is for status only; locations are neutral and grouped by border style. */
+     Locations have their own colors since v202 (see the --loc-* block below). */
   :root {
     --st-in: #a9b4c3;
     --st-wait: #e0b25a;
@@ -195,21 +195,38 @@
     border-color: var(--st-today) !important;
   }
   body :is(.ops-status.status-출고, .ops-status.status-미수리출고, .badge-out, .badge-out-norepair) { color: #9aa3b1 !important; }
-  body :is(.ops-location:not(.empty), .loc-badge) {
-    --chip-color: #d2d9e3 !important;
-    color: #d2d9e3 !important;
-    background: #1f2835 !important;
-    border: 1px solid #3a4658 !important;
+  /* v202: 위치도 위치마다 색으로 구분 (v192의 회색 위치가 눈에 안 들어온다는 요청).
+     예전 위치 색의 색상은 그대로 두고 화면 톤에 맞게 낮췄다. 대기중은 점선, 보관 층(1층·5층·지하)은 바탕을 더 옅게.
+     상태 칩과 달리 앞 점이 없어 두 칸이 섞여 보이지 않는다. */
+  :root {
+    --loc-1f: #a99bf0; --loc-panel: #ec8fb6; --loc-paint: #f0985c; --loc-mech: #4cc79a;
+    --loc-paint-wait: #e6b54f; --loc-asm-wait: #44c5c0; --loc-asm: #a7cf55;
+    --loc-5f: #72a8ec; --loc-b1: #a3afc0;
   }
+  body :is(.ops-location, .loc-badge, .loc-pick-btn) { --loc: var(--loc-b1); }
+  body :is(.ops-location, .loc-badge, .loc-pick-btn):is([data-loc="1층"], [data-val="1층"]) { --loc: var(--loc-1f); }
+  body :is(.ops-location, .loc-badge, .loc-pick-btn):is([data-loc="판금"], [data-val="판금"]) { --loc: var(--loc-panel); }
+  body :is(.ops-location, .loc-badge, .loc-pick-btn):is([data-loc="도장"], [data-val="도장"]) { --loc: var(--loc-paint); }
+  body :is(.ops-location, .loc-badge, .loc-pick-btn):is([data-loc="정비"], [data-val="정비"]) { --loc: var(--loc-mech); }
+  body :is(.ops-location, .loc-badge, .loc-pick-btn):is([data-loc="도장대기중"], [data-val="도장대기중"]) { --loc: var(--loc-paint-wait); }
+  body :is(.ops-location, .loc-badge, .loc-pick-btn):is([data-loc="조립대기중"], [data-val="조립대기중"]) { --loc: var(--loc-asm-wait); }
+  body :is(.ops-location, .loc-badge, .loc-pick-btn):is([data-loc="조립중"], [data-val="조립중"]) { --loc: var(--loc-asm); }
+  body :is(.ops-location, .loc-badge, .loc-pick-btn):is([data-loc="5층"], [data-val="5층"]) { --loc: var(--loc-5f); }
+  body :is(.ops-location:not(.empty), .loc-badge, .loc-pick-btn) {
+    --chip-color: var(--loc) !important;
+    color: var(--loc) !important;
+    background: color-mix(in srgb, var(--loc) 17%, #171e29) !important;
+    border-color: color-mix(in srgb, var(--loc) 52%, #171e29) !important;
+  }
+  body :is(.ops-location:not(.empty), .loc-badge) { border-width: 1px !important; border-style: solid !important; }
   body .ops-location:not(.empty)::before { display: none; }
   body :is(.ops-location, .loc-badge, .loc-pick-btn):is([data-loc="도장대기중"], [data-loc="조립대기중"], [data-val="도장대기중"], [data-val="조립대기중"]) {
-    border-style: dashed !important; border-color: #6b7a90 !important;
+    border-style: dashed !important; border-color: color-mix(in srgb, var(--loc) 70%, #171e29) !important;
   }
   body :is(.ops-location, .loc-badge, .loc-pick-btn):is([data-loc="1층"], [data-loc="5층"], [data-loc="지하"], [data-val="1층"], [data-val="5층"], [data-val="지하"]) {
-    background: transparent !important; border-color: #2c3646 !important; color: #b3bdca !important;
+    background: color-mix(in srgb, var(--loc) 9%, #171e29) !important;
   }
-  body .ops-location:not(.empty):hover { border-color: #8593a8 !important; }
-  body .loc-pick-btn { color: #d2d9e3 !important; background: #1f2835 !important; border-color: #3a4658 !important; }
+  body .ops-location:not(.empty):hover { border-color: var(--loc) !important; }
   body .loc-pick-btn.active { outline: 2px solid #e8edf5; outline-offset: 2px; }
   body .page .dashboard-kpi-card .stat-card.purple::after { background: var(--st-wait) !important; opacity: 1; }
   body .page .dashboard-kpi-card .stat-card.blue::after { background: var(--st-work) !important; opacity: 1; }
