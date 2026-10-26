@@ -713,6 +713,8 @@
       if (inp && inp.value) window._checkBlacklistWarning();
     }
     if (typeof window._renderBlacklist === 'function') window._renderBlacklist();
+    // 목록의 블랙 표시도 다시 그림 (차량 기록을 받은 뒤에만)
+    if (Object.keys(records).length) refreshAll();
     // 블랙 목록이 갱신되면 알림도 다시 계산 (새로 블랙 등록된 차량이 이미 입고 중인 경우 포함)
     if (typeof window._refreshBlacklistAlerts === 'function') window._refreshBlacklistAlerts(true);
   }, (err) => { console.warn('blacklist subscribe', err); });
@@ -731,7 +733,7 @@
     var currentlyIn = [];
     Object.entries(records || {}).forEach(function(kv){
       var r = kv[1] || {};
-      if (r.status === '출고') return;
+      if (r.status === '출고' || r.status === '미수리 출고') return;
       var key = normalizeCarNum(r.carNum || '');
       if (!key) return;
       if (blacklistMap[key]) {
@@ -1967,6 +1969,21 @@
     const c = colors[loc]||'#94a3b8';
     return `<span class="loc-badge" data-loc="${esc(loc)}" style="display:inline-block;white-space:nowrap;background:${c}22;color:${c};padding:2px 10px;border-radius:5px;font-size:12px;font-weight:700;border:1px solid ${c}44;">${loc}</span>`;
   }
+  // 블랙 등록 차량 표시 (목록 차량번호 아래·상세 팝업). 사유는 관리자에게만, 관리자는 눌러서 블랙 관리로 이동.
+  function blacklistTag(carNum) {
+    const e = window._getBlacklistEntry(carNum);
+    if (!e) return '';
+    const admin = window._isAdmin();
+    const title = admin ? '블랙 등록 차량 — ' + (e.reason || '사유 미입력') + ' (누르면 블랙 관리)' : '블랙 등록 차량';
+    return `<span class="bl-car-badge" title="${esc(title)}"${admin ? ` role="button" tabindex="0" onclick="switchPage('blacklist')"` : ''}>블랙</span>`;
+  }
+  function blacklistDetailNote(carNum) {
+    const e = window._getBlacklistEntry(carNum);
+    if (!e || !window._isAdmin()) return '';
+    const sev = e.severity === 'high' ? '높음' : e.severity === 'low' ? '낮음' : '중간';
+    const added = e.addedAt ? String(e.addedAt).slice(0, 10) : '-';
+    return `<div class="bl-detail-note"><b>블랙 등록 차량</b> · 심각도 ${sev} · 등록일 ${esc(added)}<div>${esc(e.reason || '사유 미입력')}</div></div>`;
+  }
   function insBadge(val, label) {
     if (!val) return `<span style="color:var(--text-dim);font-size:12px;">-</span>`;
     return `<span style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap;"><span style="font-size:10px;color:var(--text-dim);">${esc(label)}</span><span style="background:rgba(75,156,255,0.12);color:var(--blue);padding:2px 7px;border-radius:5px;font-size:12px;white-space:nowrap;">${esc(val)}</span></span>`;
@@ -2262,7 +2279,7 @@
       recentTbody.innerHTML = recent.length ? recent.map(r => `
         <tr>
           <td>${fmt(r.inDate)}</td>
-          <td><span class="car-num" tabindex="0" role="button" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">${esc(r.carNum)}</span></td>
+          <td><span class="car-num" tabindex="0" role="button" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">${esc(r.carNum)}</span>${blacklistTag(r.carNum)}</td>
           <td>${esc(r.carModel)||'-'}</td>
           <td>${statusQuickCell(r.id, r.status)}</td>
         </tr>`).join('') : `<tr><td colspan="4" class="empty" style="padding:22px">최근 입고 차량이 없습니다</td></tr>`;
@@ -2280,7 +2297,7 @@
     const pg = _paginate('dashboard', show, dq + '|' + dLoc + '|' + dSt);
     tbody.innerHTML = pg.pageData.map(r => `
       <tr class="${r.carType === '현대해상' ? 'hyundai-partner-row' : ''}">
-        <td><span class="car-num" tabindex="0" role="button" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span>${r.carType === '현대해상' ? '<span class="hyundai-partner-badge">현대해상</span>' : ''}</td>
+        <td><span class="car-num" tabindex="0" role="button" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span>${r.carType === '현대해상' ? '<span class="hyundai-partner-badge">현대해상</span>' : ''}${blacklistTag(r.carNum)}</td>
         <td>${esc(r.carModel)||'-'}</td>
         <td>${phoneCell(r.phone)}</td>
         <td>${locationQuickCell(r.id, r.location, r.status)}</td>
@@ -2546,7 +2563,7 @@
     const pg = _paginate('list', data, q + '|' + fs);
     tbody.innerHTML = pg.pageData.map(r => `
       <tr class="${r.carType === '현대해상' ? 'hyundai-partner-row' : ''}">
-        <td><span class="car-num" tabindex="0" role="button" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">${esc(r.carNum)}</span>${r.carType === '현대해상' ? '<span class="hyundai-partner-badge">현대해상</span>' : ''}</td>
+        <td><span class="car-num" tabindex="0" role="button" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">${esc(r.carNum)}</span>${r.carType === '현대해상' ? '<span class="hyundai-partner-badge">현대해상</span>' : ''}${blacklistTag(r.carNum)}</td>
         <td>${esc(r.carModel)||'-'}</td>
         <td>${phoneCell(r.phone)}</td>
         <td>${locationBadge(r.location, r.status)}</td>
@@ -2587,7 +2604,7 @@
     const pg = _paginate('out', data, q + '|' + month);
     tbody.innerHTML = pg.pageData.map(r => `
       <tr>
-        <td><span class="car-num" tabindex="0" role="button" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span></td>
+        <td><span class="car-num" tabindex="0" role="button" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span>${blacklistTag(r.carNum)}</td>
         <td>${esc(r.carModel)||'-'}</td>
         <td>${phoneCell(r.phone)}</td>
         <td>${insBadge(r.insDaemul,'대물')}</td>
@@ -2616,7 +2633,7 @@
     empty.style.display='none';
     tbody.innerHTML = data.map(r => `
       <tr class="${r.carType === '현대해상' ? 'hyundai-partner-row' : ''}">
-        <td><span class="car-num" tabindex="0" role="button" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span>${r.carType === '현대해상' ? '<span class="hyundai-partner-badge">현대해상</span>' : ''}</td>
+        <td><span class="car-num" tabindex="0" role="button" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span>${r.carType === '현대해상' ? '<span class="hyundai-partner-badge">현대해상</span>' : ''}${blacklistTag(r.carNum)}</td>
         <td>${esc(r.carModel)||'-'}</td>
         <td>${phoneCell(r.phone)}</td>
         <td>${locationQuickCell(r.id, r.location, r.status)}</td>
@@ -3301,7 +3318,9 @@
           ${statusBadge(r.status)}
           ${typeBadge}
           ${r.location ? locationBadge(r.location, '') : ''}
+          ${blacklistTag(r.carNum)}
         </div>
+        ${blacklistDetailNote(r.carNum)}
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
         ${detailRow(' 차종', esc(r.carModel)||'-')}

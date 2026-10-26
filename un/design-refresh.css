@@ -228,6 +228,22 @@
   }
   body .ops-location:not(.empty):hover { border-color: var(--loc) !important; }
   body .loc-pick-btn.active { outline: 2px solid #e8edf5; outline-offset: 2px; }
+  /* v203: 블랙 등록 차량 표시 — 목록 차량번호 아래 작은 꼬리표, 상세 팝업은 관리자에게 사유 상자 */
+  body .bl-car-badge {
+    display: block; width: max-content; margin-top: 5px; padding: 2px 8px; border-radius: 5px;
+    background: color-mix(in srgb, #e8442a 20%, #171e29); border: 1px solid color-mix(in srgb, #e8442a 65%, #171e29);
+    color: #ff9c88; font-size: 11px; font-weight: 800; line-height: 1.4; white-space: nowrap;
+  }
+  body .bl-car-badge[role="button"] { cursor: pointer; }
+  body .bl-car-badge[role="button"]:hover { border-color: #e8442a; }
+  body #detailContent .bl-car-badge { display: inline-flex; align-items: center; margin-top: 0; font-size: 12px; padding: 3px 12px; border-radius: 20px; }
+  body .bl-detail-note {
+    margin: 12px auto 0; max-width: 420px; padding: 10px 12px; text-align: left; border-radius: 8px;
+    background: color-mix(in srgb, #e8442a 12%, #171e29); border: 1px solid color-mix(in srgb, #e8442a 45%, #171e29);
+    border-left: 3px solid #e8442a; color: #e9edf3; font-size: 12px; line-height: 1.6;
+  }
+  body .bl-detail-note b { color: #ff9c88; }
+  body .bl-detail-note div { margin-top: 4px; white-space: pre-wrap; word-break: keep-all; }
   body .page .dashboard-kpi-card .stat-card.purple::after { background: var(--st-wait) !important; opacity: 1; }
   body .page .dashboard-kpi-card .stat-card.blue::after { background: var(--st-work) !important; opacity: 1; }
   body .page .dashboard-kpi-card .stat-card.green::after { background: var(--st-done) !important; opacity: 1; }
