@@ -43,8 +43,9 @@ rules.vendorContacts={'.read':approved,'$id':{...adminWrite,'.validate':"!newDat
 rules.vendorContactsStaff={'.read':approved+' && '+staffUp,'$id':{...adminWrite,'.validate':"newData.child('visibility').val() == 'staff'"}};
 rules.vendorContactsAdmin={'.read':approved+' && '+admin,'$id':{...adminWrite,'.validate':"newData.child('visibility').val() == 'admin'"}};
 rules.insuranceContacts={'.read':approved,'$id':{...adminWrite}};
-// 2026-10-28 견적검색 공임표(BOLT 공임 금액 포함): 견적도우미를 쓰는 관리자·Staff 1단계만 읽고, 공임표 올리기는 관리자만.
-rules.laborCodes={'.read':approved+' && '+staffUp,'.write':approved+' && '+admin};
+// 2026-10-28 견적검색 공임표(BOLT 공임 금액 포함): 견적도우미를 쓰는 관리자·Staff 1단계만 읽는다.
+// 화면에서는 아무도 못 바꾼다 (v205에서 올리기 버튼 제거). 갱신은 소유자가 Firebase CLI로만.
+rules.laborCodes={'.read':approved+' && '+staffUp,'.write':false};
 // 2026-10-24 보안 점검: 화면에서 관리자만 다루는 매출·보증금·KGM 대수·월 목표·보험 미결은 읽기·쓰기 모두 관리자만.
 for(const key of ['salesDaily','monthlyDeposit','kgmDailyCount','monthlyTarget','aosClaims'])rules[key]={'.read':approved+' && '+admin,'.write':approved+' && '+admin};
 // 화면이 읽지 않는 권한 표(이메일별 역할·직원 연결)는 관리자만 읽기. 규칙 안의 root.child(...) 조회는 영향 없음.

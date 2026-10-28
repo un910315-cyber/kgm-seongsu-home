@@ -1,5 +1,6 @@
 // 견적도우미 > 견적검색: KGM 전체 공임코드를 코드 숫자·한글 작업명·초성으로 검색.
-// 공임표(금액 포함)는 공개 저장소에 두지 않고 Firebase laborCodes에 저장한다 (읽기: 관리자·Staff 1단계, 올리기: 관리자).
+// 공임표(금액 포함)는 공개 저장소에 두지 않고 Firebase laborCodes에 저장한다 (읽기: 관리자·Staff 1단계).
+// 화면에는 올리기 기능이 없다. 갱신은 소유자가 Firebase CLI로 parseWorkbook → encode 결과를 laborCodes에 넣는다.
 (function(root){
  'use strict';
  const COLS=['code','name','category','manHour','general','insurance','warranty','status','warrantyStatus','jobType'];
@@ -128,7 +129,6 @@
  const state={phase:'idle',error:'',meta:null,index:[],query:'',includeUnused:false,category:'',limit:PAGE,timer:0};
  let dbMod=null,built=false;
  function notify(t,bad){if(root.showNotif)root.showNotif(t,bad);else alert(t);}
- function isAdmin(){return root._userRole==='admin';}
  function waitDb(){
   return new Promise(resolve=>{const tick=()=>{if(root._fbDb&&root._fbRef)resolve();else setTimeout(tick,300);};tick();})
    .then(()=>dbMod||import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js').then(m=>(dbMod=m)));
@@ -155,8 +155,7 @@
   render();
  }
  function build(host){
-  host.innerHTML='<div class="lab-head"><div><h2>견적검색</h2><p>KGM 공임코드를 코드 숫자나 작업명으로 찾아요. 코드를 누르면 복사돼요.</p></div>'
-   +'<div class="lab-admin" id="labAdmin" hidden><input type="file" id="labFile" accept=".xlsx,.xls" hidden><button type="button" class="btn btn-ghost" id="labUploadBtn">공임표 엑셀 올리기</button></div></div>'
+  host.innerHTML='<div class="lab-head"><div><h2>견적검색</h2><p>KGM 공임코드를 코드 숫자나 작업명으로 찾아요. 코드를 누르면 복사돼요.</p></div></div>'
    +'<div class="lab-searchbar"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>'
    +'<input id="labQuery" type="search" autocomplete="off" spellcheck="false" enterkeyhint="search" aria-label="공임코드 검색" placeholder="작업코드 또는 작업명 (예: 8228800, 앞범퍼 탈부착, ㅇㅂㅍ)">'
    +'<button type="button" class="lab-clear" id="labClear" aria-label="검색어 지우기" hidden>×</button></div>'
@@ -169,8 +168,6 @@
   el('labClear').addEventListener('click',()=>{q.value='';setQuery('');q.focus();});
   el('labUnused').addEventListener('change',e=>{state.includeUnused=e.target.checked;state.category='';state.limit=PAGE;render();});
   el('labMore').addEventListener('click',()=>{state.limit+=PAGE;render();});
-  el('labUploadBtn').addEventListener('click',()=>el('labFile').click());
-  el('labFile').addEventListener('change',e=>{const f=e.target.files[0];e.target.value='';if(f)upload(f);});
   host.addEventListener('click',e=>{
    const code=e.target.closest('[data-lab-copy]');if(code){copy(code.dataset.labCopy);return;}
    const cat=e.target.closest('[data-lab-cat]');if(cat){state.category=cat.dataset.labCat;state.limit=PAGE;render();return;}
@@ -208,7 +205,6 @@
  function render(){
   const host=el('estimateLaborSearchView');if(!host)return;
   if(!built){build(host);built=true;}
-  el('labAdmin').hidden=!isAdmin();
   el('labClear').hidden=!state.query;
   const status=el('labStatus'),results=el('labResults'),cats=el('labCats'),more=el('labMore'),note=el('labNote');
   more.hidden=true;cats.innerHTML='';
@@ -216,7 +212,7 @@
   note.textContent=meta?('BOLT 견적작성 작업검색 '+(meta.extractedAt||'').replace(/\s*\(한국시간\)/,'')+' 추출본. 금액 기준: '+(meta.basis||'표시 없음')+'. 차량·기준일이 달라지면 금액이 다를 수 있어요. 금액이 —인 코드는 BOLT에서 금액이 오지 않은 코드예요.'):'';
   if(state.phase==='loading'||state.phase==='idle'){status.textContent='공임표를 불러오는 중…';results.innerHTML='';return;}
   if(state.phase==='error'){status.textContent='';results.innerHTML='<div class="lab-empty">'+esc(state.error)+'</div>';return;}
-  if(state.phase==='empty'){status.textContent='';results.innerHTML='<div class="lab-empty">아직 올라온 공임표가 없어요.<br>'+(isAdmin()?'오른쪽 위 <b>공임표 엑셀 올리기</b>로 공임표 파일을 올려주세요.':'관리자에게 공임표를 올려 달라고 해주세요.')+'</div>';return;}
+  if(state.phase==='empty'){status.textContent='';results.innerHTML='<div class="lab-empty">아직 올라온 공임표가 없어요.</div>';return;}
   if(!state.query){
    const n=v=>Number(v||0).toLocaleString('ko-KR');
    status.textContent='공임코드 '+n(meta.count)+'건 · 사용 '+n(meta.used)+'건 · 금액 있는 코드 '+n(meta.priced)+'건';
@@ -233,40 +229,6 @@
   results.innerHTML='<div class="lab-row lab-row-head" aria-hidden="true"><div>작업코드</div><div>작업명</div><div>분류</div><div class="lab-num">공수</div><div class="lab-num">일반·보험</div><div class="lab-num">보증</div></div>'
    +res.items.slice(0,state.limit).map(x=>rowHtml(x.row,state.query)).join('');
   if(res.total>state.limit){more.hidden=false;more.textContent='더 보기 ('+state.limit+' / '+res.total.toLocaleString('ko-KR')+')';}
- }
- function upload(file){
-  if(!isAdmin()){notify('관리자만 공임표를 올릴 수 있어요',true);return;}
-  if(!root._loadXlsx){notify('엑셀 도구를 불러오지 못했어요',true);return;}
-  el('labStatus').textContent='엑셀 파일 읽는 중…';
-  root._loadXlsx(()=>{
-   const reader=new FileReader();
-   reader.onerror=()=>notify('파일을 읽지 못했어요',true);
-   reader.onload=async ev=>{
-    let parsed;
-    try{
-     const wb=root.XLSX.read(new Uint8Array(ev.target.result),{type:'array'}),sheets={};
-     wb.SheetNames.forEach(n=>{sheets[n]=root.XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:'',raw:false});});
-     parsed=parseWorkbook(sheets);
-    }catch(e){render();notify('공임표를 읽지 못했어요: '+e.message,true);return;}
-    const s=parsed.stats;
-    if(!confirm('공임코드 '+s.count.toLocaleString('ko-KR')+'건 (사용 '+s.used.toLocaleString('ko-KR')+'건, 금액 있는 코드 '+s.priced.toLocaleString('ko-KR')+'건)을 올릴까요?'+(parsed.duplicates?'\n중복 코드 '+parsed.duplicates+'건은 첫 줄만 남겨요.':'')+'\n지금 올라가 있는 공임표는 이 파일로 바뀌어요.')){render();return;}
-    const now=new Date().toISOString();
-    const meta={version:now,count:s.count,used:s.used,priced:s.priced,extractedAt:parsed.info['금액 추출 시각']||'',basis:parsed.info['금액 조회 기준']||'',sourceFile:file.name,sheet:parsed.sheet,uploadedAt:now,uploadedBy:root._userEmail||''};
-    const chunks=encode(parsed.rows);
-    try{
-     const m=await waitDb();
-     el('labStatus').textContent='저장 중…';
-     await m.set(root._fbRef(root._fbDb,'laborCodes'),{meta,chunks});
-     writeCache({version:meta.version,chunks});
-     state.meta=meta;state.index=buildIndex(parsed.rows);state.phase='ready';render();
-     notify('공임표 '+s.count.toLocaleString('ko-KR')+'건을 올렸어요');
-    }catch(e){
-     console.error('labor codes upload',e);render();
-     notify(/permission/i.test(String(e&&(e.code||e.message)||''))?'저장 권한이 없어요 (관리자 전용)':'저장하지 못했어요: '+e.message,true);
-    }
-   };
-   reader.readAsArrayBuffer(file);
-  });
  }
  // 견적도우미 탭에서 '견적검색'을 열 때 부른다 (app-workcodes-ui.js).
  root._laborSearchShow=function(){

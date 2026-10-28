@@ -7,7 +7,7 @@ const base={allowedEmails:{'admin@test':'admin','staff@test':'staff','rep@test':
 function check(node,path,email,after,readOnly=false){
  const current=structuredClone(base),next=after||structuredClone(base),rule=rules[node];
  const target=path?[node,path]:[node];
- const expr=readOnly?rule['.read']:(rule['.write']||rule.$id['.write']);
+ const expr=String(readOnly?rule['.read']:('.write' in rule?rule['.write']:rule.$id['.write']));
  const ctx={root:new Snap(current),data:new Snap(current,target),newData:new Snap(next,target),auth:email?{token:{email}}:null,now:Date.now(),$id:path};
  vm.createContext(ctx);vm.runInContext('String.prototype.beginsWith=String.prototype.startsWith',ctx);
  if(!vm.runInContext(expr,ctx))return false;
@@ -40,11 +40,11 @@ for(const key of ['salesDaily','monthlyDeposit','kgmDailyCount','monthlyTarget',
  assert(!check(key,null,'staff@test',null,true),key+' read');assert(check(key,null,'admin@test',null,true),key+' admin read');
  const next=structuredClone(base);next[key]={'2026-10-24':1};assert(!check(key,null,'staff@test',next),key+' write');assert(check(key,null,'admin@test',next),key+' admin write');
 }
-// 견적검색 공임표: 관리자·Staff 1단계만 읽고, 올리기는 관리자만.
+// 견적검색 공임표: 관리자·Staff 1단계만 읽고, 화면에서는 관리자도 못 바꾼다 (CLI 전용).
 assert(!check('laborCodes',null,null,null,true));assert(!check('laborCodes',null,'outsider@test',null,true));
 assert(!check('laborCodes',null,'rep@test',null,true),'viewer cannot read labor codes');assert(check('laborCodes',null,'staff@test',null,true));assert(check('laborCodes',null,'admin@test',null,true));
 const labor=structuredClone(base);labor.laborCodes={meta:{count:1},chunks:['0001\t작업']};
-assert(!check('laborCodes',null,'staff@test',labor),'staff cannot replace labor codes');assert(check('laborCodes',null,'admin@test',labor));
+assert(!check('laborCodes',null,'staff@test',labor),'staff cannot replace labor codes');assert(!check('laborCodes',null,'admin@test',labor),'admin cannot replace labor codes from the page');
 assert(!check('allowedEmails',null,'staff@test',null,true));assert(check('allowedEmails',null,'admin@test',null,true));
 assert(!check('leaveAccess',null,'rep@test',null,true));assert(check('leaveAccess',null,'admin@test',null,true));
 // 게시판: 본인 이름으로만 쓰고, 남의 글은 지우지 못한다 (관리자는 가능)
@@ -57,4 +57,4 @@ const checkFrom=(email,before,after)=>{const saved=structuredClone(base);Object.
 assert(!checkFrom('staff@test',withPost,removed),'cannot delete another person post');
 assert(checkFrom('rep@test',withPost,removed),'can delete own post');
 assert(checkFrom('admin@test',withPost,removed),'admin can delete any post');
-console.log('PASS: approved membership, admin data controls, approver roles/teams, atomic approval rules, usage protection, trash permissions, vendor visibility by location, admin-only contact writes, admin-only sales/claims data, staff+ labor codes with admin-only upload,private permission tables, own board posts');
+console.log('PASS: approved membership, admin data controls, approver roles/teams, atomic approval rules, usage protection, trash permissions, vendor visibility by location, admin-only contact writes, admin-only sales/claims data, staff+ read-only labor codes,private permission tables, own board posts');
