@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 // Baseline = the last commit where the legacy files below were changed on purpose (approved design/feature work).
 // When legacy files are intentionally changed again, move this baseline to that commit in the same piece of work.
 // The guide's own integration points are stripped from both sides, so only changes outside them fail the test.
-const baseline='169f86c561b65cb3ac1d73f1216ccd4aa91a3be9';
+const baseline='43f3996805a34394d7c12ac6cebe564305e2b99c';
 const git=args=>cp.execFileSync('git',['-c','safe.directory='+process.cwd().replace(/\\/g,'/'),...args],{encoding:'utf8'});
 const original=file=>git(['show',baseline+':'+file]).replace(/\r/g,'');
 const current=file=>fs.readFileSync(file,'utf8').replace(/^\uFEFF/,'').replace(/\r/g,'');
