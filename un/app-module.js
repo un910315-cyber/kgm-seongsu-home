@@ -4913,15 +4913,6 @@
     document.getElementById('mr-hours').value = '1';
     document.getElementById('mr-hours-group').style.display = 'none';
     window._onMrTypeChange();
-    var pos = myEmp.position || '\uc77c\ubc18';
-    var flowText = '';
-    if (pos === '\ub300\ud45c') flowText = '\ub300\ud45c\ub2d8 \uc2e0\uccad\uc740 \uc81c\ucd9c \uc989\uc2dc \uc2b9\uc778\ub429\ub2c8\ub2e4.';
-    else if (pos === '\uc784\uc6d0') flowText = '\uacb0\uc7ac \uc21c\uc11c: \ub300\ud45c (\uc784\uc6d0\uc740 \ubd80\uc11c\uc7a5\u00b7\uad00\ub9ac\uc790 \ub2e8\uacc4 \uc790\ub3d9 \ud328\uc2a4)';
-    else if (pos === '\ubd80\uc11c\uc7a5') flowText = '\uacb0\uc7ac \uc21c\uc11c: \uad00\ub9ac\uc790 \u2192 \ub300\ud45c (\ubd80\uc11c\uc7a5 \ub2e8\uacc4 \uc790\ub3d9 \ud328\uc2a4)';
-    else if (window._userRole === 'admin') flowText = '\uacb0\uc7ac \uc21c\uc11c: \ub300\ud45c (\uad00\ub9ac\uc790 \ub2e8\uacc4 \uc790\ub3d9 \ud328\uc2a4)' + (teamHasManager(myEmp.team)?', \ubd80\uc11c\uc7a5 \uba3c\uc800':'');
-    else if (!teamHasManager(myEmp.team)) flowText = '\uacb0\uc7ac \uc21c\uc11c: \uad00\ub9ac\uc790 \u2192 \ub300\ud45c (\uc18c\uc18d \ud300 \ubd80\uc11c\uc7a5 \ubbf8\ub4f1\ub85d, \ubd80\uc11c\uc7a5 \ub2e8\uacc4 \uc790\ub3d9 \ud328\uc2a4)';
-    else flowText = '\uacb0\uc7ac \uc21c\uc11c: ' + esc(myEmp.team || '\ud300') + ' \ubd80\uc11c\uc7a5 \u2192 \uad00\ub9ac\uc790 \u2192 \ub300\ud45c';
-    document.getElementById('myreq-flow-info').innerHTML = flowText;
     document.getElementById('myRequestModal').classList.add('open');
   };
   window._submitLeaveRequest = async function() {
