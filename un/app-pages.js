@@ -336,3 +336,10 @@
       }
     });
   })();
+
+  // ── 날짜 칸: 칸 어디를 눌러도 달력이 열리게 (CSS로 안 되는 브라우저 대비) ──
+  document.addEventListener('click', function(e) {
+    var el = e.target;
+    if (!el || el.tagName !== 'INPUT' || el.type !== 'date' || el.readOnly || el.disabled) return;
+    if (typeof el.showPicker === 'function') { try { el.showPicker(); } catch (err) {} }
+  });
