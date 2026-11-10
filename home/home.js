@@ -35,8 +35,8 @@
     copyBtn.addEventListener('click', function () {
       if (!navigator.clipboard) return;
       navigator.clipboard.writeText('서울 성동구 아차산로11가길 37 KGM성수서비스센터').then(function () {
-        copyBtn.textContent = '✅ 복사완료!';
-        setTimeout(function () { copyBtn.textContent = '📋 주소복사'; }, 2000);
+        copyBtn.textContent = '복사 완료';
+        setTimeout(function () { copyBtn.textContent = '주소 복사'; }, 2000);
       });
     });
   }

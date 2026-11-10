@@ -393,7 +393,7 @@ table { border-collapse: collapse; }
   }
 
   .k-heroImage {
-    object-position: 62% 50%;
+    object-position: 38% 50%;
   }
 
   .k-hero::after {
@@ -1738,3 +1738,82 @@ table { border-collapse: collapse; }
 .k-heroImage, .g-aboutImg img { position: absolute; inset: 0; width: 100%; height: 100%; }
 
 .g-guideBackdrop[hidden] { display: none; }
+
+/* 휴대폰: 차량 사진을 위에 따로 보여주고(차 전체·정면), 문구·상담 상자는 그 아래로 */
+@media (max-width: 767px) {
+  .k-hero {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 0;
+    padding-top: 44px;
+  }
+
+  .k-hero::after,
+  .g-heroShade {
+    display: none;
+  }
+
+  .k-hero .k-heroImage {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    object-position: 60% 50%;
+    -webkit-mask-image: linear-gradient(#000 75%, transparent);
+    mask-image: linear-gradient(#000 75%, transparent);
+  }
+
+  .k-hero .k-heroText {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    margin-top: -12px;
+    padding: 0 20px;
+  }
+
+  .k-hero .g-contact {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: auto;
+    margin: 28px 20px 40px;
+  }
+}
+
+/* 아이콘: 이모지 대신 금색 선 아이콘 (2026-11-10) */
+.g-aboutItemTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.g-aboutItemTitle .g-ico {
+  flex: none;
+  color: #c4a96c;
+}
+
+.g-mapTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(196, 169, 108, 0.14);
+  color: #c4a96c;
+}
+
+.g-serviceIcon {
+  border: 1px solid rgba(196, 169, 108, 0.35);
+  background: rgba(196, 169, 108, 0.08);
+  color: #c4a96c;
+  transition: background-color 0.4s, color 0.4s, border-color 0.4s;
+}
+
+.g-serviceCard:hover .g-serviceIcon {
+  border-color: #c4a96c;
+  background: #c4a96c;
+  color: #14121f;
+}
