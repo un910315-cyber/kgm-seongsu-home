@@ -49,9 +49,30 @@
 </script>
 <link rel="icon" href="https://www.kg-mobility.com/images/kgm-icon_32X32.png">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400;500;600;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="home/home.css?v=20261111b">
+<link rel="stylesheet" href="home/home.css?v=20261111c">
+<script>try{if(/[?&]intro=1/.test(location.search)||(!sessionStorage.getItem('kgmIntroSeen')&&!matchMedia('(prefers-reduced-motion: reduce)').matches))document.documentElement.classList.add('g-intro-on')}catch(e){}</script>
 </head>
 <body>
+<div class="g-intro" id="gIntro">
+<div class="g-introTools">
+<button type="button" class="g-introSound"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="g-introWave" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><span class="g-introSoundOff">소리 켜기</span><span class="g-introSoundOn">소리 재생 중</span></button>
+<button type="button" class="g-introSkip">건너뛰기</button>
+</div>
+<button type="button" class="g-introStart" hidden>▶ 소리와 함께 보기</button>
+<div class="g-introStage">
+<div class="g-introSearch">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+<span class="g-introQuery"></span><span class="g-introCaret"></span>
+</div>
+<div class="g-introDotWrap"><div class="g-introDot"></div></div>
+<div class="g-introBrand">
+<div class="g-introName">KGM 성수서비스센터</div>
+<div class="g-introRule"></div>
+<p class="g-introLine g-introLineGold">사고수리 전문</p>
+<p class="g-introLine">현대해상 외산차수리 협력업체</p>
+</div>
+</div>
+</div>
 <main class="k-page" id="top">
 <div class="k-rolling">
 <div class="k-rollingInner">
@@ -429,6 +450,6 @@
   </div>
 </div>
 
-<script src="home/home.js?v=20261110b"></script>
+<script src="home/home.js?v=20261111c"></script>
 </body>
 </html>

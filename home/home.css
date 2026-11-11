@@ -1875,3 +1875,283 @@ table { border-collapse: collapse; }
     font-size: 15px;
   }
 }
+
+/* 첫 방문 인트로 (검색창 → 금색 원 → 센터 이름) */
+.g-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 42%, #1d1930 0%, #0b0a12 70%);
+  color: #fff;
+  font-family: var(--font-kgm);
+  transition: opacity 0.7s ease;
+  /* 스크립트가 멈춰도 화면을 막지 않도록 */
+  animation: g-introFailsafe 0.01s 16s forwards;
+}
+
+html.g-intro-on .g-intro {
+  display: flex;
+}
+
+html.g-intro-lock body {
+  overflow: hidden;
+}
+
+.g-intro.is-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes g-introFailsafe {
+  to { visibility: hidden; opacity: 0; pointer-events: none; }
+}
+
+.g-introTools {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+}
+
+.g-introSkip,
+.g-introSound {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.g-introSound .g-introSoundOn,
+.g-introSound.is-on .g-introSoundOff,
+.g-introSound:not(.is-on) .g-introWave {
+  display: none;
+}
+
+.g-introSound.is-on .g-introSoundOn {
+  display: inline;
+}
+
+.g-introSound.is-on {
+  border-color: rgba(196, 169, 108, 0.6);
+  color: #c4a96c;
+}
+
+.g-introStart {
+  position: absolute;
+  z-index: 3;
+  padding: 16px 32px;
+  border: 1px solid #c4a96c;
+  border-radius: 999px;
+  background: rgba(196, 169, 108, 0.12);
+  color: #fff;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.g-introStart[hidden] {
+  display: none;
+}
+
+.g-introSkip:hover,
+.g-introSound:hover {
+  border-color: #c4a96c;
+  color: #c4a96c;
+}
+
+.g-introStage {
+  position: relative;
+  width: min(580px, calc(100vw - 40px));
+  height: 340px;
+}
+
+.g-introSearch {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 64px;
+  padding: 0 26px;
+  border-radius: 32px;
+  background: #fff;
+  color: #202124;
+  font-size: 20px;
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transform: translateY(-40%);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.g-introSearch svg {
+  flex: none;
+  color: #9aa0a6;
+}
+
+.g-intro.is-search .g-introSearch {
+  opacity: 1;
+  transform: translateY(-50%);
+}
+
+.g-intro.is-dot .g-introSearch {
+  opacity: 0;
+  transform: translateY(-120%) scale(0.96);
+}
+
+.g-introQuery {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.g-introCaret {
+  flex: none;
+  width: 2px;
+  height: 24px;
+  margin-left: -12px;
+  background: #4285f4;
+  animation: g-introBlink 1s steps(1) infinite;
+}
+
+@keyframes g-introBlink {
+  50% { opacity: 0; }
+}
+
+.g-introDotWrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.g-introDot {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f6e7bf 0%, #c4a96c 55%, #8c7445 100%);
+  box-shadow: 0 0 24px rgba(196, 169, 108, 0.6);
+  opacity: 0;
+  transform-origin: 50% 100%;
+}
+
+.g-intro.is-dot .g-introDot {
+  animation: g-introBounce 1.7s linear forwards;
+}
+
+/* 착지 시점(30%·66%·88%·100%)은 home.js sound.drop 의 '퐁' 소리 시점과 맞춰 둔다 */
+@keyframes g-introBounce {
+  0% { opacity: 1; transform: translate(-34vw, -62vh) rotate(-200deg); animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  30% { transform: translate(-24vw, 0) scale(1.3, 0.75); animation-timing-function: cubic-bezier(0, 0.55, 0.45, 1); }
+  50% { transform: translate(-16vw, -24vh) scale(1); animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  66% { transform: translate(-9vw, 0) scale(1.22, 0.8); animation-timing-function: cubic-bezier(0, 0.55, 0.45, 1); }
+  77% { transform: translate(-4.5vw, -11vh) scale(1); animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  88% { transform: translate(-1.5vw, 0) scale(1.14, 0.88); animation-timing-function: cubic-bezier(0, 0.55, 0.45, 1); }
+  94% { transform: translate(-0.4vw, -3vh) scale(1); animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  100% { opacity: 1; transform: translate(0, 0); }
+}
+
+.g-introDot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid #c4a96c;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.g-intro.is-brand .g-introDotWrap {
+  transform: translateY(-96px);
+}
+
+.g-intro.is-brand .g-introDot::after {
+  animation: g-introRing 1.4s ease-out;
+}
+
+@keyframes g-introRing {
+  0% { opacity: 0.9; transform: scale(1); }
+  100% { opacity: 0; transform: scale(7); }
+}
+
+.g-introBrand {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  transform: translateY(-34%);
+}
+
+.g-introName {
+  font-size: clamp(32px, 7vw, 54px);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.7s ease 0.15s, transform 0.7s ease 0.15s;
+}
+
+.g-introRule {
+  width: 0;
+  height: 1px;
+  margin: 18px auto;
+  background: #c4a96c;
+  transition: width 0.7s ease 0.45s;
+}
+
+.g-introLine {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: clamp(15px, 3.6vw, 19px);
+  line-height: 1.9;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s ease 0.75s, transform 0.6s ease 0.75s;
+}
+
+.g-introLineGold {
+  color: #c4a96c;
+  font-weight: 700;
+  letter-spacing: 2px;
+  transition-delay: 0.6s;
+}
+
+.g-intro.is-brand .g-introName,
+.g-intro.is-brand .g-introLine {
+  opacity: 1;
+  transform: none;
+}
+
+.g-intro.is-brand .g-introRule {
+  width: 64px;
+}
+
+@media (max-width: 767px) {
+  .g-introSearch {
+    gap: 10px;
+    height: 54px;
+    padding: 0 18px;
+    font-size: 16px;
+  }
+
+  .g-introCaret {
+    height: 20px;
+    margin-left: -8px;
+  }
+}
