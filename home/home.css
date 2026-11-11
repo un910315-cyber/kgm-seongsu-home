@@ -1511,6 +1511,7 @@ table { border-collapse: collapse; }
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  word-break: keep-all;
 }
 
 .g-guideTable thead tr {
@@ -1546,6 +1547,7 @@ table { border-collapse: collapse; }
 .g-guideTable td:nth-child(2) {
   color: #2f2c4d;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .g-guideNote {
