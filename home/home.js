@@ -102,9 +102,9 @@
         enable: function () {
           if (on || stopped || !setup()) return Promise.resolve(false);
           return ctx.resume().then(function () {
-            on = ctx.state === 'running';
+            on = !stopped && ctx.state === 'running';
             return on;
-          });
+          }).catch(function () { return false; });
         },
         // 키보드 한 타: 딸깍(고음 잡음) + 톡(저음). 질문마다 좌우 위치를 달리해 여기저기서 치는 느낌
         key: function (p, level) {
