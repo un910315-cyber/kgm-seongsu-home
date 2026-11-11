@@ -228,10 +228,12 @@
     soundBtn.addEventListener('click', function () {
       if (sound.isOn()) { sound.stop(); soundBtn.hidden = true; } else { turnOnSound(); }
     });
+    // 버튼 외 아무 곳이나 누르거나, 스크롤하거나, 키를 누르면 바로 홈페이지로
     intro.addEventListener('pointerdown', function (e) {
-      if (!e.target.closest('button')) turnOnSound();
+      if (!e.target.closest('button')) finish();
     });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') finish(); });
+    intro.addEventListener('wheel', finish, { passive: true });
+    document.addEventListener('keydown', finish);
 
     var gate = /[?&]sound=1/.test(location.search) && intro.querySelector('.g-introStart');
     if (gate) {
