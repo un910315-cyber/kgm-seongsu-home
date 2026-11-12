@@ -8,7 +8,7 @@
 // 배포 직후 이 페이지를 맡은 서비스워커가 옛 버전이면, 새 서비스워커로 바뀐 뒤 한 번만 새로고침한다.
 // (옛 서비스워커가 저장해 둔 옛 JS와 새 HTML이 섞이는 것을 막음. 버전당 한 번, 로그인 전 시점)
 (function(){
-  var PAGE_VERSION = 'v207-2026-11-11';
+  var PAGE_VERSION = 'v208-2026-11-12';
   if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) return;
   var key = 'kgm-sw-reloaded-' + PAGE_VERSION;
   try { if (sessionStorage.getItem(key)) return; } catch (e) { return; }
@@ -37,15 +37,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v207-2026-11-11">
-<link rel="stylesheet" href="ops-calendar.css?v=v207-2026-11-11">
-<script defer src="app-ops-calendar.js?v=v207-2026-11-11"></script>
-<link rel="stylesheet" href="design-refresh.css?v=v207-2026-11-11" media="screen">
-<link rel="stylesheet" href="labor-search.css?v=v207-2026-11-11" media="screen">
+<link rel="stylesheet" href="styles.css?v=v208-2026-11-12">
+<link rel="stylesheet" href="ops-calendar.css?v=v208-2026-11-12">
+<script defer src="app-ops-calendar.js?v=v208-2026-11-12"></script>
+<link rel="stylesheet" href="design-refresh.css?v=v208-2026-11-12" media="screen">
+<link rel="stylesheet" href="labor-search.css?v=v208-2026-11-12" media="screen">
 <style>body:not(.repair-guide-enabled) [data-repair-entry]{display:none!important}#repairGuideFrame{width:100%;min-height:750px;border:0;display:block;background:#f2f4f7}#page-repairguide .main{padding:16px}</style>
 <style>/* 로그인 하단 문구: 카드(backdrop-filter) 안에서는 fixed가 카드 기준이 되어 버튼과 겹치므로 카드 맨 아래에 둔다 */#loginScreen .login-foot{position:static!important;transform:none!important;justify-content:center;flex-wrap:wrap;gap:8px!important;margin-top:28px;white-space:nowrap}@media (max-width:480px){#loginScreen .login-foot>span:nth-child(4){display:none}#loginScreen .login-foot>span:nth-child(5){flex-basis:100%;text-align:center}}</style>
-<script src="repair-guide-config.js?v=v207-2026-11-11"></script>
-<script defer src="app-repair-guide.js?v=v207-2026-11-11"></script>
+<script src="repair-guide-config.js?v=v208-2026-11-12"></script>
+<script defer src="app-repair-guide.js?v=v208-2026-11-12"></script>
 </head>
 <body>
 
@@ -1019,11 +1019,11 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script src="app-safety.js?v=v207-2026-11-11"></script>
-<script src="leave-calculation.js?v=v207-2026-11-11"></script>
-<script type="module" src="app-module.js?v=v207-2026-11-11"></script>
+<script src="app-safety.js?v=v208-2026-11-12"></script>
+<script src="leave-calculation.js?v=v208-2026-11-12"></script>
+<script type="module" src="app-module.js?v=v208-2026-11-12"></script>
 
-<script defer src="app-pages.js?v=v207-2026-11-11"></script>
+<script defer src="app-pages.js?v=v208-2026-11-12"></script>
 
 <!-- XLSX + JSZip: 보험 미결 탭 첫 진입 시 지연 로드 -->
 <script>
@@ -1043,7 +1043,7 @@
   };
 })();
 </script>
-<script defer src="app-insurance.js?v=v207-2026-11-11"></script>
+<script defer src="app-insurance.js?v=v208-2026-11-12"></script>
 
 
 <div id="page-estimate" class="page">
@@ -1844,6 +1844,7 @@
         <input type="file" id="photoPicker" accept="image/*" multiple style="display:none" onchange="window._handlePhotoFiles(this.files)">
         <input type="file" id="photoCamera" accept="image/*" capture="environment" style="display:none" onchange="window._handlePhotoFiles(this.files)">
         <button class="btn btn-primary btn-sm" id="photoCaptureBtn" onclick="document.getElementById('photoCamera').click()" style="flex:1;min-width:120px;"> 촬영하기</button>
+        <button class="btn btn-primary btn-sm" id="photoBurstBtn" onclick="window._openCameraModal()" style="flex:1;min-width:120px;">연속 촬영</button>
         <button class="btn btn-ghost btn-sm" id="photoPickBtn" onclick="document.getElementById('photoPicker').click()" style="flex:1;min-width:120px;"> 파일 선택</button>
         <button class="btn btn-sm" id="photoShareAllBtn" onclick="window._shareAllPhotos()" style="flex:1;min-width:120px;background:#FEE500;color:#3C1E1E;border:1px solid #E0CC00;font-weight:700;"> 카톡으로 전체 보내기</button>
         <button class="btn btn-ghost btn-sm" id="photoDownloadAllBtn" onclick="window._downloadAllPhotos()" style="flex:1;min-width:120px;"> 전체 다운로드</button>
@@ -1869,28 +1870,47 @@
   <div id="lightboxCounter" style="position:absolute;bottom:18px;color:#aaa;font-size:13px;font-family:'JetBrains Mono',monospace;"></div>
 </div>
 
-<!-- 카메라 모달 (연속 촬영용 인-앱 카메라) -->
-<div id="cameraModal" style="display:none;position:fixed;inset:0;background:#000;z-index:710;flex-direction:column;">
-  <!-- 상단 바: 차량 정보 + 닫기 -->
-  <div style="position:absolute;top:0;left:0;right:0;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(180deg,rgba(0,0,0,0.7),transparent);z-index:2;">
-    <div id="camTitle" style="color:#fff;font-size:14px;font-weight:700;"></div>
-    <button onclick="window._closeCameraModal()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);width:38px;height:38px;border-radius:50%;font-size:16px;cursor:pointer;">×</button>
-  </div>
-
-  <!-- 카메라 미리보기 -->
-  <video id="camVideo" autoplay playsinline muted style="flex:1;width:100%;height:100%;object-fit:cover;background:#000;"></video>
-  <canvas id="camCanvas" style="display:none;"></canvas>
-  <div id="camError" style="display:none;position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);text-align:center;color:#fff;font-size:14px;padding:20px;line-height:1.6;"></div>
-
-  <!-- 하단 컨트롤 -->
-  <div style="position:absolute;bottom:0;left:0;right:0;padding:18px 16px 28px;background:linear-gradient(0deg,rgba(0,0,0,0.85),transparent);z-index:2;">
-    <!-- 찍은 사진 미리보기 스트립 -->
-    <div id="camPending" style="display:none;overflow-x:auto;white-space:nowrap;padding:0 4px 12px;-webkit-overflow-scrolling:touch;"></div>
-    <!-- 캡쳐 + 업로드 버튼 -->
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-      <div id="camCount" style="color:#fff;font-size:13px;min-width:60px;text-align:center;font-family:'JetBrains Mono',monospace;">0장</div>
-      <button id="camShutter" onclick="window._cameraCapture()" style="width:72px;height:72px;border-radius:50%;background:#fff;border:5px solid rgba(255,255,255,0.4);cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.5);font-size:0;" aria-label="촬영"></button>
-      <button id="camDone" onclick="window._cameraDone()" disabled style="background:var(--accent);color:#fff;border:none;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-width:80px;opacity:0.4;">업로드 0</button>
+<!-- 카메라 모달 (연속 촬영용 인-앱 카메라) — 버튼은 화면 위에 겹치지 않고 사진 영역 밖에 둔다 -->
+<style>
+#cameraModal .cam-shell{flex:1;min-width:0;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto;grid-template-areas:"top" "view" "pending" "ctrl";padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);color:#fff}
+#cameraModal .cam-top{grid-area:top;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px}
+#cameraModal .cam-title{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#cameraModal .cam-close{flex:none;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);width:38px;height:38px;border-radius:50%;font-size:16px;cursor:pointer}
+#cameraModal .cam-view{grid-area:view;position:relative;min-width:0;min-height:0;background:#000}
+#cameraModal .cam-view video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+#cameraModal .cam-error{position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);text-align:center;font-size:14px;padding:20px;line-height:1.6}
+#cameraModal .cam-pending{grid-area:pending;overflow-x:auto;white-space:nowrap;padding:8px 12px 0;-webkit-overflow-scrolling:touch}
+#cameraModal .cam-ctrl{grid-area:ctrl;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px 14px}
+#cameraModal .cam-count{font-size:13px;min-width:80px;text-align:center;font-family:'JetBrains Mono',monospace}
+#cameraModal .cam-shutter{flex:none;width:72px;height:72px;border-radius:50%;background:#fff;border:5px solid rgba(255,255,255,.4);cursor:pointer;font-size:0;transition:transform .08s}
+#cameraModal .cam-done{background:var(--accent);color:#fff;border:none;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;min-width:80px}
+@media (orientation:landscape) and (max-height:560px){
+  #cameraModal .cam-shell{grid-template-columns:auto minmax(0,1fr) 124px;grid-template-rows:auto minmax(0,1fr);grid-template-areas:"pending view top" "pending view ctrl"}
+  #cameraModal .cam-top{flex-direction:column-reverse;align-items:center;padding:8px 6px 0}
+  #cameraModal .cam-title{font-size:11px;white-space:normal;text-align:center;max-width:112px}
+  #cameraModal .cam-pending{overflow-x:hidden;overflow-y:auto;white-space:normal;padding:8px 0 8px 8px;width:72px}
+  #cameraModal .cam-pending>div{display:block!important;margin:0 0 6px!important}
+  #cameraModal .cam-ctrl{flex-direction:column;justify-content:space-evenly;padding:6px}
+  #cameraModal .cam-count{min-width:0}
+}
+</style>
+<div id="cameraModal" style="display:none;position:fixed;inset:0;background:#000;z-index:710;">
+  <div class="cam-shell">
+    <div class="cam-top">
+      <div id="camTitle" class="cam-title"></div>
+      <button class="cam-close" onclick="window._closeCameraModal()" aria-label="닫기">×</button>
+    </div>
+    <div class="cam-view">
+      <video id="camVideo" autoplay playsinline muted></video>
+      <canvas id="camCanvas" style="display:none;"></canvas>
+      <div id="camError" class="cam-error" style="display:none;"></div>
+    </div>
+    <!-- 찍은 사진 미리보기 -->
+    <div id="camPending" class="cam-pending" style="display:none;"></div>
+    <div class="cam-ctrl">
+      <div id="camCount" class="cam-count">0장</div>
+      <button id="camShutter" class="cam-shutter" onclick="window._cameraCapture()" aria-label="촬영"></button>
+      <button id="camDone" class="cam-done" onclick="window._cameraDone()" disabled style="opacity:0.4;">업로드 0</button>
     </div>
   </div>
 </div>
@@ -2550,10 +2570,10 @@
   </div>
 </div>
 
-<script src="work-codes-data.js?v=v207-2026-11-11"></script>
-<script defer src="app-maintenance.js?v=v207-2026-11-11"></script>
-<script defer src="app-features.js?v=v207-2026-11-11"></script>
-<script defer src="app-workcodes-ui.js?v=v207-2026-11-11"></script>
-<script defer src="app-labor-search.js?v=v207-2026-11-11"></script>
+<script src="work-codes-data.js?v=v208-2026-11-12"></script>
+<script defer src="app-maintenance.js?v=v208-2026-11-12"></script>
+<script defer src="app-features.js?v=v208-2026-11-12"></script>
+<script defer src="app-workcodes-ui.js?v=v208-2026-11-12"></script>
+<script defer src="app-labor-search.js?v=v208-2026-11-12"></script>
 </body>
 </html>

@@ -918,9 +918,11 @@ function eTst2(msg){
     var isAdmin = (window._userRole === 'admin');
     var capBtn = document.getElementById('photoCaptureBtn');
     var pickBtn = document.getElementById('photoPickBtn');
+    var burstBtn = document.getElementById('photoBurstBtn');
     var delBtn = document.getElementById('lightboxDeleteBtn');
     if (capBtn) capBtn.style.display = isAdmin ? '' : 'none';
     if (pickBtn) pickBtn.style.display = isAdmin ? '' : 'none';
+    if (burstBtn) burstBtn.style.display = isAdmin ? '' : 'none';
     if (delBtn) delBtn.style.display = isAdmin ? '' : 'none';
     window._renderPhotoGrid();
     document.getElementById('photoModal').classList.add('open');
