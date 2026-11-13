@@ -2267,7 +2267,7 @@
 
     const show = list.filter(r => {
       if (r.status === '출고' || r.status === '미수리 출고') return false;
-      const mq = !dq || (r.carNum||'').toLowerCase().includes(dq) || (r.name||'').toLowerCase().includes(dq) || (r.phone||'').includes(dq) || (r.repair||'').toLowerCase().includes(dq);
+      const mq = !dq || (r.carNum||'').toLowerCase().includes(dq) || (r.name||'').toLowerCase().includes(dq) || (r.phone||'').includes(dq) || (r.repair||'').toLowerCase().includes(dq) || (r.rent||'').toLowerCase().includes(dq);
       const ml = !dLoc || (r.location||'') === dLoc;
       const ms = !dSt || r.status === dSt;
       return mq && ml && ms;
@@ -2546,13 +2546,20 @@
   }
   window._renderDashboardOps = renderDashboardOps;
 
+  // 검색어가 렌트카 업체명과 맞은 줄에만, 렌트카 열이 없는 목록에서 업체명을 보여 준다
+  function rentMatchTag(rent, q) {
+    q = (q||'').trim();
+    if (!q || !rent || !String(rent).toLowerCase().includes(q)) return '';
+    return ' <span class="rent-match-tag">렌트 ' + esc(rent) + '</span>';
+  }
+
   // ---- LIST ----
   function renderList() {
     const trashBtn=document.getElementById('recordTrashBtn');if(trashBtn)trashBtn.style.display=window._userRole==='admin'?'':'none';
     const q = (document.getElementById('searchInput')?.value||'').toLowerCase();
     const fs = document.getElementById('filterStatus')?.value||'';
     let data = getList().filter(r => {
-      const m = !q || (r.carNum||'').toLowerCase().includes(q) || (r.name||'').toLowerCase().includes(q) || (r.phone||'').includes(q);
+      const m = !q || (r.carNum||'').toLowerCase().includes(q) || (r.name||'').toLowerCase().includes(q) || (r.phone||'').includes(q) || (r.rent||'').toLowerCase().includes(q);
       return m && (!fs || r.status===fs);
     }).sort(sortByInDateNewestRegistered);
 
@@ -2564,7 +2571,7 @@
     tbody.innerHTML = pg.pageData.map(r => `
       <tr class="${r.carType === '현대해상' ? 'hyundai-partner-row' : ''}">
         <td><span class="car-num" tabindex="0" role="button" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기">${esc(r.carNum)}</span>${r.carType === '현대해상' ? '<span class="hyundai-partner-badge">현대해상</span>' : ''}${blacklistTag(r.carNum)}</td>
-        <td>${esc(r.carModel)||'-'}</td>
+        <td>${esc(r.carModel)||'-'}${rentMatchTag(r.rent, q)}</td>
         <td>${phoneCell(r.phone)}</td>
         <td>${locationBadge(r.location, r.status)}</td>
         <td>${insBadge(r.insDaemul,'대물')}</td>
@@ -2591,7 +2598,7 @@
     const month = document.getElementById('filterOutMonth')?.value||'';
     let data = getList().filter(r => {
       if (r.status !== '출고') return false;
-      const mq = !q || (r.carNum||'').toLowerCase().includes(q) || (r.name||'').toLowerCase().includes(q);
+      const mq = !q || (r.carNum||'').toLowerCase().includes(q) || (r.name||'').toLowerCase().includes(q) || (r.rent||'').toLowerCase().includes(q);
       const mm = !month || (r.outDate||'').startsWith(month);
       return mq && mm;
     }).sort((a,b) => new Date(b.outDate) - new Date(a.outDate));
@@ -2605,7 +2612,7 @@
     tbody.innerHTML = pg.pageData.map(r => `
       <tr>
         <td><span class="car-num" tabindex="0" role="button" onclick="openDetailModal('${esc(r.id)}')" style="cursor:pointer;" title="클릭하여 상세보기"> ${esc(r.carNum)}</span>${blacklistTag(r.carNum)}</td>
-        <td>${esc(r.carModel)||'-'}</td>
+        <td>${esc(r.carModel)||'-'}${rentMatchTag(r.rent, q)}</td>
         <td>${phoneCell(r.phone)}</td>
         <td>${insBadge(r.insDaemul,'대물')}</td>
         <td>${insBadge(r.insJacha,'자차')}</td>

@@ -404,3 +404,6 @@
   }
 }
 @media print { #notif { display: none !important; } }
+
+/* 렌트카 업체로 검색했을 때 전체 목록·출고 목록 차종 옆에 붙는 업체명 */
+.rent-match-tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:5px;background:rgba(251,146,60,0.12);color:#fb923c;font-size:11px;font-weight:600;white-space:nowrap;}
