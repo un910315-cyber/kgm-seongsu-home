@@ -2272,6 +2272,7 @@
       const ms = !dSt || r.status === dSt;
       return mq && ml && ms;
     }).sort(sortByInDateNewestRegistered);
+    _setExcelRows('dashboard', show, dq, 'dashExcelBtn');
 
     const recentTbody = document.getElementById('recent-dashboard-tbody');
     if (recentTbody) {
@@ -2546,6 +2547,51 @@
   }
   window._renderDashboardOps = renderDashboardOps;
 
+  // ---- 엑셀 저장 (현황·입출고·출고완료) — 지금 화면에 검색·필터된 차량 전체(모든 쪽)를 저장. 관리자만 ----
+  const _excelRows = {};
+  function _setExcelRows(kind, rows, q, btnId) {
+    _excelRows[kind] = { rows: rows, q: (q||'').trim() };
+    const btn = document.getElementById(btnId);
+    if (btn) btn.style.display = window._userRole === 'admin' ? '' : 'none';
+  }
+  function _excelInsText(a, b) {
+    a = String(a||'').trim(); b = String(b||'').trim();
+    if (a && b) return a === b ? a : '대물 ' + a + ' / 자차 ' + b;
+    return a || b;
+  }
+  function _excelRowValues(r) {
+    const isOut = r.status === '출고' || r.status === '미수리 출고';
+    return [
+      r.carNum || '',
+      r.carModel || '',
+      _excelInsText(r.insDaemul, r.insJacha),
+      _excelInsText(r.daemulReceipt, r.jachaReceipt),
+      r.inDate || '',
+      r.outDate ? (isOut ? r.outDate : r.outDate + ' (예정)') : '',
+      r.rent || ''
+    ];
+  }
+  window._excelRowValues = _excelRowValues;
+  window._exportListExcel = function(kind) {
+    if (window._userRole !== 'admin') return;
+    const cur = _excelRows[kind];
+    if (!cur || !cur.rows.length) { showNotif('저장할 차량이 없습니다', true); return; }
+    if (!window._loadXlsx) { showNotif('엑셀 기능을 불러올 수 없습니다', true); return; }
+    window._loadXlsx(function() {
+      try {
+        const head = ['차량번호', '차종', '보험사', '보험사 접수번호', '입고일', '출고일', '렌트카'];
+        const ws = XLSX.utils.aoa_to_sheet([head].concat(cur.rows.map(_excelRowValues)));
+        ws['!cols'] = [{wch:14},{wch:16},{wch:22},{wch:26},{wch:12},{wch:18},{wch:16}];
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, '차량 목록');
+        const label = { dashboard: '현황목록', list: '입출고목록', out: '출고완료' }[kind] || '차량목록';
+        const qPart = cur.q ? '_' + cur.q.replace(/[\\/:*?"<>|\s]+/g, '') : '';
+        XLSX.writeFile(wb, label + qPart + '_' + window.KgmSafety.date() + '.xlsx');
+        showNotif('엑셀 저장: ' + cur.rows.length + '대');
+      } catch (e) { console.error(e); showNotif('엑셀 저장에 실패했습니다', true); }
+    });
+  };
+
   // 검색어가 렌트카 업체명과 맞은 줄에만, 렌트카 열이 없는 목록에서 업체명을 보여 준다
   function rentMatchTag(rent, q) {
     q = (q||'').trim();
@@ -2562,6 +2608,7 @@
       const m = !q || (r.carNum||'').toLowerCase().includes(q) || (r.name||'').toLowerCase().includes(q) || (r.phone||'').includes(q) || (r.rent||'').toLowerCase().includes(q);
       return m && (!fs || r.status===fs);
     }).sort(sortByInDateNewestRegistered);
+    _setExcelRows('list', data, q, 'listExcelBtn');
 
     const tbody = document.getElementById('list-tbody');
     const empty = document.getElementById('list-empty');
@@ -2602,6 +2649,7 @@
       const mm = !month || (r.outDate||'').startsWith(month);
       return mq && mm;
     }).sort((a,b) => new Date(b.outDate) - new Date(a.outDate));
+    _setExcelRows('out', data, q, 'outExcelBtn');
 
     const tbody = document.getElementById('out-tbody');
     const empty = document.getElementById('out-empty');

@@ -8,7 +8,7 @@
 // 배포 직후 이 페이지를 맡은 서비스워커가 옛 버전이면, 새 서비스워커로 바뀐 뒤 한 번만 새로고침한다.
 // (옛 서비스워커가 저장해 둔 옛 JS와 새 HTML이 섞이는 것을 막음. 버전당 한 번, 로그인 전 시점)
 (function(){
-  var PAGE_VERSION = 'v209-2026-11-13';
+  var PAGE_VERSION = 'v210-2026-11-13';
   if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) return;
   var key = 'kgm-sw-reloaded-' + PAGE_VERSION;
   try { if (sessionStorage.getItem(key)) return; } catch (e) { return; }
@@ -37,15 +37,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v209-2026-11-13">
-<link rel="stylesheet" href="ops-calendar.css?v=v209-2026-11-13">
-<script defer src="app-ops-calendar.js?v=v209-2026-11-13"></script>
-<link rel="stylesheet" href="design-refresh.css?v=v209-2026-11-13" media="screen">
-<link rel="stylesheet" href="labor-search.css?v=v209-2026-11-13" media="screen">
+<link rel="stylesheet" href="styles.css?v=v210-2026-11-13">
+<link rel="stylesheet" href="ops-calendar.css?v=v210-2026-11-13">
+<script defer src="app-ops-calendar.js?v=v210-2026-11-13"></script>
+<link rel="stylesheet" href="design-refresh.css?v=v210-2026-11-13" media="screen">
+<link rel="stylesheet" href="labor-search.css?v=v210-2026-11-13" media="screen">
 <style>body:not(.repair-guide-enabled) [data-repair-entry]{display:none!important}#repairGuideFrame{width:100%;min-height:750px;border:0;display:block;background:#f2f4f7}#page-repairguide .main{padding:16px}</style>
 <style>/* 로그인 하단 문구: 카드(backdrop-filter) 안에서는 fixed가 카드 기준이 되어 버튼과 겹치므로 카드 맨 아래에 둔다 */#loginScreen .login-foot{position:static!important;transform:none!important;justify-content:center;flex-wrap:wrap;gap:8px!important;margin-top:28px;white-space:nowrap}@media (max-width:480px){#loginScreen .login-foot>span:nth-child(4){display:none}#loginScreen .login-foot>span:nth-child(5){flex-basis:100%;text-align:center}}</style>
-<script src="repair-guide-config.js?v=v209-2026-11-13"></script>
-<script defer src="app-repair-guide.js?v=v209-2026-11-13"></script>
+<script src="repair-guide-config.js?v=v210-2026-11-13"></script>
+<script defer src="app-repair-guide.js?v=v210-2026-11-13"></script>
 </head>
 <body>
 
@@ -308,6 +308,7 @@
         <button id="dashOutToggleBtn" class="dash-out-toggle-btn" onclick="window._toggleDashOutSide()" title="이번주/다음주 출고 예정 사이드바 열기/닫기"> 출고일정</button>
         <button id="dashResToggleBtn" class="dash-out-toggle-btn" onclick="window._toggleDashResSide()" title="예약차 사이드바 열기/닫기"> 예약차</button>
         <input class="form-input" id="dashSearchInput" type="text" placeholder="차량번호 / 고객명 / 연락처 / 렌트카 검색" oninput="renderDashboard()" style="width:260px;padding:8px 12px;font-size:13px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);">
+        <button id="dashExcelBtn" class="btn btn-ghost" style="display:none" onclick="window._exportListExcel('dashboard')" title="지금 검색된 차량을 엑셀 파일로 저장">엑셀 저장</button>
         <select class="form-input" id="dashFilterLoc" onchange="renderDashboard()" style="width:100px;padding:8px 10px;font-size:13px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);">
           <option value="">전체 위치</option>
           <option value="1층">1층</option>
@@ -358,6 +359,7 @@
         <option value="출고">출고</option>
       </select>
       <button class="btn btn-primary" onclick="openModal()">+ 차량 등록</button>
+      <button id="listExcelBtn" class="btn btn-ghost" style="display:none" onclick="window._exportListExcel('list')" title="지금 검색된 차량을 엑셀 파일로 저장">엑셀 저장</button>
       <button id="recordTrashBtn" class="btn btn-ghost" style="display:none" onclick="window._openRecordTrash()">휴지통</button>
     </div>
     <div class="table-wrap">
@@ -391,6 +393,7 @@
     <div class="toolbar">
       <input class="search-box" type="text" id="searchOutInput" placeholder="차량번호, 고객명, 렌트카 검색" oninput="renderOut()">
       <input class="filter-select" type="month" id="filterOutMonth" onchange="renderOut()" style="padding:9px 12px;">
+      <button id="outExcelBtn" class="btn btn-ghost" style="display:none" onclick="window._exportListExcel('out')" title="지금 검색된 차량을 엑셀 파일로 저장">엑셀 저장</button>
       <button id="blacklistEntryBtn" class="btn btn-sm" style="display:none;background:rgba(232,68,42,0.12);color:#e8442a;border:1px solid rgba(232,68,42,0.35);padding:8px 12px;font-size:12px;font-weight:600;margin-left:auto;" onclick="switchPage('blacklist')" title="블랙 고객 관리 (관리자 전용)"> 블랙 관리</button>
     </div>
     <div class="table-wrap">
@@ -1019,11 +1022,11 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script src="app-safety.js?v=v209-2026-11-13"></script>
-<script src="leave-calculation.js?v=v209-2026-11-13"></script>
-<script type="module" src="app-module.js?v=v209-2026-11-13"></script>
+<script src="app-safety.js?v=v210-2026-11-13"></script>
+<script src="leave-calculation.js?v=v210-2026-11-13"></script>
+<script type="module" src="app-module.js?v=v210-2026-11-13"></script>
 
-<script defer src="app-pages.js?v=v209-2026-11-13"></script>
+<script defer src="app-pages.js?v=v210-2026-11-13"></script>
 
 <!-- XLSX + JSZip: 보험 미결 탭 첫 진입 시 지연 로드 -->
 <script>
@@ -1043,7 +1046,7 @@
   };
 })();
 </script>
-<script defer src="app-insurance.js?v=v209-2026-11-13"></script>
+<script defer src="app-insurance.js?v=v210-2026-11-13"></script>
 
 
 <div id="page-estimate" class="page">
@@ -2570,10 +2573,10 @@
   </div>
 </div>
 
-<script src="work-codes-data.js?v=v209-2026-11-13"></script>
-<script defer src="app-maintenance.js?v=v209-2026-11-13"></script>
-<script defer src="app-features.js?v=v209-2026-11-13"></script>
-<script defer src="app-workcodes-ui.js?v=v209-2026-11-13"></script>
-<script defer src="app-labor-search.js?v=v209-2026-11-13"></script>
+<script src="work-codes-data.js?v=v210-2026-11-13"></script>
+<script defer src="app-maintenance.js?v=v210-2026-11-13"></script>
+<script defer src="app-features.js?v=v210-2026-11-13"></script>
+<script defer src="app-workcodes-ui.js?v=v210-2026-11-13"></script>
+<script defer src="app-labor-search.js?v=v210-2026-11-13"></script>
 </body>
 </html>
