@@ -1861,17 +1861,17 @@
 </div>
 
 <!-- 사진 라이트박스 (전체화면 보기) -->
-<div id="photoLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:700;align-items:center;justify-content:center;flex-direction:column;">
-  <div style="position:absolute;top:14px;right:14px;display:flex;gap:8px;z-index:2;flex-wrap:wrap;justify-content:flex-end;">
+<div id="photoLightbox" onclick="if(event.target===this)window._closeLightbox()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:700;align-items:center;justify-content:center;flex-direction:column;">
+  <div style="position:absolute;top:calc(14px + env(safe-area-inset-top, 0px));right:calc(14px + env(safe-area-inset-right, 0px));left:calc(14px + env(safe-area-inset-left, 0px));display:flex;gap:8px;z-index:2;flex-wrap:wrap;justify-content:flex-end;">
     <button class="btn btn-sm" onclick="window._lightboxShare()" style="background:#FEE500;color:#3C1E1E;border:1px solid #E0CC00;font-weight:700;"> 카톡 보내기</button>
     <button class="btn btn-ghost btn-sm" onclick="window._lightboxDownload()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);"> 다운로드</button>
     <button class="btn btn-ghost btn-sm" id="lightboxDeleteBtn" onclick="window._lightboxDelete()" style="background:rgba(239,68,68,0.2);color:#fff;border:1px solid rgba(239,68,68,0.4);"> 삭제</button>
     <button class="btn btn-ghost btn-sm" onclick="window._closeLightbox()" style="background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);"> 닫기</button>
   </div>
-  <button onclick="window._lightboxNav(-1)" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer;">‹</button>
-  <button onclick="window._lightboxNav(1)" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer;">›</button>
+  <button onclick="window._lightboxNav(-1)" style="position:absolute;left:calc(14px + env(safe-area-inset-left, 0px));top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer;">‹</button>
+  <button onclick="window._lightboxNav(1)" style="position:absolute;right:calc(14px + env(safe-area-inset-right, 0px));top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);width:44px;height:44px;border-radius:50%;font-size:20px;cursor:pointer;">›</button>
   <img id="lightboxImg" style="max-width:92vw;max-height:80vh;object-fit:contain;border-radius:4px;" alt="">
-  <div id="lightboxCounter" style="position:absolute;bottom:18px;color:#aaa;font-size:13px;font-family:'JetBrains Mono',monospace;"></div>
+  <div id="lightboxCounter" style="position:absolute;bottom:calc(18px + env(safe-area-inset-bottom, 0px));color:#aaa;font-size:13px;font-family:'JetBrains Mono',monospace;"></div>
 </div>
 
 <!-- 카메라 모달 (연속 촬영용 인-앱 카메라) — 버튼은 화면 위에 겹치지 않고 사진 영역 밖에 둔다 -->
