@@ -913,6 +913,8 @@ function eTst2(msg){
     var r = getRecord();
     if (!r) return;
     if (_pendingShare && _pendingShare.kind === 'multi') _clearPendingShare();
+    _photoSelectMode = false;
+    _photoSelected = {};
     document.getElementById('photoModalTitle').textContent = ' ' + STAGE_LABEL[currentStage] + '사진 — ' + (r.carNum || '');
     document.getElementById('photoProgress').style.display = 'none';
     document.getElementById('photoProgress').textContent = '';
@@ -936,6 +938,12 @@ function eTst2(msg){
     if (!gridEl) return;
     var arr = getPhotoArr(currentStage);
     if (dlBtn) dlBtn.disabled = !arr.length;
+    // 지워진 사진은 선택에서도 뺀다
+    var alive = {};
+    arr.forEach(function(p){ if (p && p.url && _photoSelected[p.url]) alive[p.url] = true; });
+    _photoSelected = alive;
+    if (!arr.length) _photoSelectMode = false;
+    _updatePhotoShareUi();
     if (!arr.length) {
       gridEl.innerHTML = '';
       if (emptyEl) emptyEl.style.display = '';
@@ -943,10 +951,61 @@ function eTst2(msg){
     }
     if (emptyEl) emptyEl.style.display = 'none';
     gridEl.innerHTML = arr.map(function(p, idx){
-      return '<div class="photo-thumb" data-idx="'+idx+'" onclick="window._openLightbox('+idx+')" style="position:relative;aspect-ratio:1/1;background:var(--bg);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;">'
-        + '<img src="'+esc(p.url||'')+'" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;">'
+      var sel = _photoSelectMode && !!_photoSelected[p.url];
+      var mark = !_photoSelectMode ? '' :
+        '<div style="position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;line-height:1;'
+        + (sel ? 'background:#34c759;color:#fff;border:2px solid #fff;' : 'background:rgba(0,0,0,.35);color:transparent;border:2px solid #fff;')
+        + '">&#10003;</div>';
+      return '<div class="photo-thumb" data-idx="'+idx+'" onclick="window._photoThumbClick('+idx+')" style="position:relative;aspect-ratio:1/1;background:var(--bg);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;'
+        + (sel ? 'outline:3px solid #34c759;outline-offset:-3px;' : '') + '">'
+        + '<img src="'+esc(p.url||'')+'" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;'+(_photoSelectMode && !sel ? 'opacity:.75;' : '')+'">'
+        + mark
         + '</div>';
     }).join('');
+  };
+
+  // 골라서 보내기 — 사진을 눌러 고른 것만 카톡 공유
+  function _photoSelectedCount() { return Object.keys(_photoSelected).length; }
+  function _updatePhotoShareUi() {
+    var selBtn = document.getElementById('photoSelectBtn');
+    var shareBtn = document.getElementById('photoShareAllBtn');
+    var has = getPhotoArr(currentStage).length > 0;
+    var bar = document.getElementById('photoToolbar');
+    if (bar && bar.classList) bar.classList.toggle('photo-selecting', _photoSelectMode);
+    if (selBtn) {
+      selBtn.disabled = !has;
+      selBtn.textContent = _photoSelectMode ? '고르기 취소' : '골라서 보내기';
+    }
+    // 준비된 묶음이 있으면(초록 버튼) 그 글자를 건드리지 않는다
+    if (shareBtn && !(_pendingShare && _pendingShare.kind === 'multi')) {
+      shareBtn.textContent = _photoSelectMode
+        ? (_photoSelectedCount() ? ' 고른 ' + _photoSelectedCount() + '장 카톡으로 보내기' : ' 보낼 사진을 눌러 고르세요')
+        : ' 카톡으로 전체 보내기';
+    }
+  }
+  window._togglePhotoSelect = function() {
+    if (_pendingShare && _pendingShare.kind === 'multi') _clearPendingShare();
+    _photoSelVersion++;
+    _photoSelectMode = !_photoSelectMode;
+    _photoSelected = {};
+    var progEl = document.getElementById('photoProgress');
+    if (progEl) {
+      progEl.style.display = _photoSelectMode ? '' : 'none';
+      progEl.textContent = _photoSelectMode ? '보낼 사진을 눌러 고른 뒤 노란 버튼을 눌러주세요' : '';
+    }
+    window._renderPhotoGrid();
+  };
+  window._photoThumbClick = function(idx) {
+    if (!_photoSelectMode) { window._openLightbox(idx); return; }
+    var p = getPhotoArr(currentStage)[idx];
+    if (!p || !p.url) return;
+    // 고른 사진이 바뀌면 준비해 둔 묶음은 버린다
+    if (_pendingShare && _pendingShare.kind === 'multi') _clearPendingShare();
+    _photoSelVersion++;
+    if (_photoSelected[p.url]) delete _photoSelected[p.url]; else _photoSelected[p.url] = true;
+    var progEl = document.getElementById('photoProgress');
+    if (progEl) { progEl.style.display = ''; progEl.textContent = _photoSelectedCount() + '장 고름'; }
+    window._renderPhotoGrid();
   };
 
   // 전체 사진 공유 — 2단계 클릭 패턴 (iOS NotAllowedError 회피)
@@ -1000,16 +1059,21 @@ function eTst2(msg){
       } else {
         _clearPendingShare();
         if (progEl) progEl.style.display = 'none';
+        if (_photoSelectMode) { _photoSelectMode = false; _photoSelected = {}; window._renderPhotoGrid(); }
         showNotif('공유 완료', false);
       }
       return;
     }
     // 첫번째 클릭: 사진 준비
-    var arr = getPhotoArr(currentStage);
+    var arr = getPhotoArr(currentStage).map(function(ph, n){ return { url: ph.url, no: n + 1 }; });
     if (!arr.length) { showNotif('공유할 사진이 없습니다', true); return; }
+    if (_photoSelectMode) {
+      arr = arr.filter(function(x){ return !!_photoSelected[x.url]; });
+      if (!arr.length) { showNotif('보낼 사진을 먼저 눌러 골라주세요', true); return; }
+    }
     var r = getRecord();
     var carNum = (r && r.carNum) ? r.carNum : 'vehicle';
-    var prepRecordId = currentRecordId, prepStage = currentStage;
+    var prepRecordId = currentRecordId, prepStage = currentStage, prepSelVer = _photoSelVersion;
     progEl.style.display = '';
     if (btn) { btn.disabled = true; }
     var files = [];
@@ -1025,7 +1089,7 @@ function eTst2(msg){
         // 압축으로 용량 줄여서 공유 한도 회피
         var compressed = await _compressForShare(blob);
         totalBytes += compressed.size;
-        var fname = _safeFileName(carNum + '_' + currentStage + '_' + String(i+1).padStart(2,'0')) + '.jpg';
+        var fname = _safeFileName(carNum + '_' + currentStage + '_' + String(p.no).padStart(2,'0')) + '.jpg';
         files.push(new File([compressed], fname, { type: 'image/jpeg' }));
       } catch(e) {
         fetchFails++;
@@ -1073,6 +1137,13 @@ function eTst2(msg){
         if (btn) { btn.disabled = false; btn.textContent = origLabel || ' 카톡으로 전체 보내기'; btn.style.background = origBg || '#FEE500'; btn.style.color = origColor || '#3C1E1E'; }
       }
     };
+    // 준비하는 사이 고른 사진이 바뀌었으면 중단
+    if (prepSelVer !== _photoSelVersion) {
+      if (btn) btn.disabled = false;
+      progEl.textContent = '고른 사진이 바뀌었습니다 — 노란 버튼을 다시 눌러주세요';
+      _updatePhotoShareUi();
+      return;
+    }
     _pendingShare = pending;
     if (btn) {
       btn.disabled = false;
@@ -1436,7 +1507,10 @@ function eTst2(msg){
 
   // 공유 준비 캐시 (2단계 클릭 패턴 — iOS NotAllowedError 회피)
   var _pendingShare = null;  // single: { kind, files, title, text, ts, restoreBtn } / multi: { kind, batches, idx, busy, carNum, recordId, stage, ts, restoreBtn }
-  var SHARE_BATCH_SIZE = 10;            // 브라우저 Web Share 한도(한 번에 파일 10개)
+  var _photoSelectMode = false;         // 골라서 보내기 모드
+  var _photoSelected = {};              // 고른 사진 { url: true }
+  var _photoSelVersion = 0;             // 고르기 상태가 바뀔 때마다 증가 (준비 중 변경 감지)
+  var SHARE_BATCH_SIZE = 10;           // 브라우저 Web Share 한도(한 번에 파일 10개)
   var SHARE_MULTI_TTL = 5 * 60 * 1000;  // 묶음 사이 대기 허용 시간
 
   function _clearPendingShare() {

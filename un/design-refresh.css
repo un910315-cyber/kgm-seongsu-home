@@ -407,3 +407,7 @@
 
 /* 렌트카 업체로 검색했을 때 전체 목록·출고 목록 차종 옆에 붙는 업체명 */
 .rent-match-tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:5px;background:rgba(251,146,60,0.12);color:#fb923c;font-size:11px;font-weight:600;white-space:nowrap;}
+
+/* 사진 팝업 "골라서 보내기" — 고르는 동안에는 보내기·취소 버튼만 남기고 위에 붙여 둔다 */
+#photoToolbar.photo-selecting{position:sticky;top:-20px;z-index:3;background:#171e29;padding:20px 0 10px;margin:-20px 0 4px !important;}
+#photoToolbar.photo-selecting > button:not(#photoShareAllBtn):not(#photoSelectBtn){display:none !important;}
