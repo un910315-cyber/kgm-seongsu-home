@@ -912,6 +912,7 @@ function eTst2(msg){
     currentStage = stage || 'intake';
     var r = getRecord();
     if (!r) return;
+    if (_pendingShare && _pendingShare.kind === 'multi') _clearPendingShare();
     document.getElementById('photoModalTitle').textContent = ' ' + STAGE_LABEL[currentStage] + '사진 — ' + (r.carNum || '');
     document.getElementById('photoProgress').style.display = 'none';
     document.getElementById('photoProgress').textContent = '';
@@ -957,16 +958,49 @@ function eTst2(msg){
     var btn = document.getElementById('photoShareAllBtn');
     var origLabel = btn ? btn.textContent : '';
     var origBg = btn ? btn.style.background : '';
-    // 두번째 클릭: 준비된 파일 즉시 공유
-    if (_pendingShare && _pendingShare.kind === 'multi' && Date.now() - _pendingShare.ts < 60000) {
-      var p = _pendingShare;
+    var origColor = btn ? btn.style.color : '';
+    var progEl = document.getElementById('photoProgress');
+    // 다른 차량·단계의 준비분이 남아 있으면 버린다
+    if (_pendingShare && _pendingShare.kind === 'multi'
+        && (_pendingShare.recordId !== currentRecordId || _pendingShare.stage !== currentStage
+            || Date.now() - _pendingShare.ts >= SHARE_MULTI_TTL)) {
       _clearPendingShare();
+    }
+    // 두번째 클릭부터: 준비된 묶음을 하나씩 즉시 공유
+    // (브라우저는 한 번에 10장까지만 공유 허용 — 넘기면 NotAllowedError: Permission denied)
+    if (_pendingShare && _pendingShare.kind === 'multi') {
+      var p = _pendingShare;
+      if (p.busy) return;
+      var batch = p.batches[p.idx];
+      var n = p.batches.length;
+      p.busy = true;
       try {
-        await navigator.share({ files: p.files, title: p.title, text: p.text });
-        showNotif('공유 완료', false);
+        await navigator.share({
+          files: batch,
+          title: p.carNum + ' 입출고 사진 ' + batch.length + '장' + (n > 1 ? ' (' + (p.idx + 1) + '/' + n + ')' : ''),
+          text: p.carNum + ' (' + p.stage + ')'
+        });
       } catch (e) {
-        if (e.name === 'AbortError') return;
-        _showShareError('전체 공유 · 2단계', e);
+        p.busy = false;
+        p.ts = Date.now();
+        if (e.name === 'AbortError') return;   // 취소 — 같은 묶음을 다시 누를 수 있게 유지
+        if (_pendingShare === p) _clearPendingShare();
+        if (progEl) progEl.style.display = 'none';
+        _showShareError('전체 공유 · 2단계' + (n > 1 ? ' · ' + (p.idx + 1) + '/' + n + ' 묶음' : ''), e);
+        return;
+      }
+      p.busy = false;
+      p.ts = Date.now();
+      p.idx++;
+      if (_pendingShare !== p) return;
+      if (p.idx < n) {
+        var next = p.batches[p.idx];
+        if (btn) btn.textContent = ' ' + (p.idx + 1) + '/' + n + ' 묶음 보내기 (' + next.length + '장)';
+        if (progEl) { progEl.style.display = ''; progEl.textContent = p.idx + '/' + n + ' 묶음 보냄 — 초록 버튼을 눌러 다음 ' + next.length + '장을 보내주세요'; }
+      } else {
+        _clearPendingShare();
+        if (progEl) progEl.style.display = 'none';
+        showNotif('공유 완료', false);
       }
       return;
     }
@@ -975,7 +1009,7 @@ function eTst2(msg){
     if (!arr.length) { showNotif('공유할 사진이 없습니다', true); return; }
     var r = getRecord();
     var carNum = (r && r.carNum) ? r.carNum : 'vehicle';
-    var progEl = document.getElementById('photoProgress');
+    var prepRecordId = currentRecordId, prepStage = currentStage;
     progEl.style.display = '';
     if (btn) { btn.disabled = true; }
     var files = [];
@@ -1004,43 +1038,65 @@ function eTst2(msg){
       if (btn) { btn.disabled = false; btn.textContent = origLabel; btn.style.background = origBg; }
       return;
     }
-    if (navigator.canShare && !navigator.canShare({ files: files })) {
+    // 준비하는 사이 다른 차량·단계로 넘어갔으면 중단
+    if (prepRecordId !== currentRecordId || prepStage !== currentStage) {
+      if (btn) { btn.disabled = false; btn.textContent = origLabel; btn.style.background = origBg; }
+      return;
+    }
+    // 한 번에 10장까지만 공유되므로 10장씩 묶는다
+    var batches = [];
+    for (var bi = 0; bi < files.length; bi += SHARE_BATCH_SIZE) batches.push(files.slice(bi, bi + SHARE_BATCH_SIZE));
+    if (navigator.canShare && !navigator.canShare({ files: batches[0] })) {
       progEl.textContent = '[3] 이 기기는 다중 파일 공유 미지원 — 한 장씩 공유해주세요';
       setTimeout(function(){ progEl.style.display = 'none'; }, 4000);
       if (btn) { btn.disabled = false; btn.textContent = origLabel; btn.style.background = origBg; }
       return;
     }
     var totalMB = (totalBytes / 1024 / 1024).toFixed(1);
-    if (totalBytes > 40 * 1024 * 1024) {
-      progEl.textContent = '[size] 압축 후 총 ' + totalMB + 'MB — 너무 큼. 사진 수를 줄이거나 한 장씩 공유해주세요';
+    var maxBatchBytes = 0;
+    batches.forEach(function(b){
+      var s = b.reduce(function(a, f){ return a + f.size; }, 0);
+      if (s > maxBatchBytes) maxBatchBytes = s;
+    });
+    if (maxBatchBytes > 40 * 1024 * 1024) {
+      progEl.textContent = '[size] 압축 후 한 묶음이 ' + (maxBatchBytes / 1024 / 1024).toFixed(1) + 'MB — 너무 큼. 한 장씩 공유해주세요';
       setTimeout(function(){ progEl.style.display = 'none'; }, 5000);
       if (btn) { btn.disabled = false; btn.textContent = origLabel; btn.style.background = origBg; }
       return;
     }
     // 준비 완료 → 두번째 클릭 대기 (iOS Web Share는 신선한 user gesture 안에서만 호출 가능)
-    _pendingShare = {
-      kind: 'multi', files: files,
-      title: carNum + ' 입출고 사진 ' + files.length + '장',
-      text: carNum + ' (' + currentStage + ')',
+    var pending = {
+      kind: 'multi', batches: batches, idx: 0, busy: false,
+      carNum: carNum, recordId: prepRecordId, stage: prepStage,
       ts: Date.now(),
       restoreBtn: function() {
-        if (btn) { btn.disabled = false; btn.textContent = origLabel || ' 카톡으로 전체 보내기'; btn.style.background = origBg || '#FEE500'; }
+        if (btn) { btn.disabled = false; btn.textContent = origLabel || ' 카톡으로 전체 보내기'; btn.style.background = origBg || '#FEE500'; btn.style.color = origColor || '#3C1E1E'; }
       }
     };
+    _pendingShare = pending;
     if (btn) {
       btn.disabled = false;
-      btn.textContent = ' 한 번 더 눌러서 카톡으로 보내기';
+      btn.textContent = batches.length > 1
+        ? ' 1/' + batches.length + ' 묶음 보내기 (' + batches[0].length + '장)'
+        : ' 한 번 더 눌러서 카톡으로 보내기';
       btn.style.background = '#34c759';
       btn.style.color = '#fff';
     }
-    progEl.textContent = '준비 완료 (' + files.length + '장 · ' + totalMB + 'MB) — 위 초록 버튼을 한 번 더 눌러주세요';
-    // 60초 후 자동 복원
-    setTimeout(function() {
-      if (_pendingShare && _pendingShare.ts && Date.now() - _pendingShare.ts >= 60000) {
-        _clearPendingShare();
-        if (progEl) progEl.style.display = 'none';
-      }
-    }, 60000);
+    progEl.textContent = batches.length > 1
+      ? '준비 완료 (' + files.length + '장 · ' + totalMB + 'MB) — 한 번에 10장까지만 보낼 수 있어 ' + batches.length + '번에 나눠 보냅니다. 초록 버튼을 눌러주세요'
+      : '준비 완료 (' + files.length + '장 · ' + totalMB + 'MB) — 위 초록 버튼을 한 번 더 눌러주세요';
+    // 마지막 조작 후 일정 시간 지나면 자동 복원 (묶음 사이에는 카톡을 다녀오므로 넉넉히)
+    (function watch() {
+      setTimeout(function() {
+        if (_pendingShare !== pending) return;
+        if (!pending.busy && Date.now() - pending.ts >= SHARE_MULTI_TTL) {
+          _clearPendingShare();
+          if (progEl) progEl.style.display = 'none';
+        } else {
+          watch();
+        }
+      }, 30000);
+    })();
   };
 
   // JSZip을 필요 시점에 로드 (페이지 초기엔 로드 안 됨 → 사진 모달에서 바로 쓰려면 직접 로드)
@@ -1379,7 +1435,9 @@ function eTst2(msg){
   }
 
   // 공유 준비 캐시 (2단계 클릭 패턴 — iOS NotAllowedError 회피)
-  var _pendingShare = null;  // { kind:'single'|'multi', files, title, text, ts, restoreBtn }
+  var _pendingShare = null;  // single: { kind, files, title, text, ts, restoreBtn } / multi: { kind, batches, idx, busy, carNum, recordId, stage, ts, restoreBtn }
+  var SHARE_BATCH_SIZE = 10;            // 브라우저 Web Share 한도(한 번에 파일 10개)
+  var SHARE_MULTI_TTL = 5 * 60 * 1000;  // 묶음 사이 대기 허용 시간
 
   function _clearPendingShare() {
     if (_pendingShare && _pendingShare.restoreBtn) _pendingShare.restoreBtn();
