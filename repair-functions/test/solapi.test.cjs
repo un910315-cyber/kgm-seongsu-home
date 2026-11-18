@@ -15,3 +15,11 @@ test('deductible reports track delivery separately; template ID cannot be overri
  Object.assign(r,p.applyReport(r,event()));assert.equal(r.delivery,'delivered');assert.equal(r.response,'not_required');assert.equal(r.confirmation,null);
  assert.throws(()=>p.payload({...r,message:{...r.message,templateId:'unapproved'}},'01033883466'));
 });
+test('accident notice payload uses only its approved template and car number',()=>{
+ const snapshot={kind:'accident',vehicle:{carNum:'12가3456',carModel:'토레스',phone:'01000000000'}};
+ const r={...row(),kind:'accident',snapshot,response:'not_required',confirmation:null,message:message.build(snapshot)};
+ const request=p.payload(r,'01033883466'),m=request.messages[0];assert.equal(m.kakaoOptions.templateId,message.accidentTemplate.id);assert.equal(m.kakaoOptions.pfId,message.approvedTemplate.pfId);
+ assert.deepEqual(m.kakaoOptions.variables,{'#{차량번호}':'12가3456'});assert(m.text.startsWith('KGM 성수서비스센터입니다.'));assert(m.replacements[0].text.includes('12가3456 차량의 사고 접수가 완료되었습니다.'));
+ Object.assign(r,p.applyReport(r,event()));assert.equal(r.delivery,'delivered');assert.equal(r.confirmation,null);
+ assert.throws(()=>p.payload({...r,message:{...r.message,templateId:message.deductibleTemplate.id}},'01033883466'));
+});
