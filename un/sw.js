@@ -1,7 +1,7 @@
 // KGM 성수 내부 페이지 — Service Worker
 // /un/ 경로만 가로챔. un-v2/ 테스트 환경과 캐시 분리.
 
-const CACHE_VERSION = 'v212-2026-11-18';
+const CACHE_VERSION = 'v213-2026-11-25';
 const CACHE_NAME = `kgm-seongsu-un-${CACHE_VERSION}`;
 
 const APP_SHELL = [
@@ -20,6 +20,8 @@ const APP_SHELL = [
   './app-features.js',
   './app-workcodes-ui.js',
   './app-labor-search.js',
+  './app-biz-lookup.js',
+  './biz-lookup.css',
   './labor-search.css',
   './repair-guide-config.js',
   './app-repair-guide.js',

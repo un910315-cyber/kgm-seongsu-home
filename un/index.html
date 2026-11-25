@@ -8,7 +8,7 @@
 // 배포 직후 이 페이지를 맡은 서비스워커가 옛 버전이면, 새 서비스워커로 바뀐 뒤 한 번만 새로고침한다.
 // (옛 서비스워커가 저장해 둔 옛 JS와 새 HTML이 섞이는 것을 막음. 버전당 한 번, 로그인 전 시점)
 (function(){
-  var PAGE_VERSION = 'v212-2026-11-18';
+  var PAGE_VERSION = 'v213-2026-11-25';
   if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) return;
   var key = 'kgm-sw-reloaded-' + PAGE_VERSION;
   try { if (sessionStorage.getItem(key)) return; } catch (e) { return; }
@@ -37,15 +37,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=v212-2026-11-18">
-<link rel="stylesheet" href="ops-calendar.css?v=v212-2026-11-18">
-<script defer src="app-ops-calendar.js?v=v212-2026-11-18"></script>
-<link rel="stylesheet" href="design-refresh.css?v=v212-2026-11-18" media="screen">
-<link rel="stylesheet" href="labor-search.css?v=v212-2026-11-18" media="screen">
+<link rel="stylesheet" href="styles.css?v=v213-2026-11-25">
+<link rel="stylesheet" href="ops-calendar.css?v=v213-2026-11-25">
+<script defer src="app-ops-calendar.js?v=v213-2026-11-25"></script>
+<link rel="stylesheet" href="design-refresh.css?v=v213-2026-11-25" media="screen">
+<link rel="stylesheet" href="labor-search.css?v=v213-2026-11-25" media="screen">
+<link rel="stylesheet" href="biz-lookup.css?v=v213-2026-11-25" media="screen">
 <style>body:not(.repair-guide-enabled) [data-repair-entry]{display:none!important}#repairGuideFrame{width:100%;min-height:750px;border:0;display:block;background:#f2f4f7}#page-repairguide .main{padding:16px}</style>
 <style>/* 로그인 하단 문구: 카드(backdrop-filter) 안에서는 fixed가 카드 기준이 되어 버튼과 겹치므로 카드 맨 아래에 둔다 */#loginScreen .login-foot{position:static!important;transform:none!important;justify-content:center;flex-wrap:wrap;gap:8px!important;margin-top:28px;white-space:nowrap}@media (max-width:480px){#loginScreen .login-foot>span:nth-child(4){display:none}#loginScreen .login-foot>span:nth-child(5){flex-basis:100%;text-align:center}}</style>
-<script src="repair-guide-config.js?v=v212-2026-11-18"></script>
-<script defer src="app-repair-guide.js?v=v212-2026-11-18"></script>
+<script src="repair-guide-config.js?v=v213-2026-11-25"></script>
+<script defer src="app-repair-guide.js?v=v213-2026-11-25"></script>
 </head>
 <body>
 
@@ -98,6 +99,7 @@
   <div class="nav-tab" onclick="switchPage('board')" id="tab-board">공지 · 게시판</div>
   <div class="nav-tab" onclick="switchPage('sales')" id="tab-sales">매출 보고</div>
   <div class="nav-tab" onclick="switchPage('estimate')">견적 도우미</div>
+  <div class="nav-tab" onclick="switchPage('bizlookup')" id="tab-bizlookup" style="display:none">사업자 조회</div>
   <div class="nav-tab" data-repair-entry onclick="switchPage('repairguide')" style="display:none">입고 및 수리 안내</div>
   <div class="nav-tab" onclick="switchPage('insurance')" id="tab-insurance">보험사 연락처</div>
   <div class="nav-tab" onclick="switchPage('vendors')" id="tab-vendors">거래처 연락처</div>
@@ -1022,11 +1024,11 @@
 </div>
 
 <!-- FIREBASE SDK -->
-<script src="app-safety.js?v=v212-2026-11-18"></script>
-<script src="leave-calculation.js?v=v212-2026-11-18"></script>
-<script type="module" src="app-module.js?v=v212-2026-11-18"></script>
+<script src="app-safety.js?v=v213-2026-11-25"></script>
+<script src="leave-calculation.js?v=v213-2026-11-25"></script>
+<script type="module" src="app-module.js?v=v213-2026-11-25"></script>
 
-<script defer src="app-pages.js?v=v212-2026-11-18"></script>
+<script defer src="app-pages.js?v=v213-2026-11-25"></script>
 
 <!-- XLSX + JSZip: 보험 미결 탭 첫 진입 시 지연 로드 -->
 <script>
@@ -1046,9 +1048,14 @@
   };
 })();
 </script>
-<script defer src="app-insurance.js?v=v212-2026-11-18"></script>
+<script defer src="app-insurance.js?v=v213-2026-11-25"></script>
 
 
+<section id="page-bizlookup" class="page"><div class="main">
+  <h2 style="margin:0 0 12px;font-size:18px">사업자 조회</h2>
+  <div class="biz-form"><input id="bizInput" type="text" inputmode="numeric" autocomplete="off" placeholder="사업자등록번호 10자리" maxlength="12"><button type="button" class="btn btn-primary" id="bizBtn">조회</button></div>
+  <div id="bizResult"></div>
+</div></section>
 <div id="page-estimate" class="page">
 <div style="display:flex;justify-content:flex-end;padding:8px 12px 0;">
   <button type="button" class="btn btn-ghost btn-sm" onclick="window._openWorkCodeRef&&window._openWorkCodeRef()" style="display:inline-flex;align-items:center;gap:6px;">📚 작업코드 참고</button>
@@ -2574,10 +2581,11 @@
   </div>
 </div>
 
-<script src="work-codes-data.js?v=v212-2026-11-18"></script>
-<script defer src="app-maintenance.js?v=v212-2026-11-18"></script>
-<script defer src="app-features.js?v=v212-2026-11-18"></script>
-<script defer src="app-workcodes-ui.js?v=v212-2026-11-18"></script>
-<script defer src="app-labor-search.js?v=v212-2026-11-18"></script>
+<script src="work-codes-data.js?v=v213-2026-11-25"></script>
+<script defer src="app-maintenance.js?v=v213-2026-11-25"></script>
+<script defer src="app-features.js?v=v213-2026-11-25"></script>
+<script defer src="app-workcodes-ui.js?v=v213-2026-11-25"></script>
+<script defer src="app-labor-search.js?v=v213-2026-11-25"></script>
+<script defer src="app-biz-lookup.js?v=v213-2026-11-25"></script>
 </body>
 </html>

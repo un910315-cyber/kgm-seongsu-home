@@ -104,3 +104,24 @@ exports.kgmSolapiWebhook=onRequest({region:'asia-northeast3',memory:'256MiB',tim
  await db.collection('settings').doc('providerHealth').set({lastWebhookAt:Date.now(),lastEvent:eventName,lastMatched:matched},{merge:true});res.status(200).json({ok:true});
  }catch{res.status(503).json({error:'Retry report'});}
 });
+
+// 사업자 조회(국세청 상태조회). 기존 수리 안내 API와 분리된 함수. 키는 Secret Manager에만 둔다.
+const ntsKey=defineSecret('KGM_NTS_SERVICE_KEY');
+const biz=require('./bizlookup.cjs');
+async function bizUser(req){
+ let user;try{user=await getAuth().verifyIdToken(bearer(req));}catch{throw d.fail(401,'내부 페이지에서 다시 로그인해주세요.');}
+ if(!user.email||!user.email_verified)throw d.fail(403,'직원 계정 확인이 필요합니다.');
+ const role=(await require('firebase-admin/database').getDatabase().ref('allowedEmails/'+user.email.replace(/\./g,',')).get()).val();
+ if(role!=='admin'&&role!=='staff')throw d.fail(403,'접근 권한이 없습니다.');
+ return user;
+}
+exports.kgmBizLookup=onRequest({region:'asia-northeast3',memory:'256MiB',timeoutSeconds:30,minInstances:0,maxInstances:2,concurrency:5,serviceAccount:'kgm-repair-guide@unmotors.iam.gserviceaccount.com',secrets:[ntsKey],invoker:'public'},async(req,res)=>{
+ res.set('Cache-Control','no-store');res.set('X-Content-Type-Options','nosniff');res.set('Referrer-Policy','no-referrer');
+ const origin=req.headers.origin;if(origin){if(!['https://kgm-seongsu.co.kr','https://www.kgm-seongsu.co.kr'].includes(origin)){res.status(403).json({error:'허용되지 않은 접근입니다.'});return;}res.set('Access-Control-Allow-Origin',origin);res.set('Vary','Origin');res.set('Access-Control-Allow-Headers','Authorization, Content-Type');res.set('Access-Control-Allow-Methods','POST, OPTIONS');}
+ if(req.method==='OPTIONS'){res.status(204).end();return;}
+ try{
+  if(req.method!=='POST')throw d.fail(405,'조회 방식을 확인해주세요.');
+  await bizUser(req);
+  res.json(await biz.lookup(req.body&&req.body.bno,ntsKey.value()));
+ }catch(e){res.status(e.status||500).json({error:e.status?e.message:'조회 중 오류가 발생했습니다.'});}
+});

@@ -59,6 +59,7 @@
       if (name==='insurance' && window._renderInsurance) window._renderInsurance();
       if (name==='vendors' && window._renderVendors) window._renderVendors();
       if (name==='repairguide' && window._mountRepairGuide) window._mountRepairGuide();
+      if (name==='bizlookup' && window._mountBizLookup) window._mountBizLookup();
       if (name==='reservation' && window._renderReservationBoard) window._renderReservationBoard();
       if (name==='opscalendar' && window._renderOpsCalendar) window._renderOpsCalendar();
       if (name==='maintenance' && window._renderMaintenanceBoard) window._renderMaintenanceBoard();

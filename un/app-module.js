@@ -228,8 +228,8 @@
 
   // 역할��� 접근 가능 메뉴
   const ROLE_MENUS = {
-    admin: ['dashboard','list','status','complete','out','migyeol','leave','board','estimate','insurance','vendors','sales','reservation','opscalendar','usermgmt','repairguide'],
-    staff: ['status','complete','leave','board','estimate','insurance','vendors'],
+    admin: ['dashboard','list','status','complete','out','migyeol','leave','board','estimate','insurance','vendors','sales','reservation','opscalendar','usermgmt','repairguide','bizlookup'],
+    staff: ['status','complete','leave','board','estimate','insurance','vendors','bizlookup'],
     viewer: ['status','complete','leave','board','vendors']
   };
   window._requireRole=function(...roles){if(roles.includes(window._userRole)&&window._userEmail)return true;showNotif('접근 권한이 없습니다.',true);return false;};
@@ -1919,6 +1919,8 @@
       return Object.entries(records).map(([id,r])=>({id,carNum:r.carNum,carModel:r.carModel,name:r.name,inDate:r.inDate,outDate:r.outDate,status:r.status}));
     }
   };
+
+  window._getIdToken=async function(){if(!auth.currentUser||!['admin','staff'].includes(window._userRole))throw new Error('직원 로그인이 필요합니다.');return auth.currentUser.getIdToken();};
 
   // Isolated guide bridge: existing admissions/auth are reused without a new listener.
   window.KgmRepairBridge={
