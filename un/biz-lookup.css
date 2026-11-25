@@ -1,4 +1,4 @@
-#page-bizlookup .main{max-width:560px;margin:0 auto;padding:20px 16px}
+#page-bizlookup .main{max-width:560px;margin:0 auto;padding:clamp(48px,22vh,220px) 16px 20px}
 .biz-form{display:flex;gap:8px}
 .biz-form input{flex:1;min-width:0;height:44px;font-size:18px;letter-spacing:.04em;padding:0 12px}
 .biz-form button{height:44px;padding:0 18px}
