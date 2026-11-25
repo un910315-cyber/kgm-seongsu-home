@@ -23,3 +23,11 @@ test('accident notice payload uses only its approved template and car number',()
  Object.assign(r,p.applyReport(r,event()));assert.equal(r.delivery,'delivered');assert.equal(r.confirmation,null);
  assert.throws(()=>p.payload({...r,message:{...r.message,templateId:message.deductibleTemplate.id}},'01033883466'));
 });
+test('vat notice payload uses only its approved template, car number, model, supply amount and VAT',()=>{
+ const snapshot={kind:'vat',amount:1000000,vat:100000,vehicle:{carNum:'12가3456',carModel:'토레스',phone:'01000000000'}};
+ const r={...row(),kind:'vat',snapshot,response:'not_required',confirmation:null,message:message.build(snapshot)};
+ const request=p.payload(r,'01033883466'),m=request.messages[0];assert.equal(m.kakaoOptions.templateId,'KA01TP261124002618715TuwL0I9iwZo');assert.equal(m.kakaoOptions.pfId,message.approvedTemplate.pfId);
+ assert.deepEqual(m.kakaoOptions.variables,{'#{차량번호}':'12가3456','#{차종}':'토레스','#{공급가액}':'1,000,000','#{부가세}':'100,000'});
+ assert(m.text.includes('■ 수리비(공급가액): 1,000,000원\n■ 부가세: 100,000원'));assert(!m.text.includes('#{'));assert(m.replacements[0].text.includes('운영시간'));
+ assert.throws(()=>p.payload({...r,message:{...r.message,templateId:message.deductibleTemplate.id}},'01033883466'));
+});

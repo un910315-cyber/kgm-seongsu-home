@@ -105,6 +105,18 @@ test('connected staff and mobile customer UI complete a test send and confirmati
   await frame.locator('[data-tab="history"]').click();await frame.locator('#rg-history-kind').selectOption('accident');await frame.getByRole('button',{name:'보기',exact:true}).first().click();await frame.getByRole('heading',{name:/사고 접수 안내/}).waitFor();
   assert.doesNotMatch(await frame.locator('#rg-detail').innerText(),/자기부담금/);assert.equal(await frame.locator('#rg-open-link,#rg-cancel').count(),0);assert.match(await frame.locator('#rg-history-rows').innerText(),/사고 접수 안내/);
   await frame.locator('#rg-resend').click();await frame.getByText(accident.id,{exact:true}).waitFor();assert.equal([...documents.values()].filter(r=>r.kind==='accident').length,2);assert.deepEqual(errors,[]);
+  await frame.locator('[data-tab="send"]').click();await frame.locator('.staff-kind [data-kind="vat"]').click();
+  assert(await frame.locator('#rg-repair-fields').isHidden());assert(await frame.locator('#rg-vat-row').isVisible());assert(await frame.locator('#rg-message-button').isHidden());
+  const beforeVat=documents.size;await frame.locator('#rg-send').click();assert.match(await frame.locator('#staff-error').innerText(),/공급가액/);assert.equal(documents.size,beforeVat);
+  await frame.locator('#rg-amount').fill('1000000');assert.equal(await frame.locator('#rg-vat').inputValue(),'100,000');
+  assert.match(await frame.locator('#rg-message').innerText(),/수리비\(공급가액\): 1,000,000원/);assert.match(await frame.locator('#rg-message').innerText(),/부가세: 100,000원/);
+  await frame.locator('#rg-vat').fill('90909');assert.match(await frame.locator('#rg-message').innerText(),/부가세: 90,909원/);
+  await frame.locator('#rg-preview').click();assert.match(await frame.locator('#rg-preview-body').innerText(),/부가세 안내 미리보기/);assert.equal(documents.size,beforeVat);await frame.locator('#rg-preview-dialog > .rg-close').click();
+  await frame.locator('#rg-send').click();await frame.getByText('테스트 발송 기록을 저장했습니다.',{exact:true}).waitFor();assert.equal(await frame.locator('#rg-sent-open').count(),0);
+  const vatRow=[...documents.values()].find(r=>r.kind==='vat');assert.equal(vatRow.snapshot.amount,1000000);assert.equal(vatRow.snapshot.vat,90909);assert.equal(vatRow.message.text,await frame.locator('#rg-message').innerText());
+  for(const width of [390,844]){await page.setViewportSize({width,height:1000});assert(await frame.locator('body').evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'vat overflow '+width);}await page.setViewportSize({width:1366,height:1000});
+  await frame.locator('[data-tab="history"]').click();await frame.locator('#rg-history-kind').selectOption('vat');await frame.getByRole('button',{name:'보기',exact:true}).first().click();await frame.getByRole('heading',{name:/부가세 안내/}).waitFor();
+  assert.match(await frame.locator('#rg-detail').innerText(),/90,909원/);assert.equal(await frame.locator('#rg-open-link,#rg-cancel').count(),0);
   await frame.locator('[data-tab="send"]').click();await frame.locator('#rg-reset').click();assert.equal(await frame.locator('#rg-amount').inputValue(),'');await frame.locator('.staff-kind [data-kind="repair"]').click();assert(await frame.locator('#rg-upload').isVisible());assert(await frame.locator('#rg-amount').isHidden());
   liveUi=true;await page.reload();await frame.getByRole('button',{name:'알림톡 발송',exact:true}).waitFor();assert(await frame.locator('#rg-scenario').isHidden());assert.match(await frame.locator('#rg-mode-badge').innerText(),/실제 알림톡 발송/);assert.deepEqual(errors,[]);
  }finally{await browser.close();await new Promise(r=>server.close(r));}
@@ -174,4 +186,16 @@ test('accident notice uses its approved template, car number only, no files/link
  const originalFetch=global.fetch;let dispatches=0;
  global.fetch=async(url,options)=>{if(String(url).includes('/messages/v4/send-many/detail')){dispatches++;const request=JSON.parse(options.body),m=request.messages[0];assert.equal(m.kakaoOptions.templateId,'KA01TP261118050621649Ctkgu0sOpEX');assert.deepEqual(m.kakaoOptions.variables,{'#{차량번호}':admission.carNum});assert.equal(m.text,row.message.text);return {ok:true,json:async()=>({messageList:[{messageId:'ACCIDENT_LIVE'}],failedMessageList:[],groupInfo:{groupId:'ACCIDENT_GROUP'}})};}return originalFetch(url,options);};
  try{const live={...input,mode:'live',requestKey:'accident-live-0000001'};const results=await Promise.all([call('/api/staff/sends',{method:'POST',body:live}),call('/api/staff/sends',{method:'POST',body:live})]);assert(results.every(r=>r.code===200));assert.equal(dispatches,1);assert.equal(results[0].value.delivery,'requested');}finally{global.fetch=originalFetch;}
+});
+test('vat notice stores supply amount and VAT, no files/link/confirmation, and rejects bad input',async()=>{
+ const input={kind:'vat',mode:'test',admissionId:'admission-a',phone:'01000000000',amount:1000000,vat:100000,requestKey:'vat-request-0000001',scenario:'delivered',files:[]};
+ const r1=await call('/api/staff/sends',{method:'POST',body:input});assert.equal(r1.code,200);const row=r1.value;
+ assert.equal(row.kind,'vat');assert.equal(row.message.templateId,'KA01TP261124002618715TuwL0I9iwZo');assert.equal(row.snapshot.amount,1000000);assert.equal(row.snapshot.vat,100000);
+ assert.equal(row.message.variables['#{공급가액}'],'1,000,000');assert.equal(row.message.variables['#{부가세}'],'100,000');assert(!row.message.text.includes('#{'));
+ assert.equal(row.link,null);assert.equal(row.version,null);assert.equal(row.confirmation,null);assert.equal(row.response,'not_required');assert.equal(row.expires,null);assert.equal(row.snapshot.files.length,0);
+ assert.equal((await call('/api/staff/sends/'+row.id+'/cancel',{method:'POST'})).code,400);
+ for(const [key,patch] of [['a',{vat:undefined}],['b',{vat:0}],['c',{vat:'1.5'}],['d',{amount:0}],['e',{amount:undefined}],['f',{files:[{name:'a.pdf',type:'application/pdf',data:Buffer.from('%PDF-1.4').toString('base64')}]}]])assert.equal((await call('/api/staff/sends',{method:'POST',body:{...input,requestKey:'vat-bad-000000'+key,...patch}})).code,400,'vat bad '+key);
+ assert.equal((await call('/api/staff/sends',{method:'POST',token:'staff',body:{...input,requestKey:'vat-staff-0000001'}})).code,403);
+ const resend=(await call('/api/staff/sends',{method:'POST',body:{admissionId:input.admissionId,resendOf:row.id,requestKey:'vat-resend-0000001',scenario:'failed'}})).value;
+ assert.notEqual(resend.id,row.id);assert.equal(resend.kind,'vat');assert.deepEqual(resend.message,row.message);assert.equal(resend.snapshot.vat,100000);
 });

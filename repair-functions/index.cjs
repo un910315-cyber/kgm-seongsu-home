@@ -15,7 +15,7 @@ const sends=db.collection('sends'),reports=require('./reports.cjs')(db);
 const provider=()=>solapi.client({key:solapiKey.value(),secret:solapiSecret.value(),allowDispatch:config.liveEnabled});
 const config={mode:'live',liveEnabled:true,center:'KGM 성수서비스센터',centerPhone:'010-3388-3466'};
 const bearer=req=>String(req.headers.authorization||'').replace(/^Bearer /,'');
-const noLink=kind=>kind==='deductible'||kind==='accident';
+const noLink=kind=>kind==='deductible'||kind==='accident'||kind==='vat';
 const link=row=>noLink(row.kind)?null:'https://kgm-seongsu.co.kr/repair-guide/?id='+row.id+'#token='+d.tokenFor(row.id,key.value());
 const staffView=row=>{const {tokenHash,...result}=row;return {...result,link:link(row)};};
 async function existingRead(path,token){
@@ -40,7 +40,7 @@ async function send(input,user){
   const files=noLink(kind)?[]:d.prepareFiles(input.files),stored=[];
   for(const f of files){const path=d.hash(input.admissionId)+'/'+f.digest;try{await bucket.file(path).save(f.data,{resumable:false,preconditionOpts:{ifGenerationMatch:0},metadata:{contentType:f.type,cacheControl:'private, no-store'}});}catch(e){if(Number(e.code)!==412)throw e;}stored.push({id:d.hash(f.digest+f.name),name:f.name,type:f.type,path,size:f.data.length,digest:f.digest});}
   if(kind==='repair'){versionKey=d.hash(input.admissionId+':'+d.stable(stored));versionRef=db.collection('versions').doc(versionKey);}
-  snapshot={kind,center:config.center,centerPhone:config.centerPhone,vehicle:{id:input.admissionId,carNum:String(vehicle.carNum||''),carModel:String(vehicle.carModel||''),name:String(vehicle.name||''),phone:d.phone(input.phone),inDate:String(vehicle.inDate||'')},expectedDeliveryDate:kind==='repair'?(input.expectedDeliveryDate||''):'',notice:kind==='repair'?input.notice:'',files:stored,staffName:user.name,...(kind==='deductible'?{amount:d.amount(input.amount)}:{})};
+  snapshot={kind,center:config.center,centerPhone:config.centerPhone,vehicle:{id:input.admissionId,carNum:String(vehicle.carNum||''),carModel:String(vehicle.carModel||''),name:String(vehicle.name||''),phone:d.phone(input.phone),inDate:String(vehicle.inDate||'')},expectedDeliveryDate:kind==='repair'?(input.expectedDeliveryDate||''):'',notice:kind==='repair'?input.notice:'',files:stored,staffName:user.name,...(kind==='deductible'?{amount:d.amount(input.amount)}:kind==='vat'?{amount:d.amount(input.amount),vat:d.vat(input.vat)}:{})};
  }
  const outcome=await db.runTransaction(async tx=>{
   const existing=await tx.get(ref);if(existing.exists){if(existing.data().requestHash!==requestHash)throw d.fail(409,'이미 처리된 요청 번호입니다.');return {row:existing.data(),created:false};}
@@ -70,7 +70,7 @@ exports.kgmRepairApi=onRequest({region:'asia-northeast3',memory:'512MiB',timeout
   const parts=req.path.split('/').filter(Boolean);if(parts[0]!=='api')throw d.fail(404,'경로를 확인해주세요.');
   if(parts[1]==='staff'){
    const user=await staff(req),route=parts[2];
-   if(req.method==='GET'&&route==='provider'){if(user.role!=='admin')throw d.fail(403,'관리자만 확인할 수 있습니다.');if(req.query.kind&&!['repair','deductible','accident'].includes(req.query.kind))throw d.fail(400,'안내 종류를 확인해주세요.');res.json(await provider().readiness(req.query.kind));return;}
+   if(req.method==='GET'&&route==='provider'){if(user.role!=='admin')throw d.fail(403,'관리자만 확인할 수 있습니다.');if(req.query.kind&&!['repair','deductible','accident','vat'].includes(req.query.kind))throw d.fail(400,'안내 종류를 확인해주세요.');res.json(await provider().readiness(req.query.kind));return;}
    if(req.method==='GET'&&route==='config'){res.json(config);return;}
    if(route==='manuals'){
     if(req.method==='PUT'){if(user.role!=='admin')throw d.fail(403,'관리자만 수정할 수 있습니다.');const m=req.body;if(!['basic','insurance','parts'].includes(m.id)||typeof m.title!=='string'||!m.title.trim()||m.title.length>100||typeof m.body!=='string'||!m.body.trim()||m.body.length>6000)throw d.fail(400,'안내문을 확인해주세요.');await db.collection('manuals').doc(m.id).set({id:m.id,title:m.title,body:m.body});}
