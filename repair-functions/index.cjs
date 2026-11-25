@@ -111,8 +111,10 @@ const biz=require('./bizlookup.cjs');
 async function bizUser(req){
  let user;try{user=await getAuth().verifyIdToken(bearer(req));}catch{throw d.fail(401,'내부 페이지에서 다시 로그인해주세요.');}
  if(!user.email||!user.email_verified)throw d.fail(403,'직원 계정 확인이 필요합니다.');
- const role=(await require('firebase-admin/database').getDatabase().ref('allowedEmails/'+user.email.replace(/\./g,',')).get()).val();
- if(role!=='admin'&&role!=='staff')throw d.fail(403,'접근 권한이 없습니다.');
+ // 서비스 계정은 DB 인증이 거부돼 읽기가 멈추므로 사용자 본인 토큰으로 읽는다. laborCodes는 규칙상 admin·Staff 1단계만 읽을 수 있다(규칙을 바꾸면 이 판정도 확인).
+ const url=new URL('https://unmotors-default-rtdb.firebaseio.com/laborCodes.json');url.searchParams.set('auth',bearer(req));url.searchParams.set('shallow','true');
+ let ok=false;try{ok=(await fetch(url,{signal:AbortSignal.timeout(8000)})).ok;}catch{}
+ if(!ok)throw d.fail(403,'접근 권한이 없습니다.');
  return user;
 }
 exports.kgmBizLookup=onRequest({region:'asia-northeast3',memory:'256MiB',timeoutSeconds:30,minInstances:0,maxInstances:2,concurrency:5,serviceAccount:'kgm-repair-guide@unmotors.iam.gserviceaccount.com',secrets:[ntsKey],invoker:'public'},async(req,res)=>{
