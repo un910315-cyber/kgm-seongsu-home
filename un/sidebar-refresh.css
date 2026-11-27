@@ -1,0 +1,151 @@
+/* 사이드 메뉴 정리 (v216). 표시 전용 — 메뉴 id·onclick·권한 로직은 건드리지 않는다.
+   이 파일 링크만 빼면 이전 모양으로 돌아간다. 데스크톱(901px 이상)만 적용, 모바일은 기존 그대로. */
+@media screen and (min-width: 901px) {
+  :root body:has(:is(#page-dashboard, .page).active) {
+    --nv-ink: #e8edf5;
+    --nv-ink-2: #aab5c5;
+    --nv-ink-3: #7d8a9d;
+    --nv-line: #354258;
+    --nv-hover: rgba(255, 255, 255, .045);
+    --nv-active: #1c2535;
+    --nv-mark: #7f9cc4;
+  }
+
+  /* 목록 전체: 항목 사이 간격은 줄이고 한 줄 높이를 일정하게 */
+  :root body:has(:is(#page-dashboard, .page).active) .nav-tabs { gap: 2px !important; padding-top: 10px !important; }
+
+  :root body:has(:is(#page-dashboard, .page).active) .nav-tab {
+    position: relative;
+    min-height: 35px !important;
+    padding: 7px 12px 7px 14px !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--nv-ink-2) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    letter-spacing: -.1px;
+    transition: background-color .15s ease, color .15s ease;
+  }
+  :root body:has(:is(#page-dashboard, .page).active) .nav-tab:hover { background: var(--nv-hover) !important; color: var(--nv-ink) !important; }
+  :root body:has(:is(#page-dashboard, .page).active) .nav-tab:focus-visible { outline: 2px solid var(--nv-mark); outline-offset: -2px; }
+
+  /* 현재 위치: 배경 한 단계 + 왼쪽 가는 막대. 그라데이션·보라 제거 */
+  :root body:has(:is(#page-dashboard, .page).active) .nav-tab.active,
+  :root body:has(:is(#page-dashboard, .page).active) .nav-group.active > .nav-parent {
+    background: var(--nv-active) !important;
+    color: var(--nv-ink) !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+  }
+  :root body:has(:is(#page-dashboard, .page).active) .nav-tab.active::before,
+  :root body:has(:is(#page-dashboard, .page).active) .nav-group.active > .nav-parent::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 8px; bottom: 8px;
+    width: 3px;
+    border-radius: 2px;
+    background: var(--nv-mark);
+  }
+
+  /* 업무 묶음 사이 구분선 (역할에 따라 숨겨진 항목이 있어도 깨지지 않게 위쪽 선만 사용) */
+  :root body:has(:is(#page-dashboard, .page).active) #tab-migyeol,
+  :root body:has(:is(#page-dashboard, .page).active) .nav-tab[onclick*="'estimate'"],
+  :root body:has(:is(#page-dashboard, .page).active) #tab-insurance,
+  :root body:has(:is(#page-dashboard, .page).active) #tab-usermgmt { margin-top: 8px !important; }
+  :root body:has(:is(#page-dashboard, .page).active) #tab-migyeol::after,
+  :root body:has(:is(#page-dashboard, .page).active) .nav-tab[onclick*="'estimate'"]::after,
+  :root body:has(:is(#page-dashboard, .page).active) #tab-insurance::after,
+  :root body:has(:is(#page-dashboard, .page).active) #tab-usermgmt::after {
+    content: "";
+    position: absolute;
+    left: 14px; right: 12px; top: -5px;
+    height: 1px;
+    background: var(--nv-line);
+  }
+
+  /* 입출고 묶음: 화살표는 글자(▾▸) 대신 선으로 그린 쉐브론이 돌아가게 */
+  :root body:has(:is(#page-dashboard, .page).active) .nav-parent { cursor: pointer; user-select: none; }
+  :root body:has(:is(#page-dashboard, .page).active) .nav-parent::after,
+  :root body:has(:is(#page-dashboard, .page).active) .nav-group:not(.nav-group-open) .nav-parent::after {
+    content: "" !important;
+    float: none !important;
+    position: absolute;
+    right: 14px; top: 50%;
+    width: 6px; height: 6px;
+    margin-top: -5px;
+    border-right: 1.5px solid var(--nv-ink-3);
+    border-bottom: 1.5px solid var(--nv-ink-3);
+    background: none !important;
+    transform: rotate(-45deg);
+    transition: transform .22s ease, border-color .15s ease;
+  }
+  :root body:has(:is(#page-dashboard, .page).active) .nav-group.nav-group-open > .nav-parent::after { transform: rotate(45deg); margin-top: -7px; }
+  :root body:has(:is(#page-dashboard, .page).active) .nav-parent:hover::after { border-color: var(--nv-ink); }
+
+  /* 접힘 상태: 기존 규칙이 항상 열린 채로 고정(max-height 150px !important)해서 눌러도 안 접혔다 */
+  :root body:has(:is(#page-dashboard, .page).active) .nav-group:not(.nav-group-open) .nav-subtabs {
+    max-height: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none;
+    visibility: hidden;
+    transition: max-height .24s ease, opacity .16s ease, margin .2s ease, visibility 0s linear .24s !important;
+  }
+  :root body:has(:is(#page-dashboard, .page).active) .nav-group.nav-group-open .nav-subtabs {
+    visibility: visible;
+    opacity: 1 !important;
+    transition: max-height .26s ease, opacity .2s ease .04s, margin .2s ease !important;
+  }
+
+  /* 하위 메뉴: 6개가 다 보이게 높이를 넉넉히(전엔 190px에서 잘림), 연속된 가는 세로선 하나 */
+  :root body:has(:is(#page-dashboard, .page).active) .nav-subtabs {
+    gap: 1px !important;
+    margin: 0 0 0 20px !important;
+    padding: 0 0 0 0 !important;
+    border-left: 1px solid var(--nv-line) !important;
+    transform: none !important;
+  }
+  :root body:has(:is(#page-dashboard, .page).active) .nav-group.nav-group-open .nav-subtabs {
+    max-height: 320px !important;
+    margin-top: 2px !important;
+    margin-bottom: 4px !important;
+    border-left-color: var(--nv-line) !important;
+    transform: none !important;
+  }
+  :root body:has(:is(#page-dashboard, .page).active) .nav-subtab {
+    min-height: 30px !important;
+    padding: 5px 10px 5px 16px !important;
+    font-size: 12.5px !important;
+    color: var(--nv-ink-3) !important;
+    border-radius: 0 6px 6px 0 !important;
+  }
+  :root body:has(:is(#page-dashboard, .page).active) .nav-subtab::before { display: none !important; }
+  :root body:has(:is(#page-dashboard, .page).active) .nav-subtab:hover { color: var(--nv-ink) !important; }
+  :root body:has(:is(#page-dashboard, .page).active) .nav-subtab.active {
+    background: var(--nv-active) !important;
+    color: var(--nv-ink) !important;
+    font-weight: 600 !important;
+  }
+  /* 하위 메뉴가 선택됐을 때 막대는 세로선 위에 겹쳐서 표시 */
+  :root body:has(:is(#page-dashboard, .page).active) .nav-subtab.active::before {
+    display: block !important;
+    content: "";
+    position: absolute;
+    left: -1px; top: 6px; bottom: 6px;
+    width: 2px;
+    background: var(--nv-mark);
+  }
+  /* 입출고 묶음 안에서 하위가 선택되면 부모는 배경 없이 글자만 밝게 (한 번에 두 곳이 칠해지지 않게) */
+  :root body:has(:is(#page-dashboard, .page).active) .nav-group.active > .nav-parent { background: transparent !important; }
+  :root body:has(:is(#page-dashboard, .page).active) .nav-group.active > .nav-parent::before { display: none !important; }
+  :root body:has(:is(#page-dashboard, .page).active) .nav-group.active > .nav-parent { color: var(--nv-ink) !important; font-weight: 600 !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root body:has(:is(#page-dashboard, .page).active) .nav-subtabs,
+  :root body:has(:is(#page-dashboard, .page).active) .nav-parent::after,
+  :root body:has(:is(#page-dashboard, .page).active) .nav-tab { transition: none !important; }
+}
